@@ -58,3 +58,26 @@ class PurchaseOrderRead(BaseModel):
     status: POStatus
     created_at: datetime
     lines: List[PurchaseOrderLineRead]
+
+
+class PurchaseOrderTracking(BaseModel):
+    """Consolidated PO tracking summary combining procurement, material receipt, and QC."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    po_number: str
+    status: POStatus
+    material_receipt_status: Optional[str] = None
+    qc_accepted_quantity: Optional[int] = 0
+    qc_rejected_quantity: Optional[int] = 0
+
+
+class PurchaseOrderUpdate(BaseModel):
+    """Schema for updating a purchase order (DRAFT only)."""
+
+    vendor_id: Optional[int] = Field(None, gt=0, description="Vendor ID")
+    lines: Optional[List[PurchaseOrderLineCreate]] = Field(
+        None,
+        description="Optional list of purchase order lines to replace existing lines"
+    )

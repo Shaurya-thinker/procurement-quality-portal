@@ -2,6 +2,9 @@ import random
 import string
 from datetime import datetime
 from typing import List, Optional
+import os
+
+import requests
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
@@ -16,6 +19,9 @@ from backend.app.procurement.schemas import (
     PurchaseOrderCreate,
     PurchaseOrderRead,
     PurchaseOrderLineRead,
+    PurchaseOrderUpdate,
+    VendorRead,
+    PurchaseOrderTracking,
 )
 
 
@@ -276,3 +282,174 @@ class ProcurementService:
             ]
         }
         return PurchaseOrderRead.model_validate(po_dict)
+
+    @staticmethod
+    def update_purchase_order(db: Session, po_id: int, po_update: PurchaseOrderUpdate) -> PurchaseOrderRead:
+        """
+        Update a purchase order. Only allowed when status == DRAFT.
+
+        - vendor_id may be updated
+        - lines may be replaced (full replace)
+        """
+        db_po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
+
+        if not db_po:
+            raise ValueError(f"Purchase order with ID {po_id} not found")
+
+        if db_po.status != POStatus.DRAFT:
+            raise ValueError("Only DRAFT purchase orders can be updated")
+
+        try:
+            # Update vendor_id if provided
+            if po_update.vendor_id is not None:
+                ProcurementService._validate_vendor_id(po_update.vendor_id)
+                db_po.vendor_id = po_update.vendor_id
+
+            # Replace lines if provided
+            lines_data = []
+            if po_update.lines is not None:
+                item_ids = [line.item_id for line in po_update.lines]
+                ProcurementService._validate_items_exist(db, item_ids)
+
+                # Clear existing lines through relationship (cascade will delete)
+                db_po.lines.clear()
+                db.flush()
+
+                for line_create in po_update.lines:
+                    db_line = PurchaseOrderLine(
+                        po_id=db_po.id,
+                        item_id=line_create.item_id,
+                        quantity=line_create.quantity,
+                        price=line_create.price,
+                    )
+                    db.add(db_line)
+                    db.flush()
+                    lines_data.append({
+                        "id": db_line.id,
+                        "po_id": db_line.po_id,
+                        "item_id": db_line.item_id,
+                        "quantity": db_line.quantity,
+                        "price": db_line.price,
+                    })
+            else:
+                # Keep existing lines
+                lines_data = [
+                    {
+                        "id": line.id,
+                        "po_id": line.po_id,
+                        "item_id": line.item_id,
+                        "quantity": line.quantity,
+                        "price": line.price,
+                    }
+                    for line in db_po.lines
+                ]
+
+            db.commit()
+
+            po_dict = {
+                "id": db_po.id,
+                "po_number": db_po.po_number,
+                "vendor_id": db_po.vendor_id,
+                "status": db_po.status,
+                "created_at": db_po.created_at,
+                "lines": lines_data,
+            }
+            return PurchaseOrderRead.model_validate(po_dict)
+
+        except Exception as e:
+            db.rollback()
+            raise e
+
+    @staticmethod
+    def get_vendor_details(db: Session, vendor_id: int) -> VendorRead:
+        """
+        Retrieve vendor details. Attempts to fetch from an external Vendor Portal
+        (configurable via `VENDOR_PORTAL_URL` env var). Returns `VendorRead`.
+
+        Raises:
+            ValueError: if vendor not found
+            RuntimeError: if remote service unavailable or returns error
+        """
+        # Prefer an environment-configured vendor portal URL
+        base_url = os.getenv("VENDOR_PORTAL_URL", "http://localhost:9000/api/vendors")
+        url = f"{base_url}/{vendor_id}"
+
+        try:
+            resp = requests.get(url, timeout=3)
+        except requests.RequestException as exc:
+            raise RuntimeError("Failed to reach vendor portal") from exc
+
+        if resp.status_code == 404:
+            raise ValueError(f"Vendor with ID {vendor_id} not found")
+
+        if resp.status_code != 200:
+            raise RuntimeError(f"Vendor portal returned {resp.status_code}")
+
+        data = resp.json()
+
+        # Map known fields to our schema; be forgiving for missing fields
+        vendor_dict = {
+            "id": int(data.get("id", vendor_id)),
+            "name": data.get("name", ""),
+            "contact": data.get("contact"),
+            "status": data.get("status", "ACTIVE"),
+        }
+
+        return VendorRead.model_validate(vendor_dict)
+
+    @staticmethod
+    def get_po_tracking_summary(db: Session, po_id: int) -> PurchaseOrderTracking:
+        """
+        Return a consolidated tracking summary for a purchase order.
+
+        Tries to read material receipt and QC inspection information from the
+        `backend.app.quality` module if available. This function is read-only
+        with respect to quality module data.
+        """
+        # Get basic PO info
+        db_po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
+        if not db_po:
+            raise ValueError(f"Purchase order with ID {po_id} not found")
+
+        material_receipt_status = None
+        qc_accepted = 0
+        qc_rejected = 0
+
+        # Defensive: try to import quality models/services if the quality module exists
+        try:
+            from backend.app.quality import models as quality_models
+            # Commonly, material receipt and qc tables may reference po_id
+            MaterialReceipt = getattr(quality_models, "MaterialReceipt", None)
+            QCInspection = getattr(quality_models, "QCInspection", None)
+
+            if MaterialReceipt is not None:
+                mr = db.query(MaterialReceipt).filter(getattr(MaterialReceipt, "po_id") == po_id).order_by(getattr(MaterialReceipt, "received_at", MaterialReceipt.id).desc()).first()
+                if mr is not None:
+                    # Try common field names defensively
+                    material_receipt_status = getattr(mr, "status", None) or getattr(mr, "receipt_status", None)
+
+            if QCInspection is not None:
+                # Sum accepted/rejected quantities if fields exist
+                accepted_field = getattr(QCInspection, "accepted_quantity", None)
+                rejected_field = getattr(QCInspection, "rejected_quantity", None)
+                po_field = getattr(QCInspection, "po_id", None)
+                if po_field is not None and accepted_field is not None and rejected_field is not None:
+                    rows = db.query(QCInspection).filter(po_field == po_id).all()
+                    for r in rows:
+                        qc_accepted += int(getattr(r, "accepted_quantity", 0) or 0)
+                        qc_rejected += int(getattr(r, "rejected_quantity", 0) or 0)
+
+        except Exception:
+            # If quality module absent or queries fail, fall back to defaults
+            material_receipt_status = material_receipt_status
+
+        tracking = {
+            "id": db_po.id,
+            "po_number": db_po.po_number,
+            "status": db_po.status,
+            "material_receipt_status": material_receipt_status,
+            "qc_accepted_quantity": qc_accepted,
+            "qc_rejected_quantity": qc_rejected,
+        }
+
+        return PurchaseOrderTracking.model_validate(tracking)

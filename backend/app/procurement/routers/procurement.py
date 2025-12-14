@@ -6,8 +6,11 @@ from sqlalchemy.orm import Session
 from backend.app.procurement.schemas import (
     PurchaseOrderCreate,
     PurchaseOrderRead,
+    PurchaseOrderUpdate,
     POStatus,
 )
+from backend.app.procurement.schemas import VendorRead
+from backend.app.procurement.schemas import PurchaseOrderTracking
 from backend.app.procurement.services import ProcurementService
 
 
@@ -184,3 +187,81 @@ def send_purchase_order(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send purchase order"
         )
+
+
+@router.put(
+    "/{po_id}",
+    response_model=PurchaseOrderRead,
+    summary="Update purchase order (DRAFT only)"
+)
+def update_purchase_order(
+    po_id: int,
+    po_update: PurchaseOrderUpdate,
+    db: Session = Depends(get_db),
+    token: str = Depends(require_procurement_token),
+) -> PurchaseOrderRead:
+    """
+    Update a purchase order. Allowed only if status == DRAFT.
+    """
+    try:
+        return ProcurementService.update_purchase_order(db, po_id, po_update)
+    except ValueError as e:
+        # Distinguish not found (404) vs validation/business errors (400)
+        if "not found" in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update purchase order"
+        )
+
+
+@router.get(
+    "/vendors/{vendor_id}",
+    response_model=VendorRead,
+    summary="Get vendor details (read-only)"
+)
+def get_vendor(
+    vendor_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(require_procurement_token),
+) -> VendorRead:
+    """
+    Retrieve vendor details from the Vendor Portal (read-only).
+
+    Procurement cannot create/update vendors; this endpoint only reads vendor info.
+    """
+    try:
+        return ProcurementService.get_vendor_details(db, vendor_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve vendor details")
+
+
+@router.get(
+    "/{po_id}/tracking",
+    response_model=PurchaseOrderTracking,
+    summary="Get consolidated tracking information for a purchase order"
+)
+def get_po_tracking(
+    po_id: int,
+    db: Session = Depends(get_db),
+    token: str = Depends(require_procurement_token),
+) -> PurchaseOrderTracking:
+    """Return consolidated tracking view for a PO, reading quality tables (read-only)."""
+    try:
+        return ProcurementService.get_po_tracking_summary(db, po_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve tracking information")
