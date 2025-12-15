@@ -41,7 +41,7 @@ async def require_procurement_token(token: Optional[str] = None) -> str:
 
 router = APIRouter(
     prefix="/api/v1/procurement",
-    tags=["procurement"],
+    tags=["Procurement"],
 )
 
 

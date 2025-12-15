@@ -113,9 +113,9 @@ app.dependency_overrides[core_dependencies.get_db] = get_store_db
 
 # Include routers from all modules
 # Note: Procurement and Store routers already have prefixes defined, so we only add them for Quality
-app.include_router(procurement_router, tags=["Procurement"])
+app.include_router(procurement_router)
 app.include_router(quality_router, prefix="/api/v1/quality", tags=["Quality"])
-app.include_router(store_router, tags=["Store"])
+app.include_router(store_router)
 
 # Root endpoint
 @app.get("/")

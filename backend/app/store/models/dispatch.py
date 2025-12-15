@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from datetime import datetime
-from app.core.db import Base
+from backend.app.core.db import Base
 
 
 class Dispatch(Base):

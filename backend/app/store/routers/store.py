@@ -6,7 +6,7 @@ from ..schemas import InventoryCreate, InventoryRead, DispatchCreate, DispatchRe
 from ..models import InventoryItem
 from ...core.dependencies import get_db, require_store_role
 
-router = APIRouter(prefix="/api/v1/store", tags=["store"])
+router = APIRouter(prefix="/api/v1/store", tags=["Store"])
 
 
 @router.post("/inventory", response_model=InventoryRead)
