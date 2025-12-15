@@ -4,8 +4,7 @@ from typing import Optional, List
 from ..services import StoreService
 from ..schemas import InventoryCreate, InventoryRead, DispatchCreate, DispatchRead
 from ..models import InventoryItem
-
-from app.core.dependencies import get_db, require_store_role
+from ...core.dependencies import get_db, require_store_role
 
 router = APIRouter(prefix="/api/v1/store", tags=["store"])
 
