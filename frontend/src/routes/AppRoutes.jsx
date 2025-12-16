@@ -1,12 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute";
 
-import Login from "../pages/Login";
+import Login from "../auth/Login";
 
 // layout pages
-import ProcurementHome from "../pages/procurement/ProcurementHome";
-import QualityHome from "../pages/quality/QualityHome";
-import StoreHome from "../pages/store/StoreHome";
+import POList from "../procurement/pages/POList";
+import MaterialReceipt from "../quality/pages/MaterialReceipt";
+import Inventory from "../store/pages/Inventory";
+
 
 export default function AppRoutes() {
   return (
@@ -14,28 +15,28 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
 
       <Route
-        path="/procurement/*"
+        path="/procurement"
         element={
           <ProtectedRoute allow={["procurement"]}>
-            <ProcurementHome />
+            <POList />
           </ProtectedRoute>
         }
       />
 
       <Route
-        path="/quality/*"
+        path="/quality"
         element={
           <ProtectedRoute allow={["quality"]}>
-            <QualityHome />
+            <MaterialReceipt />
           </ProtectedRoute>
         }
       />
 
       <Route
-        path="/store/*"
+        path="/store"
         element={
           <ProtectedRoute allow={["store"]}>
-            <StoreHome />
+            <Inventory />
           </ProtectedRoute>
         }
       />
