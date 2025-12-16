@@ -8,3 +8,12 @@ export const getPOs = () =>
 
 export const getPODetails = (id) =>
   api.get(`/api/v1/procurement/${id}`);
+
+export const updatePO = (id, data) =>
+  api.put(`/api/v1/procurement/${id}`, data);
+
+export const sendPO = (id) =>
+  api.post(`/api/v1/procurement/${id}/send`);
+
+export const getPOTracking = (id) =>
+  api.get(`/api/v1/procurement/${id}/tracking`);
