@@ -2,8 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from ..services import StoreService
-from ..schemas import InventoryCreate, InventoryRead, DispatchCreate, DispatchRead
-from ..models import InventoryItem
+from ..schemas import (
+    InventoryCreate,
+    InventoryRead,
+    DispatchCreate,
+    DispatchRead,
+    StoreCreate,
+    StoreRead,
+    StoreUpdate,
+    StoreDetailRead,
+    BinCreate,
+    BinRead,
+)
+from ..models import InventoryItem, Store, Bin
 from ...core.dependencies import get_db, require_store_role
 
 router = APIRouter(prefix="/api/v1/store", tags=["Store"])
@@ -84,5 +95,102 @@ def get_dispatches(
         filters["inventory_item_id"] = inventory_item_id
     if requested_by:
         filters["requested_by"] = requested_by
-    
+
     return StoreService.get_dispatches(db, filters)
+
+
+# Store Management Endpoints
+
+@router.post("/stores", response_model=StoreRead)
+def create_store(
+    store: StoreCreate,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    """Create a new store."""
+    try:
+        return StoreService.create_store(db, store)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/stores", response_model=List[StoreRead])
+def list_stores(
+    page: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    """List all stores with pagination."""
+    return StoreService.get_all_stores(db, page * limit, limit)
+
+
+@router.get("/stores/{store_id}", response_model=StoreDetailRead)
+def get_store_details(
+    store_id: int,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    """Get store details including all bins."""
+    store = StoreService.get_store_by_id(db, store_id)
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    return store
+
+
+@router.put("/stores/{store_id}", response_model=StoreRead)
+def update_store(
+    store_id: int,
+    store_update: StoreUpdate,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    """Update store information."""
+    store = StoreService.update_store(db, store_id, store_update)
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    return store
+
+
+@router.delete("/stores/{store_id}")
+def delete_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    """Delete a store and all its bins."""
+    success = StoreService.delete_store(db, store_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Store not found")
+    return {"message": "Store deleted successfully"}
+
+
+@router.post("/stores/{store_id}/bins", response_model=BinRead)
+def add_bin(
+    store_id: int,
+    bin_create: BinCreate,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    """Add a bin to a store."""
+    try:
+        return StoreService.add_bin_to_store(db, store_id, bin_create)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/stores/{store_id}/bins", response_model=List[BinRead])
+def get_bins(
+    store_id: int,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    """Get all bins for a store."""
+    store = StoreService.get_store_by_id(db, store_id)
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    return StoreService.get_store_bins(db, store_id)

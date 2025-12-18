@@ -1,8 +1,8 @@
 from typing import Optional
-import traceback
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Header
 from sqlalchemy.orm import Session
 
+from backend.app.database import get_db
 from backend.app.procurement.schemas import (
     PurchaseOrderCreate,
     PurchaseOrderRead,
@@ -13,255 +13,127 @@ from backend.app.procurement.schemas import VendorRead
 from backend.app.procurement.schemas import PurchaseOrderTracking
 from backend.app.procurement.services import ProcurementService
 
-
-# Minimal dependency for token validation (can be enhanced later)
-def get_db() -> Session:
-    """
-    Get database session dependency.
-    Replace with actual DB connection from app.core.db when available.
-    """
-    # TODO: Import from app.core.db once implemented
-    # This will be overridden in tests or main app initialization
-    raise NotImplementedError("Database session not yet configured. Override this dependency in your FastAPI app.")
+router = APIRouter(prefix="/api/v1/procurement", tags=["Procurement"])
 
 
-async def require_procurement_token(token: Optional[str] = None) -> str:
-    """
-    Minimal token validation dependency for procurement endpoints.
-    Replace with actual auth from app.core.dependencies when available.
-    """
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization token required"
-        )
-    # TODO: Add actual token validation when auth is configured in core
-    return token
-
-
-router = APIRouter(
-    prefix="/api/v1/procurement",
-    tags=["Procurement"],
-)
-
-
-@router.post(
-    "/",
-    response_model=PurchaseOrderRead,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a new purchase order"
-)
+@router.post("/", response_model=PurchaseOrderRead, summary="Create Purchase Order")
 def create_purchase_order(
-    po_create: PurchaseOrderCreate,
+    po_data: PurchaseOrderCreate,
     db: Session = Depends(get_db),
-    token: str = Depends(require_procurement_token),
-) -> PurchaseOrderRead:
-    """
-    Create a new purchase order with line items.
-    
-    **Request body:**
-    - vendor_id: Vendor ID (required, > 0)
-    - lines: List of line items with item_id, quantity, and price
-    
-    **Returns:** Created purchase order with ID and po_number
-    """
-    try:
-        return ProcurementService.create_purchase_order(db, po_create)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        print(f"DEBUG Error: {e}")
-        print(traceback.format_exc())
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create purchase order"
-        )
-
-
-@router.get(
-    "/",
-    response_model=dict,
-    summary="List purchase orders"
-)
-def list_purchase_orders(
-    status_filter: Optional[POStatus] = Query(None, alias="status"),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
-    db: Session = Depends(get_db),
-    token: str = Depends(require_procurement_token),
 ) -> dict:
-    """
-    List purchase orders with pagination and optional status filtering.
-    
-    **Query parameters:**
-    - status: Filter by PO status (DRAFT or SENT) - optional
-    - page: Page number (default: 1)
-    - page_size: Items per page (default: 25, max: 100)
-    
-    **Returns:** List of purchase orders with pagination metadata
-    """
+    """Create a new purchase order."""
     try:
-        return ProcurementService.get_purchase_orders(
-            db,
-            status=status_filter,
-            page=page,
-            page_size=page_size
-        )
+        return ProcurementService.create_purchase_order(db, po_data)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve purchase orders"
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get(
-    "/{po_id}",
-    response_model=PurchaseOrderRead,
-    summary="Get purchase order details"
-)
+@router.get("/", response_model=list[PurchaseOrderRead], summary="List Purchase Orders")
+def list_purchase_orders(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> list:
+    """List all purchase orders with pagination."""
+    try:
+        return ProcurementService.get_purchase_orders(db, skip, limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{po_id}", response_model=PurchaseOrderRead, summary="Get Purchase Order Details")
 def get_purchase_order(
     po_id: int,
     db: Session = Depends(get_db),
-    token: str = Depends(require_procurement_token),
-) -> PurchaseOrderRead:
-    """
-    Get detailed information about a specific purchase order.
-    
-    **Path parameters:**
-    - po_id: Purchase order ID
-    
-    **Returns:** Full purchase order details including all line items
-    """
+) -> dict:
+    """Get details of a specific purchase order."""
     try:
-        return ProcurementService.get_purchase_order(db, po_id)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
+        po = ProcurementService.get_purchase_order(db, po_id)
+        if not po:
+            raise HTTPException(status_code=404, detail="Purchase order not found")
+        return po
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve purchase order"
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post(
-    "/{po_id}/send",
-    response_model=PurchaseOrderRead,
-    summary="Send purchase order"
-)
-def send_purchase_order(
-    po_id: int,
-    db: Session = Depends(get_db),
-    token: str = Depends(require_procurement_token),
-) -> PurchaseOrderRead:
-    """
-    Send a purchase order (mark as SENT).
-    
-    **Path parameters:**
-    - po_id: Purchase order ID
-    
-    **Returns:** Updated purchase order with status=SENT
-    
-    **Note:** Idempotent - will reject if already sent
-    """
-    try:
-        return ProcurementService.send_purchase_order(db, po_id)
-    except ValueError as e:
-        # Distinguish between not found (404) and other validation errors (400)
-        if "not found" in str(e).lower():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=str(e)
-            )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to send purchase order"
-        )
-
-
-@router.put(
-    "/{po_id}",
-    response_model=PurchaseOrderRead,
-    summary="Update purchase order (DRAFT only)"
-)
+@router.put("/{po_id}", response_model=PurchaseOrderRead, summary="Update Purchase Order")
 def update_purchase_order(
     po_id: int,
     po_update: PurchaseOrderUpdate,
     db: Session = Depends(get_db),
-    token: str = Depends(require_procurement_token),
-) -> PurchaseOrderRead:
-    """
-    Update a purchase order. Allowed only if status == DRAFT.
-    """
+) -> dict:
+    """Update a purchase order (only DRAFT orders can be updated)."""
     try:
-        return ProcurementService.update_purchase_order(db, po_id, po_update)
+        po = ProcurementService.update_purchase_order(db, po_id, po_update)
+        if not po:
+            raise HTTPException(status_code=404, detail="Purchase order not found")
+        return po
     except ValueError as e:
-        # Distinguish not found (404) vs validation/business errors (400)
-        if "not found" in str(e).lower():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=str(e)
-            )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update purchase order"
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get(
-    "/vendors/{vendor_id}",
-    response_model=VendorRead,
-    summary="Get vendor details (read-only)"
-)
-def get_vendor(
+@router.post("/{po_id}/send", response_model=PurchaseOrderRead, summary="Send Purchase Order")
+def send_purchase_order(
+    po_id: int,
+    db: Session = Depends(get_db),
+) -> dict:
+    """Send a purchase order for approval."""
+    try:
+        po = ProcurementService.send_purchase_order(db, po_id)
+        if not po:
+            raise HTTPException(status_code=404, detail="Purchase order not found")
+        return po
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/vendor/{vendor_id}", response_model=list[PurchaseOrderRead], summary="Get POs by Vendor")
+def get_pos_by_vendor(
+    vendor_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> list:
+    """Get all purchase orders for a specific vendor."""
+    try:
+        return ProcurementService.get_purchase_orders_by_vendor(db, vendor_id, skip, limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/vendors/{vendor_id}", response_model=VendorRead, summary="Get Vendor Details")
+def get_vendor_details(
     vendor_id: int,
     db: Session = Depends(get_db),
-    token: str = Depends(require_procurement_token),
-) -> VendorRead:
-    """
-    Retrieve vendor details from the Vendor Portal (read-only).
-
-    Procurement cannot create/update vendors; this endpoint only reads vendor info.
-    """
+) -> dict:
+    """Get details of a specific vendor."""
     try:
-        return ProcurementService.get_vendor_details(db, vendor_id)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except RuntimeError as e:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+        vendor = ProcurementService.get_vendor_details(db, vendor_id)
+        if not vendor:
+            raise HTTPException(status_code=404, detail="Vendor not found")
+        return vendor
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve vendor details")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get(
-    "/{po_id}/tracking",
-    response_model=PurchaseOrderTracking,
-    summary="Get consolidated tracking information for a purchase order"
-)
+@router.get("/{po_id}/tracking", response_model=PurchaseOrderTracking, summary="Track Purchase Order")
 def get_po_tracking(
     po_id: int,
     db: Session = Depends(get_db),
-    token: str = Depends(require_procurement_token),
-) -> PurchaseOrderTracking:
-    """Return consolidated tracking view for a PO, reading quality tables (read-only)."""
+) -> dict:
+    """Get tracking information for a purchase order."""
     try:
-        return ProcurementService.get_po_tracking_summary(db, po_id)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        tracking = ProcurementService.get_po_tracking(db, po_id)
+        if not tracking:
+            raise HTTPException(status_code=404, detail="Tracking information not found")
+        return tracking
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve tracking information")
+        raise HTTPException(status_code=500, detail=str(e))

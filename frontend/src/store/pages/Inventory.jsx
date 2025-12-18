@@ -200,7 +200,11 @@ export default function Inventory() {
 
       {(error || localError) && (
         <div style={errorAlertStyle}>
-          <span>{error || localError}</span>
+          <span>
+            {(error || localError).includes('Network') || (error || localError).includes('ECONNREFUSED')
+              ? 'Error: Backend server is not running. Please ensure the backend is started on http://localhost:8000'
+              : error || localError}
+          </span>
           <span
             style={closeButtonStyle}
             onClick={() => {

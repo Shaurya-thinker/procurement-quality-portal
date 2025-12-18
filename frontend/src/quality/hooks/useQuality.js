@@ -2,8 +2,11 @@ import { useState, useCallback } from 'react';
 import {
   createMaterialReceipt,
   getMaterialReceipts,
+  getMaterialReceiptDetails,
   inspectMaterial,
   getInspectionReport,
+  createQualityChecklist,
+  createQualitySheet,
 } from '../../api/quality.api';
 
 export const useQuality = () => {
@@ -70,6 +73,51 @@ export const useQuality = () => {
     }
   }, []);
 
+  const getMaterialReceiptDetailsAsync = useCallback(async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getMaterialReceiptDetails(id);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch material receipt details';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createQualityChecklistAsync = useCallback(async (data) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await createQualityChecklist(data);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create quality checklist';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createQualitySheetAsync = useCallback(async (data) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await createQualitySheet(data);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create quality sheet';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -79,8 +127,11 @@ export const useQuality = () => {
     error,
     createMaterialReceipt: createMaterialReceiptAsync,
     getMaterialReceipts: getMaterialReceiptsAsync,
+    getMaterialReceiptDetails: getMaterialReceiptDetailsAsync,
     inspectMaterial: inspectMaterialAsync,
     getInspectionReport: getInspectionReportAsync,
+    createQualityChecklist: createQualityChecklistAsync,
+    createQualitySheet: createQualitySheetAsync,
     clearError,
   };
 };

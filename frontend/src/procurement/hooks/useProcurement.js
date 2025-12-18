@@ -6,6 +6,8 @@ import {
   updatePO,
   sendPO,
   getPOTracking,
+  getPOsByVendor,
+  getVendorDetails,
 } from '../../api/procurement.api';
 
 export const useProcurement = () => {
@@ -102,6 +104,36 @@ export const useProcurement = () => {
     }
   }, []);
 
+  const fetchPOsByVendor = useCallback(async (vendorId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getPOsByVendor(vendorId);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch vendor POs';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchVendorDetails = useCallback(async (vendorId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getVendorDetails(vendorId);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch vendor details';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -115,6 +147,8 @@ export const useProcurement = () => {
     updateProcurementOrder,
     sendProcurementOrder,
     fetchPOTracking,
+    fetchPOsByVendor,
+    fetchVendorDetails,
     clearError,
   };
 };

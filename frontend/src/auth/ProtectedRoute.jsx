@@ -1,11 +1,16 @@
 import { Navigate } from "react-router-dom";
+import DashboardLayout from "../layout/DashboardLayout";
 
 const getRole = () => localStorage.getItem("role");
 
-export default function ProtectedRoute({ allow, children }) {
+export default function ProtectedRoute({ children }) {
   const role = getRole();
-  if (!role || !allow.includes(role)) {
+  if (!role) {
     return <Navigate to="/login" />;
   }
-  return children;
+  return (
+    <DashboardLayout>
+      {children}
+    </DashboardLayout>
+  );
 }

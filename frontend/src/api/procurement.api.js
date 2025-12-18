@@ -17,3 +17,9 @@ export const sendPO = (id) =>
 
 export const getPOTracking = (id) =>
   api.get(`/api/v1/procurement/${id}/tracking`);
+
+export const getPOsByVendor = (vendorId) =>
+  api.get(`/api/v1/procurement/vendor/${vendorId}`);
+
+export const getVendorDetails = (vendorId) =>
+  api.get(`/api/v1/procurement/vendors/${vendorId}`);

@@ -1,8 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text
-from sqlalchemy.orm import declarative_base
-
-# Shared declarative base for all procurement models
-Base = declarative_base()
+from backend.app.core.db import Base
 
 
 class Item(Base):

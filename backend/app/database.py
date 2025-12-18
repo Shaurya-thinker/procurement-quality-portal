@@ -1,19 +1,33 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+from backend.app.core.db import Base
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./quality.db"
+# Use a single SQLite database for simplicity
+DATABASE_URL = "sqlite:///./app.db"
 
+# Create engine
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
+
+# Create session maker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_db() -> Session:
+def get_db():
+    """Database session dependency."""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-def require_quality_role():
-    return {"user_id": 1, "role": "quality_inspector"}
+def create_tables():
+    """Create all database tables."""
+    Base.metadata.create_all(bind=engine)
+
+def drop_tables():
+    """Drop all database tables."""
+    Base.metadata.drop_all(bind=engine)

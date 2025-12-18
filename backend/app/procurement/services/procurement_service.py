@@ -453,3 +453,49 @@ class ProcurementService:
         }
 
         return PurchaseOrderTracking.model_validate(tracking)
+
+    @staticmethod
+    def get_purchase_orders_by_vendor(db: Session, vendor_id: int) -> dict:
+        """
+        Get all purchase orders for a specific vendor.
+        
+        Args:
+            db: Database session
+            vendor_id: Vendor ID
+            
+        Returns:
+            Dictionary with purchase orders for the vendor
+            
+        Raises:
+            ValueError: If vendor_id is invalid
+        """
+        ProcurementService._validate_vendor_id(vendor_id)
+        
+        purchase_orders = db.query(PurchaseOrder).filter(
+            PurchaseOrder.vendor_id == vendor_id
+        ).order_by(PurchaseOrder.created_at.desc()).all()
+        
+        return {
+            "vendor_id": vendor_id,
+            "items": [
+                PurchaseOrderRead.model_validate({
+                    "id": po.id,
+                    "po_number": po.po_number,
+                    "vendor_id": po.vendor_id,
+                    "status": po.status,
+                    "created_at": po.created_at,
+                    "lines": [
+                        {
+                            "id": line.id,
+                            "po_id": line.po_id,
+                            "item_id": line.item_id,
+                            "quantity": line.quantity,
+                            "price": line.price,
+                        }
+                        for line in po.lines
+                    ]
+                })
+                for po in purchase_orders
+            ],
+            "total": len(purchase_orders)
+        }

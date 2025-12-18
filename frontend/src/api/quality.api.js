@@ -18,3 +18,13 @@ export const inspectMaterial = (data) =>
 
 export const getInspectionReport = (inspectionId) =>
   api.get(`/api/v1/quality/inspection/${inspectionId}`);
+
+/* Quality Checklist */
+
+export const createQualityChecklist = (data) =>
+  api.post("/api/v1/quality/checklist", data);
+
+/* Quality Sheet */
+
+export const createQualitySheet = (data) =>
+  api.post("/api/v1/quality/quality-sheet", data);

@@ -60,7 +60,24 @@ This design ensures:
 - Data consistency - each module maintains its own transaction context
 - Flexibility - databases can be migrated to different backends independently
 
-## Getting Started
+## Quick Start (Windows & Mac/Linux)
+
+### Windows Users:
+```bash
+start_all.bat
+```
+
+### Mac/Linux Users:
+```bash
+chmod +x start_all.sh
+./start_all.sh
+```
+
+This will automatically start both the backend and frontend servers. See [SETUP_AND_RUN.md](./SETUP_AND_RUN.md) for detailed setup instructions.
+
+---
+
+## Getting Started (Manual Setup)
 
 ### Backend Setup
 

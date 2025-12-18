@@ -27,10 +27,11 @@ export default function MaterialReceipt() {
   };
 
   const headingStyle = {
-    fontSize: '24px',
+    fontSize: '20px',
     fontWeight: '600',
     marginBottom: '24px',
-    color: '#1f2937',
+    color: '#1E293B',
+    lineHeight: '1.3',
   };
 
   const lineItemsSectionStyle = {
@@ -38,22 +39,23 @@ export default function MaterialReceipt() {
   };
 
   const sectionTitleStyle = {
-    fontSize: '16px',
+    fontSize: '15px',
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#1E293B',
     marginBottom: '16px',
   };
 
   const addItemButtonStyle = {
     padding: '10px 20px',
-    backgroundColor: '#10b981',
+    backgroundColor: '#15803D',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
+    fontSize: '13px',
+    fontWeight: '600',
     marginBottom: '16px',
+    transition: 'background-color 0.15s',
   };
 
   const actionButtonsStyle = {
@@ -65,35 +67,39 @@ export default function MaterialReceipt() {
 
   const buttonStyle = {
     padding: '10px 20px',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#1F3A5F',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
+    fontSize: '13px',
+    fontWeight: '600',
+    transition: 'background-color 0.15s',
   };
 
   const cancelButtonStyle = {
     padding: '10px 20px',
-    backgroundColor: '#6b7280',
+    backgroundColor: '#64748B',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
+    fontSize: '13px',
+    fontWeight: '600',
+    transition: 'background-color 0.15s',
   };
 
   const errorAlertStyle = {
-    backgroundColor: '#fee2e2',
-    color: '#7f1d1d',
+    backgroundColor: '#FEE2E2',
+    color: '#B91C1C',
     padding: '12px 16px',
     borderRadius: '4px',
     marginBottom: '16px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    fontSize: '13px',
+    fontWeight: '500',
   };
 
   const closeErrorStyle = {

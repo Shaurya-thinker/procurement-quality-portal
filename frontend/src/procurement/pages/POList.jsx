@@ -67,13 +67,14 @@ const POList = () => {
   };
 
   const headingStyle = {
-    fontSize: '24px',
+    fontSize: '20px',
     fontWeight: '600',
     marginBottom: '24px',
-    color: '#1f2937',
+    color: '#1E293B',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    lineHeight: '1.3',
   };
 
   const filterContainerStyle = {
@@ -91,35 +92,38 @@ const POList = () => {
   };
 
   const labelStyle = {
-    fontSize: '14px',
+    fontSize: '12px',
     fontWeight: '500',
-    color: '#374151',
+    color: '#1E293B',
   };
 
   const selectStyle = {
     padding: '8px 12px',
-    border: '1px solid #d1d5db',
+    border: '1px solid #E2E8F0',
     borderRadius: '4px',
-    fontSize: '14px',
-    backgroundColor: '#ffffff',
+    fontSize: '13px',
+    backgroundColor: '#FFFFFF',
     cursor: 'pointer',
+    fontWeight: '400',
+    color: '#475569',
   };
 
   const buttonStyle = {
     padding: '10px 20px',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#1F3A5F',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
+    fontSize: '13px',
+    fontWeight: '600',
+    transition: 'background-color 0.15s',
   };
 
   const tableContainerStyle = {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     borderRadius: '6px',
-    border: '1px solid #e5e7eb',
+    border: '1px solid #E2E8F0',
     overflow: 'hidden',
   };
 
@@ -131,61 +135,66 @@ const POList = () => {
   const thStyle = {
     padding: '12px 16px',
     textAlign: 'left',
-    borderBottom: '2px solid #d1d5db',
+    borderBottom: '1px solid #CBD5E1',
     fontWeight: '600',
-    fontSize: '13px',
-    color: '#374151',
-    backgroundColor: '#f9fafb',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
+    fontSize: '12px',
+    color: '#1E293B',
+    backgroundColor: '#F1F5F9',
+    textTransform: 'none',
+    letterSpacing: '0.2px',
   };
 
   const tdStyle = {
     padding: '12px 16px',
-    borderBottom: '1px solid #e5e7eb',
-    fontSize: '14px',
-    color: '#1f2937',
+    borderBottom: '1px solid #E2E8F0',
+    fontSize: '13px',
+    color: '#1E293B',
+    fontWeight: '400',
   };
 
   const trHoverStyle = {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F8FAFC',
   };
 
   const actionButtonStyle = {
     padding: '6px 12px',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#1F3A5F',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '12px',
-    fontWeight: '500',
+    fontSize: '11px',
+    fontWeight: '600',
+    transition: 'background-color 0.15s',
   };
 
   const loadingStyle = {
     padding: '24px',
     textAlign: 'center',
-    color: '#6b7280',
+    color: '#64748B',
+    fontSize: '13px',
   };
 
   const errorAlertStyle = {
-    backgroundColor: '#fee2e2',
-    color: '#7f1d1d',
+    backgroundColor: '#FEE2E2',
+    color: '#B91C1C',
     padding: '12px 16px',
     borderRadius: '4px',
     marginBottom: '16px',
+    fontSize: '13px',
+    fontWeight: '500',
   };
 
   const emptyStateStyle = {
     padding: '48px 24px',
     textAlign: 'center',
-    color: '#6b7280',
+    color: '#64748B',
   };
 
   const emptyStateHeadingStyle = {
-    fontSize: '16px',
+    fontSize: '15px',
     fontWeight: '600',
-    color: '#374151',
+    color: '#1E293B',
     marginBottom: '8px',
   };
 
@@ -199,13 +208,14 @@ const POList = () => {
 
   const pageButtonStyle = (isActive) => ({
     padding: '6px 10px',
-    border: isActive ? 'none' : '1px solid #d1d5db',
-    backgroundColor: isActive ? '#3b82f6' : '#ffffff',
-    color: isActive ? 'white' : '#374151',
+    border: isActive ? 'none' : '1px solid #E2E8F0',
+    backgroundColor: isActive ? '#1F3A5F' : '#FFFFFF',
+    color: isActive ? 'white' : '#475569',
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '12px',
     fontWeight: '500',
+    transition: 'all 0.15s',
   });
 
   const formatDate = (dateString) => {
@@ -228,7 +238,12 @@ const POList = () => {
       </div>
 
       {(loadingError || error) && (
-        <div style={errorAlertStyle}>{loadingError || error}</div>
+        <div style={errorAlertStyle}>
+          <strong>Error: </strong>
+          {(loadingError || error).includes('Network') || (loadingError || error).includes('ECONNREFUSED')
+            ? 'Backend server is not running. Please ensure the backend is started on http://localhost:8000'
+            : loadingError || error}
+        </div>
       )}
 
       <div style={filterContainerStyle}>
@@ -310,12 +325,14 @@ const POList = () => {
                 disabled={currentPage === 1}
                 style={{
                   padding: '6px 10px',
-                  border: '1px solid #d1d5db',
-                  backgroundColor: currentPage === 1 ? '#f3f4f6' : '#ffffff',
-                  color: '#374151',
+                  border: '1px solid #E2E8F0',
+                  backgroundColor: currentPage === 1 ? '#F1F5F9' : '#FFFFFF',
+                  color: '#475569',
                   borderRadius: '4px',
                   cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                   fontSize: '12px',
+                  fontWeight: '500',
+                  transition: 'all 0.15s',
                 }}
               >
                 Previous
@@ -336,12 +353,14 @@ const POList = () => {
                 disabled={currentPage === totalPages}
                 style={{
                   padding: '6px 10px',
-                  border: '1px solid #d1d5db',
-                  backgroundColor: currentPage === totalPages ? '#f3f4f6' : '#ffffff',
-                  color: '#374151',
+                  border: '1px solid #E2E8F0',
+                  backgroundColor: currentPage === totalPages ? '#F1F5F9' : '#FFFFFF',
+                  color: '#475569',
                   borderRadius: '4px',
                   cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                   fontSize: '12px',
+                  fontWeight: '500',
+                  transition: 'all 0.15s',
                 }}
               >
                 Next

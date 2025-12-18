@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import Optional, Dict, Any, List
-from ..models import InventoryItem, Dispatch
-from ..schemas import InventoryCreate, DispatchCreate
+from ..models import InventoryItem, Dispatch, Store, Bin
+from ..schemas import InventoryCreate, DispatchCreate, StoreCreate, StoreUpdate, BinCreate
 
 
 class StoreService:
@@ -74,11 +74,79 @@ class StoreService:
     def get_dispatches(db: Session, filters: Optional[Dict[str, Any]] = None) -> List[Dispatch]:
         """Get dispatch records with optional filtering."""
         query = db.query(Dispatch)
-        
+
         if filters:
             if "inventory_item_id" in filters:
                 query = query.filter(Dispatch.inventory_item_id == filters["inventory_item_id"])
             if "requested_by" in filters:
                 query = query.filter(Dispatch.requested_by == filters["requested_by"])
-        
+
         return query.all()
+
+    @staticmethod
+    def create_store(db: Session, store_create: StoreCreate) -> Store:
+        """Create a new store with basic information."""
+        # Check if store_id already exists
+        existing = db.query(Store).filter(Store.store_id == store_create.store_id).first()
+        if existing:
+            raise ValueError(f"Store with ID {store_create.store_id} already exists")
+
+        store = Store(**store_create.model_dump())
+        db.add(store)
+        db.commit()
+        db.refresh(store)
+        return store
+
+    @staticmethod
+    def get_all_stores(db: Session, skip: int = 0, limit: int = 100) -> List[Store]:
+        """Get all stores with pagination."""
+        return db.query(Store).offset(skip).limit(limit).all()
+
+    @staticmethod
+    def get_store_by_id(db: Session, store_id: int) -> Optional[Store]:
+        """Get store details by ID including all bins."""
+        return db.query(Store).filter(Store.id == store_id).first()
+
+    @staticmethod
+    def update_store(db: Session, store_id: int, store_update: StoreUpdate) -> Optional[Store]:
+        """Update store information."""
+        store = db.query(Store).filter(Store.id == store_id).first()
+        if not store:
+            return None
+
+        update_data = store_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(store, field, value)
+
+        db.commit()
+        db.refresh(store)
+        return store
+
+    @staticmethod
+    def delete_store(db: Session, store_id: int) -> bool:
+        """Delete a store and all its bins."""
+        store = db.query(Store).filter(Store.id == store_id).first()
+        if not store:
+            return False
+
+        db.delete(store)
+        db.commit()
+        return True
+
+    @staticmethod
+    def add_bin_to_store(db: Session, store_id: int, bin_create: BinCreate) -> Bin:
+        """Add a bin to a store."""
+        store = db.query(Store).filter(Store.id == store_id).first()
+        if not store:
+            raise ValueError("Store not found")
+
+        bin_item = Bin(store_id=store_id, **bin_create.model_dump())
+        db.add(bin_item)
+        db.commit()
+        db.refresh(bin_item)
+        return bin_item
+
+    @staticmethod
+    def get_store_bins(db: Session, store_id: int) -> List[Bin]:
+        """Get all bins for a store."""
+        return db.query(Bin).filter(Bin.store_id == store_id).all()
