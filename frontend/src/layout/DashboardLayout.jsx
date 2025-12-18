@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { logout } from '../auth/Login';
 import './DashboardLayout.css';
 import DashboardIcon from './icons/DashboardIcon';
@@ -18,7 +18,30 @@ export default function DashboardLayout({ children }) {
   const location = useLocation();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const userEmail = localStorage.getItem('userEmail') || 'user@smg.com';
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
 
   const handleLogout = () => {
     logout();
@@ -84,7 +107,7 @@ export default function DashboardLayout({ children }) {
         <div className="sidebar-footer">
           <button onClick={handleLogout} className="logout-link" title={sidebarCollapsed ? 'Logout' : ''}>
             <LogoutIcon />
-            {!sidebarCollapsed && <span style={{marginLeft:10}}>Logout</span>}
+            {!sidebarCollapsed && <span>Logout</span>}
           </button>
         </div>
       </aside>
@@ -100,10 +123,9 @@ export default function DashboardLayout({ children }) {
 
           <div className="header-center">
             <div className="header-search">
-              <SearchIcon />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search anything..."
                 className="search-input"
                 aria-label="Search"
               />
@@ -111,6 +133,10 @@ export default function DashboardLayout({ children }) {
           </div>
 
           <div className="header-right">
+            <div className="header-datetime">
+              <span className="header-time">{formatTime(currentTime)}</span>
+              <span className="header-date">{formatDate(currentTime)}</span>
+            </div>
             <button className="header-icon-button" title="Notifications" aria-label="Notifications">
               <BellIcon />
             </button>
@@ -136,14 +162,14 @@ export default function DashboardLayout({ children }) {
                     className="dropdown-item"
                   >
                     <UserIcon />
-                    <span style={{marginLeft:10}}>Profile</span>
+                    <span>Profile</span>
                   </button>
                   <button
                     onClick={handleLogout}
                     className="dropdown-item logout-item"
                   >
                     <LogoutIcon />
-                    <span style={{marginLeft:10}}>Logout</span>
+                    <span>Logout</span>
                   </button>
                 </div>
               )}

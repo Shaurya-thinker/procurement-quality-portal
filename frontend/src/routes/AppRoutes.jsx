@@ -4,6 +4,10 @@ import ProtectedRoute from "../auth/ProtectedRoute";
 import Dashboard from "../pages/Dashboard";
 import Attendance from "../pages/Attendance";
 import Profile from "../pages/Profile";
+import ApplyLeave from "../pages/ApplyLeave";
+import LeaveHistory from "../pages/LeaveHistory";
+import GatePass from "../pages/GatePass";
+import Resignation from "../pages/Resignation";
 import POList from "../procurement/pages/POList";
 import CreatePO from "../procurement/pages/CreatePO";
 import PODetails from "../procurement/pages/PODetails";
@@ -25,6 +29,10 @@ export default function AppRoutes() {
       {/* Main Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
+      <Route path="/apply-leave" element={<ProtectedRoute><ApplyLeave /></ProtectedRoute>} />
+      <Route path="/leave-history" element={<ProtectedRoute><LeaveHistory /></ProtectedRoute>} />
+      <Route path="/gate-pass" element={<ProtectedRoute><GatePass /></ProtectedRoute>} />
+      <Route path="/resignation" element={<ProtectedRoute><Resignation /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
       {/* Procurement Routes */}
