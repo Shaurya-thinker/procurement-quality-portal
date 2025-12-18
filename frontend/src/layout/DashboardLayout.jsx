@@ -17,6 +17,7 @@ export default function DashboardLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const userEmail = localStorage.getItem('userEmail') || 'user@smg.com';
 
   const handleLogout = () => {
@@ -42,12 +43,28 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="dashboard-layout">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-wrap">
-            <img src="/logo192.png" alt="Company Logo" className="company-logo" onError={(e)=>{e.target.style.display='none'}} />
-            <h2 className="logo-title">SMG</h2>
+      <aside className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-logo">
+            <div className="logo-wrap">
+              <img src="/logo192.png" alt="Company Logo" className="company-logo" onError={(e)=>{e.target.style.display='none'}} />
+              {!sidebarCollapsed && <h2 className="logo-title">SMG</h2>}
+            </div>
           </div>
+          <button
+            className="sidebar-toggle"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              {sidebarCollapsed ? (
+                <path d="M9 18l6-6-6-6M3 6v12h3v-12H3z" />
+              ) : (
+                <path d="M15 18l-6-6 6-6M21 6v12h-3v-12h3z" />
+              )}
+            </svg>
+          </button>
         </div>
         <nav className="sidebar-nav">
           <ul className="nav-list">
@@ -55,18 +72,19 @@ export default function DashboardLayout({ children }) {
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`nav-link ${isActive(item.path) ? 'active' : ''}`}>
+                  className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
+                  title={sidebarCollapsed ? item.label : ''}>
                   <span className="nav-icon">{item.icon}</span>
-                  <span className="nav-label">{item.label}</span>
+                  {!sidebarCollapsed && <span className="nav-label">{item.label}</span>}
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
         <div className="sidebar-footer">
-          <button onClick={handleLogout} className="logout-link">
+          <button onClick={handleLogout} className="logout-link" title={sidebarCollapsed ? 'Logout' : ''}>
             <LogoutIcon />
-            <span style={{marginLeft:10}}>Logout</span>
+            {!sidebarCollapsed && <span style={{marginLeft:10}}>Logout</span>}
           </button>
         </div>
       </aside>

@@ -5,10 +5,11 @@
 }
 
 body {
-  font-family: system-ui, Arial, sans-serif;
-  line-height: 1.5;
+  font-family: system-ui, 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
   background-color: #ffffff;
   color: #333;
+  font-weight: 400;
 }
 
 #root {

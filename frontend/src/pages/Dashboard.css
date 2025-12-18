@@ -4,35 +4,36 @@
 }
 
 .page-title {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 400;
   color: #1E293B;
-  margin: 0 0 24px 0;
-  line-height: 1.3;
+  margin: 0 0 32px 0;
+  line-height: 1.4;
+  letter-spacing: -0.3px;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 20px;
+  margin-bottom: 32px;
 }
 
 .stat-card {
   background-color: #FFFFFF;
-  border-radius: 6px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 20px;
   display: grid;
   grid-template-columns: 56px 1fr;
   gap: 16px;
   align-items: start;
-  box-shadow: none;
-  border: 1px solid #E2E8F0;
-  transition: border-color 0.15s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: none;
+  transition: box-shadow 0.15s;
 }
 
 .stat-card:hover {
-  border-color: #CBD5E1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .stat-icon {
@@ -55,53 +56,56 @@
   margin: 0;
   font-size: 11px;
   color: #64748B;
-  font-weight: 500;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
 }
 
 .stat-value {
   margin: 6px 0 0 0;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 500;
   color: #1F3A5F;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 .dashboard-sections {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
-  gap: 16px;
+  gap: 20px;
 }
 
 .section {
   background-color: #FFFFFF;
-  border-radius: 6px;
-  padding: 20px;
-  box-shadow: none;
-  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: none;
 }
 
 .section-title {
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 400;
   color: #1E293B;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 0;
+  border-bottom: none;
+  line-height: 1.4;
+  letter-spacing: -0.2px;
 }
 
 .activity-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .activity-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
+  padding: 16px;
   background-color: #F8FAFC;
   border-radius: 4px;
   border-left: 3px solid #1F3A5F;
@@ -119,8 +123,9 @@
 .activity-type {
   margin: 0;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: #1E293B;
+  line-height: 1.5;
 }
 
 .activity-user {
@@ -128,6 +133,7 @@
   font-size: 12px;
   color: #64748B;
   font-weight: 400;
+  line-height: 1.5;
 }
 
 .activity-status {
@@ -139,9 +145,10 @@
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   margin-bottom: 4px;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
 }
 
 .status-badge.approved {
@@ -164,25 +171,27 @@
   font-size: 11px;
   color: #94A3B8;
   font-weight: 400;
+  line-height: 1.4;
 }
 
 .quick-links {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 12px;
 }
 
 .quick-link-button {
-  padding: 11px 12px;
+  padding: 14px 16px;
   background-color: #F8FAFC;
   border: 1px solid #E2E8F0;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: #475569;
   cursor: pointer;
   transition: all 0.15s;
   text-align: left;
+  line-height: 1.5;
 }
 
 .quick-link-button:hover {
