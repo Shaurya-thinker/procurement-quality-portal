@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from ..services import StoreService
@@ -15,7 +15,7 @@ from ..schemas import (
     BinRead,
 )
 from ..models import InventoryItem, Store, Bin
-from ...core.dependencies import get_db, require_store_role
+from ...database import get_db
 
 router = APIRouter(prefix="/api/v1/store", tags=["Store"])
 
@@ -24,7 +24,6 @@ router = APIRouter(prefix="/api/v1/store", tags=["Store"])
 def add_inventory(
     inventory: InventoryCreate,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Add or receive inventory items."""
     try:
@@ -40,7 +39,6 @@ def get_inventory(
     page: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """List inventory items with optional filtering and pagination."""
     filters = {}
@@ -56,7 +54,6 @@ def get_inventory(
 def get_inventory_item(
     id: int,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Get inventory item details by ID."""
     item = db.query(InventoryItem).filter(InventoryItem.id == id).first()
@@ -69,7 +66,6 @@ def get_inventory_item(
 def dispatch_item(
     dispatch: DispatchCreate,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Dispatch items from inventory to requesters."""
     try:
@@ -87,7 +83,6 @@ def get_dispatches(
     inventory_item_id: Optional[int] = Query(None),
     requested_by: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """List dispatch records with optional filtering."""
     filters = {}
@@ -105,7 +100,6 @@ def get_dispatches(
 def create_store(
     store: StoreCreate,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Create a new store."""
     try:
@@ -121,7 +115,6 @@ def list_stores(
     page: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """List all stores with pagination."""
     return StoreService.get_all_stores(db, page * limit, limit)
@@ -131,7 +124,6 @@ def list_stores(
 def get_store_details(
     store_id: int,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Get store details including all bins."""
     store = StoreService.get_store_by_id(db, store_id)
@@ -145,7 +137,6 @@ def update_store(
     store_id: int,
     store_update: StoreUpdate,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Update store information."""
     store = StoreService.update_store(db, store_id, store_update)
@@ -158,7 +149,6 @@ def update_store(
 def delete_store(
     store_id: int,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Delete a store and all its bins."""
     success = StoreService.delete_store(db, store_id)
@@ -172,7 +162,6 @@ def add_bin(
     store_id: int,
     bin_create: BinCreate,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Add a bin to a store."""
     try:
@@ -187,7 +176,6 @@ def add_bin(
 def get_bins(
     store_id: int,
     db: Session = Depends(get_db),
-    _: None = Depends(require_store_role)
 ):
     """Get all bins for a store."""
     store = StoreService.get_store_by_id(db, store_id)

@@ -38,7 +38,9 @@ def list_purchase_orders(
 ) -> list:
     """List all purchase orders with pagination."""
     try:
-        return ProcurementService.get_purchase_orders(db, skip, limit)
+        page = (skip // limit) + 1 if limit > 0 else 1
+        result = ProcurementService.get_purchase_orders(db, status=None, page=page, page_size=limit)
+        return result["items"]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
