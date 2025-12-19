@@ -444,3 +444,15 @@
     padding: 8px;
   }
 }
+
+/* Delete Store button */
+.delete-button {
+  background-color: #ef4444;   /* red */
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.delete-button:hover {
+  background-color: #dc2626;   /* darker red on hover */
+  border-color: #dc2626;
+}

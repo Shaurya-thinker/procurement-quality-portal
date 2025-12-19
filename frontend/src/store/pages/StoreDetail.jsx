@@ -6,7 +6,7 @@ import '../css/StoreDetail.css';
 export default function StoreDetail() {
   const { storeId } = useParams();
   const navigate = useNavigate();
-  const { getStoreDetails, addBin, loading, error, clearError } = useStore();
+  const { getStoreDetails, addBin, deleteStore, loading, error, clearError } = useStore();
   const [store, setStore] = useState(null);
   const [showAddBinForm, setShowAddBinForm] = useState(false);
   const [binForm, setBinForm] = useState({
@@ -60,6 +60,22 @@ export default function StoreDetail() {
       console.error('Error adding bin:', err);
     }
   };
+
+  const handleDeleteStore = async () => {
+  const confirmDelete = window.confirm(
+    'Are you sure you want to delete this store?\nAll bins under this store will also be deleted.'
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await deleteStore(storeId);
+    navigate('/store');
+  } catch (err) {
+    console.error('Error deleting store:', err);
+    setLocalError('Failed to delete store');
+  }
+};
 
   if (loading && !store) {
     return (
@@ -274,13 +290,22 @@ export default function StoreDetail() {
       </div>
 
       <div className="detail-actions">
+    <button
+      onClick={() => navigate('/store/inventory')}
+      className="action-button inventory-button"
+    >
+      View Inventory
+    </button>
+
         <button
-          onClick={() => navigate('/store/inventory')}
-          className="action-button inventory-button"
-        >
-          View Inventory
-        </button>
-      </div>
-    </div>
-  );
+      onClick={handleDeleteStore}
+      className="action-button delete-button"
+      disabled={loading}
+    >
+      Delete Store
+    </button>
+
+  </div>
+</div>
+);
 }
