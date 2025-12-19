@@ -1,186 +1,187 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { logout } from '../auth/Login';
-import './DashboardLayout.css';
-import DashboardIcon from './icons/DashboardIcon';
-import CalendarIcon from './icons/CalendarIcon';
-import ClipboardIcon from './icons/ClipboardIcon';
-import CheckIcon from './icons/CheckIcon';
-import BoxIcon from './icons/BoxIcon';
-import UserIcon from './icons/UserIcon';
-import BellIcon from './icons/BellIcon';
-import MailIcon from './icons/MailIcon';
-import SearchIcon from './icons/SearchIcon';
-import LogoutIcon from './icons/LogoutIcon';
+"use client"
+
+import { Link, useNavigate, useLocation } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { logout } from "../auth/Login"
+import "./DashboardLayout.css"
+import DashboardIcon from "./icons/DashboardIcon"
+import CalendarIcon from "./icons/CalendarIcon"
+import ClipboardIcon from "./icons/ClipboardIcon"
+import CheckIcon from "./icons/CheckIcon"
+import BoxIcon from "./icons/BoxIcon"
+import UserIcon from "./icons/UserIcon"
+import BellIcon from "./icons/BellIcon"
+import MailIcon from "./icons/MailIcon"
+import LogoutIcon from "./icons/LogoutIcon"
 
 export default function DashboardLayout({ children }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const userEmail = localStorage.getItem('userEmail') || 'user@smg.com';
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [showUserDropdown, setShowUserDropdown] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const userEmail = localStorage.getItem("userEmail") || "user@smg.com"
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+  }
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+  }
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+    logout()
+    navigate("/login")
+  }
 
   const handleProfileClick = () => {
-    navigate('/profile');
-    setShowUserDropdown(false);
-  };
+    navigate("/profile")
+    setShowUserDropdown(false)
+  }
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-    { path: '/attendance', label: 'Attendance', icon: <CalendarIcon /> },
-    { path: '/procurement', label: 'Procurement', icon: <ClipboardIcon /> },
-    { path: '/quality', label: 'Quality', icon: <CheckIcon /> },
-    { path: '/store', label: 'Store', icon: <BoxIcon /> },
-    { path: '/profile', label: 'Profile', icon: <UserIcon /> },
-  ];
+    { path: "/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
+    { path: "/attendance", label: "Attendance", icon: <CalendarIcon /> },
+    { path: "/procurement", label: "Procurement", icon: <ClipboardIcon /> },
+    { path: "/quality", label: "Quality", icon: <CheckIcon /> },
+    { path: "/store", label: "Store", icon: <BoxIcon /> },
+    { path: "/profile", label: "Profile", icon: <UserIcon /> },
+  ]
 
-  const isActive = (path) => location.pathname.startsWith(path);
+  const isActive = (path) => location.pathname.startsWith(path)
 
   return (
-    <div className="dashboard-layout">
-      <aside className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <div className="logo-wrap">
-              <img src="/logo192.png" alt="Company Logo" className="company-logo" onError={(e)=>{e.target.style.display='none'}} />
-              {!sidebarCollapsed && <h2 className="logo-title">SMG</h2>}
+  <div className="dashboard-layout">
+
+    {/* FULL WIDTH HEADER */}
+    <header className="dashboard-header">
+      <div className="header-left">
+        <div className="header-brand">
+          <span className="header-logo-text">SMG</span>
+        </div>
+      </div>
+
+      <div className="header-center">
+        <div className="header-search">
+          <input
+            type="text"
+            placeholder="Search anything..."
+            className="search-input"
+          />
+        </div>
+      </div>
+
+      <div className="header-right">
+        <div className="header-datetime">
+          <span className="header-time">{formatTime(currentTime)}</span>
+          <span className="header-date">{formatDate(currentTime)}</span>
+        </div>
+
+        <button className="header-icon-button">
+          <BellIcon />
+        </button>
+
+        <button className="header-icon-button">
+          <MailIcon />
+        </button>
+
+        <div className="user-menu">
+          <button
+            className="user-avatar-button"
+            onClick={() => setShowUserDropdown(!showUserDropdown)}
+          >
+            <span className="avatar-circle">
+              {userEmail.charAt(0).toUpperCase()}
+            </span>
+          </button>
+
+          {showUserDropdown && (
+            <div className="user-dropdown">
+              <div className="dropdown-header">{userEmail}</div>
+              <button onClick={handleProfileClick} className="dropdown-item">
+                <UserIcon />
+                <span>Profile</span>
+              </button>
+              <button onClick={handleLogout} className="dropdown-item logout-item">
+                <LogoutIcon />
+                <span>Logout</span>
+              </button>
             </div>
-          </div>
+          )}
+        </div>
+      </div>
+    </header>
+
+    {/* BODY */}
+    <div className="dashboard-body">
+
+      {/* SIDEBAR */}
+      <aside className={`dashboard-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
+        <div className="sidebar-header">
           <button
             className="sidebar-toggle"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              {sidebarCollapsed ? (
-                <path d="M9 18l6-6-6-6M3 6v12h3v-12H3z" />
-              ) : (
-                <path d="M15 18l-6-6 6-6M21 6v12h-3v-12h3z" />
-              )}
-            </svg>
+            <span className={`toggle-icon ${sidebarCollapsed ? "collapsed" : ""}`}>
+              ‹
+            </span>
           </button>
         </div>
+
         <nav className="sidebar-nav">
           <ul className="nav-list">
             {navItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
-                  title={sidebarCollapsed ? item.label : ''}>
+                  className={`nav-link ${isActive(item.path) ? "active" : ""}`}
+                >
                   <span className="nav-icon">{item.icon}</span>
-                  {!sidebarCollapsed && <span className="nav-label">{item.label}</span>}
+                  {!sidebarCollapsed && (
+                    <span className="nav-label">{item.label}</span>
+                  )}
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
+
         <div className="sidebar-footer">
-          <button onClick={handleLogout} className="logout-link" title={sidebarCollapsed ? 'Logout' : ''}>
+        <button
+          onClick={handleLogout}
+          className={`nav-link logout-nav ${sidebarCollapsed ? "collapsed" : ""}`}
+          title={sidebarCollapsed ? "Logout" : ""}
+        >
+          <span className="nav-icon">
             <LogoutIcon />
-            {!sidebarCollapsed && <span>Logout</span>}
-          </button>
-        </div>
+          </span>
+          {!sidebarCollapsed && <span className="nav-label">Logout</span>}
+        </button>
+      </div>
       </aside>
 
-      <div className="dashboard-main">
-        <header className="dashboard-header">
-          <div className="header-left">
-            <div className="header-brand">
-              <img src="/logo192.png" alt="Company Logo" className="header-logo-img" onError={(e)=>{e.target.style.display='none'}} />
-              <div className="header-logo-text">SMG</div>
-            </div>
-          </div>
+      {/* MAIN CONTENT */}
+      <main className="dashboard-content">
+        {children}
+      </main>
 
-          <div className="header-center">
-            <div className="header-search">
-              <input
-                type="text"
-                placeholder="Search anything..."
-                className="search-input"
-                aria-label="Search"
-              />
-            </div>
-          </div>
-
-          <div className="header-right">
-            <div className="header-datetime">
-              <span className="header-time">{formatTime(currentTime)}</span>
-              <span className="header-date">{formatDate(currentTime)}</span>
-            </div>
-            <button className="header-icon-button" title="Notifications" aria-label="Notifications">
-              <BellIcon />
-            </button>
-            <button className="header-icon-button" title="Messages" aria-label="Messages">
-              <MailIcon />
-            </button>
-            <div className="user-menu">
-              <button
-                className="user-avatar-button"
-                onClick={() => setShowUserDropdown(!showUserDropdown)}
-                aria-haspopup="true"
-                aria-expanded={showUserDropdown}
-              >
-                <span className="avatar-circle">
-                  {userEmail.charAt(0).toUpperCase()}
-                </span>
-              </button>
-              {showUserDropdown && (
-                <div className="user-dropdown">
-                  <div className="dropdown-header">{userEmail}</div>
-                  <button
-                    onClick={handleProfileClick}
-                    className="dropdown-item"
-                  >
-                    <UserIcon />
-                    <span>Profile</span>
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="dropdown-item logout-item"
-                  >
-                    <LogoutIcon />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        <main className="dashboard-content">
-          {children}
-        </main>
-      </div>
     </div>
-  );
+  </div>
+ )
 }
