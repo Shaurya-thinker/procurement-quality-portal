@@ -5,13 +5,13 @@
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-surface) 100%);
 }
 
 .dashboard-sidebar {
   width: 280px;
-  background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
-  color: white;
+  background: linear-gradient(180deg, var(--color-blue-900) 0%, var(--color-blue-800) 100%);
+  color: var(--color-white);
   padding: 0;
   overflow-y: auto;
   display: flex;
@@ -138,10 +138,10 @@
 }
 
 .nav-link.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  color: var(--color-white);
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(41, 85, 164, 0.3);
 }
 
 .dashboard-sidebar.collapsed .nav-link {
@@ -253,7 +253,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #1F3A5F;
+  color: var(--color-text-primary);
   letter-spacing: 0.08em;
   line-height: 1.4;
   white-space: nowrap;
@@ -389,8 +389,8 @@
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  color: var(--color-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -398,7 +398,7 @@
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(41, 85, 164, 0.3);
 }
 
 .avatar-circle:hover {
