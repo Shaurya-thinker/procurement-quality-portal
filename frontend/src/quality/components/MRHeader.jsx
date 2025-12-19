@@ -74,25 +74,49 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
       </div>
       <div style={gridStyle}>
         <div style={fieldStyle}>
-          <label style={labelStyle}>MR Number</label>
+          <label style={labelStyle}>Bill No</label>
           <input
             type="text"
-            value={mrData.mr_number || ''}
-            onChange={(e) => handleChange('mr_number', e.target.value)}
+            value={mrData.bill_no || ''}
+            onChange={(e) => handleChange('bill_no', e.target.value)}
             disabled={isReadOnly}
             style={inputStyle}
-            placeholder="Auto-generated"
+            required
           />
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>PO Number</label>
+          <label style={labelStyle}>Date</label>
           <input
-            type="text"
-            value={mrData.po_number || ''}
-            onChange={(e) => handleChange('po_number', e.target.value)}
+            type="date"
+            value={mrData.date || ''}
+            onChange={(e) => handleChange('date', e.target.value)}
             disabled={isReadOnly}
             style={inputStyle}
+            required
+          />
+        </div>
+
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Vehicle No</label>
+          <input
+            type="text"
+            value={mrData.vehicle_no || ''}
+            onChange={(e) => handleChange('vehicle_no', e.target.value)}
+            disabled={isReadOnly}
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Entry No</label>
+          <input
+            type="text"
+            value={mrData.entry_no || ''}
+            onChange={(e) => handleChange('entry_no', e.target.value)}
+            disabled={isReadOnly}
+            style={inputStyle}
+            required
           />
         </div>
 
@@ -104,50 +128,66 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
             onChange={(e) => handleChange('vendor_name', e.target.value)}
             disabled={isReadOnly}
             style={inputStyle}
+            required
           />
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Vendor Address</label>
+          <label style={labelStyle}>Component Details</label>
+          <textarea
+            value={mrData.component_details || ''}
+            onChange={(e) => handleChange('component_details', e.target.value)}
+            disabled={isReadOnly}
+            style={{...inputStyle, minHeight: '80px', resize: 'vertical'}}
+            required
+          />
+        </div>
+
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Quantity</label>
+          <input
+            type="number"
+            value={mrData.quantity || ''}
+            onChange={(e) => handleChange('quantity', e.target.value)}
+            disabled={isReadOnly}
+            style={inputStyle}
+            min="1"
+            required
+          />
+        </div>
+
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Store No/Bin No</label>
           <input
             type="text"
-            value={mrData.vendor_address || ''}
-            onChange={(e) => handleChange('vendor_address', e.target.value)}
+            value={mrData.store_no_bin_no || ''}
+            onChange={(e) => handleChange('store_no_bin_no', e.target.value)}
             disabled={isReadOnly}
             style={inputStyle}
           />
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Date of Receipt</label>
-          <input
-            type="date"
-            value={mrData.date_of_receipt || ''}
-            onChange={(e) => handleChange('date_of_receipt', e.target.value)}
-            disabled={isReadOnly}
-            style={inputStyle}
-          />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Vehicle Number</label>
+          <label style={labelStyle}>Purchase Number</label>
           <input
             type="text"
-            value={mrData.vehicle_number || ''}
-            onChange={(e) => handleChange('vehicle_number', e.target.value)}
+            value={mrData.purchase_number || ''}
+            onChange={(e) => handleChange('purchase_number', e.target.value)}
             disabled={isReadOnly}
             style={inputStyle}
+            required
           />
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Challan / Invoice Number</label>
+          <label style={labelStyle}>MR Reference No</label>
           <input
             type="text"
-            value={mrData.challan_invoice_number || ''}
-            onChange={(e) => handleChange('challan_invoice_number', e.target.value)}
+            value={mrData.mr_reference_no || ''}
+            onChange={(e) => handleChange('mr_reference_no', e.target.value)}
             disabled={isReadOnly}
             style={inputStyle}
+            required
           />
         </div>
       </div>

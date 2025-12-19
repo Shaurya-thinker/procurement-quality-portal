@@ -7,6 +7,18 @@ class MaterialReceiptCreate(BaseModel):
     po_id: int = Field(..., gt=0)
     vendor_id: int = Field(..., gt=0)
     received_by: str = Field(..., min_length=1, max_length=100)
+    
+    # New required attributes
+    bill_no: str = Field(..., min_length=1, max_length=50)
+    date: datetime
+    vehicle_no: Optional[str] = Field(None, max_length=20)
+    entry_no: str = Field(..., min_length=1, max_length=50)
+    vendor_name: str = Field(..., min_length=1, max_length=200)
+    component_details: str = Field(..., min_length=1)
+    quantity: int = Field(..., gt=0)
+    store_no_bin_no: Optional[str] = Field(None, max_length=50)
+    purchase_number: str = Field(..., min_length=1, max_length=50)
+    mr_reference_no: str = Field(..., min_length=1, max_length=50)
 
 class MaterialReceiptRead(BaseModel):
     id: int
@@ -15,6 +27,18 @@ class MaterialReceiptRead(BaseModel):
     received_at: datetime
     received_by: str
     status: ReceiptStatus
+    
+    # New required attributes
+    bill_no: str
+    date: datetime
+    vehicle_no: Optional[str]
+    entry_no: str
+    vendor_name: str
+    component_details: str
+    quantity: int
+    store_no_bin_no: Optional[str]
+    purchase_number: str
+    mr_reference_no: str
     
     model_config = {"from_attributes": True}
 

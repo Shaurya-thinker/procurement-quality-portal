@@ -9,13 +9,16 @@ export default function MaterialReceipt() {
   const { createMaterialReceipt, loading, error, clearError } = useQuality();
 
   const [mrData, setMrData] = useState({
-    mr_number: '',
-    po_number: '',
+    bill_no: '',
+    date: '',
+    vehicle_no: '',
+    entry_no: '',
     vendor_name: '',
-    vendor_address: '',
-    date_of_receipt: '',
-    vehicle_number: '',
-    challan_invoice_number: '',
+    component_details: '',
+    quantity: '',
+    store_no_bin_no: '',
+    purchase_number: '',
+    mr_reference_no: '',
   });
 
   const [lineItems, setLineItems] = useState([]);
@@ -162,7 +165,7 @@ export default function MaterialReceipt() {
   };
 
   const handleSaveReceipt = async () => {
-    if (!mrData.po_number || !mrData.vendor_name || lineItems.length === 0) {
+    if (!mrData.bill_no || !mrData.vendor_name || !mrData.entry_no || !mrData.purchase_number || !mrData.mr_reference_no || lineItems.length === 0) {
       alert('Please fill in all required fields and add at least one line item');
       return;
     }

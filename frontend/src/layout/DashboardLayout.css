@@ -94,11 +94,12 @@
 
 .logo-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   color: white;
   line-height: 1.4;
+  font-family: 'Cinzel', serif;
 }
 
 .sidebar-nav {
@@ -248,14 +249,26 @@
   min-width: fit-content;
 }
 
-.header-logo {
+.header-logo-text {
   margin: 0;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 700;
   color: #1F3A5F;
-  letter-spacing: 0;
+  letter-spacing: 0.08em;
   line-height: 1.4;
   white-space: nowrap;
+  font-family: 'Cinzel', serif;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-logo-img {
+  width: 24px;
+  height: 24px;
 }
 
 .header-search {
