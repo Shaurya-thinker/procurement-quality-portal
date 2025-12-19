@@ -13,6 +13,7 @@ const POList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [loadingError, setLoadingError] = useState('');
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   useEffect(() => {
     loadProcurementOrders();
@@ -67,22 +68,28 @@ const POList = () => {
   };
 
   const headingStyle = {
-    fontSize: '20px',
-    fontWeight: '600',
-    marginBottom: '24px',
-    color: '#1E293B',
+    fontSize: '32px',
+    fontWeight: '700',
+    marginBottom: '32px',
+    color: '#1e293b',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    lineHeight: '1.3',
+    lineHeight: '1.2',
+    letterSpacing: '-0.5px',
   };
 
   const filterContainerStyle = {
     display: 'flex',
-    gap: '12px',
+    gap: '16px',
     marginBottom: '24px',
     alignItems: 'center',
     flexWrap: 'wrap',
+    padding: '20px',
+    background: 'white',
+    borderRadius: '12px',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+    border: '1px solid #f1f5f9',
   };
 
   const filterGroupStyle = {
@@ -92,39 +99,51 @@ const POList = () => {
   };
 
   const labelStyle = {
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#1E293B',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#374151',
   };
 
   const selectStyle = {
-    padding: '8px 12px',
-    border: '1px solid #E2E8F0',
-    borderRadius: '4px',
-    fontSize: '13px',
-    backgroundColor: '#FFFFFF',
+    padding: '10px 16px',
+    border: '1px solid #e2e8f0',
+    borderRadius: '8px',
+    fontSize: '14px',
+    backgroundColor: 'white',
     cursor: 'pointer',
-    fontWeight: '400',
+    fontWeight: '500',
     color: '#475569',
+    transition: 'all 0.3s ease',
+    backgroundImage: 'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2364748b\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/></svg>")',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+    backgroundSize: '16px',
+    paddingRight: '40px',
+    appearance: 'none',
   };
 
   const buttonStyle = {
-    padding: '10px 20px',
-    backgroundColor: '#1F3A5F',
+    padding: '14px 28px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
     color: 'white',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '10px',
     cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: '600',
-    transition: 'background-color 0.15s',
+    fontSize: '15px',
+    fontWeight: '700',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
   };
 
   const tableContainerStyle = {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '6px',
-    border: '1px solid #E2E8F0',
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    border: '1px solid #f1f5f9',
     overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
   };
 
   const tableStyle = {
@@ -133,39 +152,43 @@ const POList = () => {
   };
 
   const thStyle = {
-    padding: '12px 16px',
+    padding: '18px 20px',
     textAlign: 'left',
-    borderBottom: '1px solid #CBD5E1',
-    fontWeight: '600',
-    fontSize: '12px',
-    color: '#1E293B',
-    backgroundColor: '#F1F5F9',
+    borderBottom: '2px solid #cbd5e1',
+    fontWeight: '700',
+    fontSize: '14px',
+    color: '#1e293b',
+    background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
     textTransform: 'none',
-    letterSpacing: '0.2px',
+    letterSpacing: '-0.1px',
   };
 
   const tdStyle = {
-    padding: '12px 16px',
-    borderBottom: '1px solid #E2E8F0',
-    fontSize: '13px',
-    color: '#1E293B',
-    fontWeight: '400',
+    padding: '18px 20px',
+    borderBottom: '1px solid #f1f5f9',
+    fontSize: '14px',
+    color: '#1e293b',
+    fontWeight: '500',
+    verticalAlign: 'middle',
   };
 
-  const trHoverStyle = {
-    backgroundColor: '#F8FAFC',
-  };
+  const getRowStyle = (isHovered) => ({
+    transition: 'all 0.3s ease',
+    backgroundColor: isHovered ? '#f8fafc' : 'transparent',
+    transform: isHovered ? 'translateX(4px)' : 'translateX(0)',
+    cursor: 'pointer',
+  });
 
   const actionButtonStyle = {
-    padding: '6px 12px',
-    backgroundColor: '#1F3A5F',
+    padding: '8px 16px',
+    background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
     color: 'white',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '11px',
+    fontSize: '12px',
     fontWeight: '600',
-    transition: 'background-color 0.15s',
+    transition: 'all 0.3s ease',
   };
 
   const loadingStyle = {
@@ -186,16 +209,43 @@ const POList = () => {
   };
 
   const emptyStateStyle = {
-    padding: '48px 24px',
+    padding: '80px 24px',
     textAlign: 'center',
-    color: '#64748B',
+    color: '#64748b',
+  };
+
+  const emptyStateIconStyle = {
+    fontSize: '80px',
+    marginBottom: '24px',
+    opacity: '0.6',
   };
 
   const emptyStateHeadingStyle = {
-    fontSize: '15px',
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: '12px',
+    lineHeight: '1.3',
+  };
+
+  const emptyStateTextStyle = {
+    fontSize: '16px',
+    color: '#64748b',
+    marginBottom: '32px',
+    lineHeight: '1.5',
+  };
+
+  const emptyStateButtonStyle = {
+    padding: '12px 24px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
     fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: '8px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
   };
 
   const paginationStyle = {
@@ -232,8 +282,12 @@ const POList = () => {
     <div style={containerStyle}>
       <div style={headingStyle}>
         <div>Purchase Orders</div>
-        <button onClick={handleCreatePO} style={buttonStyle}>
-          + Create PO
+        <button 
+          onClick={handleCreatePO} 
+          className="btn-primary"
+        >
+          <span style={{ fontSize: '18px', fontWeight: 'bold' }}>+</span>
+          Create PO
         </button>
       </div>
 
@@ -268,8 +322,17 @@ const POList = () => {
       {!loading && procurementOrders.length === 0 && (
         <div style={tableContainerStyle}>
           <div style={emptyStateStyle}>
-            <div style={emptyStateHeadingStyle}>No Purchase Orders Found</div>
-            <div>Create your first purchase order to get started</div>
+            <div style={emptyStateIconStyle}>📋</div>
+            <div style={emptyStateHeadingStyle}>No Purchase Orders Yet</div>
+            <div style={emptyStateTextStyle}>
+              Start by creating your first purchase order to manage your procurement process efficiently.
+            </div>
+            <button 
+              onClick={handleCreatePO} 
+              className="btn-primary"
+            >
+              Create Your First PO
+            </button>
           </div>
         </div>
       )}
@@ -290,27 +353,52 @@ const POList = () => {
               <tbody>
                 {paginatedOrders.length > 0 ? (
                   paginatedOrders.map((po) => (
-                    <tr key={po.id} style={{ ':hover': trHoverStyle }}>
-                      <td style={tdStyle}>{po.po_number || '-'}</td>
-                      <td style={tdStyle}>{po.vendor_id || '-'}</td>
+                    <tr 
+                      key={po.id} 
+                      style={getRowStyle(hoveredRow === po.id)}
+                      onMouseEnter={() => setHoveredRow(po.id)}
+                      onMouseLeave={() => setHoveredRow(null)}
+                      onClick={() => handleViewPO(po.id)}
+                    >
+                      <td style={tdStyle}>
+                        <span style={{ fontWeight: '600', color: '#374151' }}>
+                          {po.po_number || '-'}
+                        </span>
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={{ color: '#3b82f6', fontWeight: '600' }}>
+                          {po.vendor_id || '-'}
+                        </span>
+                      </td>
                       <td style={tdStyle}>
                         <POStatusBadge status={po.status || 'DRAFT'} />
                       </td>
-                      <td style={tdStyle}>{formatDate(po.created_at)}</td>
+                      <td style={tdStyle}>
+                        <span style={{ color: '#64748b' }}>
+                          {formatDate(po.created_at)}
+                        </span>
+                      </td>
                       <td style={tdStyle}>
                         <button
-                          onClick={() => handleViewPO(po.id)}
-                          style={actionButtonStyle}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewPO(po.id);
+                          }}
+                          className="btn-secondary btn-small"
                         >
-                          View
+                          View Details
                         </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" style={{ ...tdStyle, textAlign: 'center' }}>
-                      No POs found with the selected filter
+                    <td colSpan="5" style={{ ...tdStyle, textAlign: 'center', padding: '40px 20px' }}>
+                      <div style={{ color: '#64748b', fontSize: '16px' }}>
+                        <div style={{ fontSize: '48px', marginBottom: '16px', opacity: '0.5' }}>🔍</div>
+                        <div style={{ fontWeight: '600', marginBottom: '8px' }}>No results found</div>
+                        <div>Try adjusting your filter to see more purchase orders</div>
+                      </div>
                     </td>
                   </tr>
                 )}

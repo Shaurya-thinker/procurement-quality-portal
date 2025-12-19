@@ -20,6 +20,18 @@ class MaterialReceipt(Base):
     received_by = Column(String(100), nullable=False)
     status = Column(Enum(ReceiptStatus), default=ReceiptStatus.RECEIVED)
     
+    # New required attributes
+    bill_no = Column(String(50), nullable=False)
+    date = Column(DateTime, nullable=False)
+    vehicle_no = Column(String(20), nullable=True)
+    entry_no = Column(String(50), nullable=False)
+    vendor_name = Column(String(200), nullable=False)
+    component_details = Column(Text, nullable=False)
+    quantity = Column(Integer, nullable=False)
+    store_no_bin_no = Column(String(50), nullable=True)
+    purchase_number = Column(String(50), nullable=False)
+    mr_reference_no = Column(String(50), nullable=False, unique=True)
+    
     inspections = relationship("QualityInspection", back_populates="material_receipt")
 
 class QualityInspection(Base):

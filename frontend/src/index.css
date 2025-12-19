@@ -1,3 +1,46 @@
+:root {
+  /* =========================
+     Base / Neutral Colors
+     ========================= */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-gray-50: #f5f5f5;     /* light surface */
+  --color-gray-200: #e7e7e7;    /* disabled / subtle */
+  --color-gray-300: #d9d9d9;    /* borders / dividers */
+
+  --color-bg-soft: #eaf5fd;     /* soft background tint */
+
+  /* =========================
+     Primary Blue Palette
+     ========================= */
+  --color-blue-900: #203864;    /* deep navy */
+  --color-blue-800: #184787;    /* dark primary */
+  --color-blue-700: #2955a4;    /* primary action */
+  --color-blue-600: #385997;    /* secondary */
+
+  /* =========================
+     Accent / Info Colors
+     ========================= */
+  --color-info-500: #6cb6ee;    /* sky / info blue */
+
+  /* =========================
+     Semantic Aliases
+     ========================= */
+  --color-background: var(--color-white);
+  --color-surface: var(--color-gray-50);
+  --color-border: var(--color-gray-300);
+  --color-text-primary: var(--color-blue-900);
+  --color-text-secondary: var(--color-blue-600);
+  --color-text-disabled: var(--color-gray-200);
+
+  --color-primary: var(--color-blue-700);
+  --color-primary-hover: var(--color-blue-800);
+  --color-primary-active: var(--color-blue-900);
+
+  --color-info: var(--color-info-500);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,8 +50,8 @@
 body {
   font-family: system-ui, 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
   line-height: 1.6;
-  background-color: #ffffff;
-  color: #333;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
   font-weight: 400;
 }
 

@@ -1,9 +1,10 @@
 export default function MRLineItemTable({ items, onChange, isReadOnly = false }) {
   const containerStyle = {
-    backgroundColor: '#ffffff',
-    borderRadius: '6px',
-    border: '1px solid #e5e7eb',
+    background: 'white',
+    borderRadius: '12px',
+    border: '1px solid #f1f5f9',
     overflow: 'hidden',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
   };
 
   const tableStyle = {
@@ -12,34 +13,38 @@ export default function MRLineItemTable({ items, onChange, isReadOnly = false })
   };
 
   const thStyle = {
-    padding: '12px 16px',
+    padding: '18px 20px',
     textAlign: 'left',
-    borderBottom: '2px solid #d1d5db',
-    fontWeight: '600',
-    fontSize: '13px',
-    color: '#374151',
-    backgroundColor: '#f9fafb',
+    borderBottom: '2px solid #cbd5e1',
+    fontWeight: '700',
+    fontSize: '14px',
+    color: '#1e293b',
+    background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
     textTransform: 'uppercase',
-    letterSpacing: '0.5px',
+    letterSpacing: '0.3px',
+    lineHeight: '1.4',
   };
 
   const tdStyle = {
-    padding: '12px 16px',
-    borderBottom: '1px solid #e5e7eb',
+    padding: '16px 20px',
+    borderBottom: '1px solid #f1f5f9',
     fontSize: '14px',
-    color: '#1f2937',
+    color: '#1e293b',
+    verticalAlign: 'middle',
   };
 
   const inputStyle = {
-    padding: '8px 12px',
-    border: '1px solid #d1d5db',
-    borderRadius: '4px',
+    padding: '10px 14px',
+    border: '1px solid #e2e8f0',
+    borderRadius: '6px',
     fontSize: '14px',
     fontFamily: 'inherit',
     width: '100%',
-    backgroundColor: isReadOnly ? '#f3f4f6' : '#ffffff',
-    color: '#1f2937',
+    backgroundColor: isReadOnly ? '#f8fafc' : 'white',
+    color: '#1e293b',
     cursor: isReadOnly ? 'not-allowed' : 'text',
+    transition: 'all 0.3s ease',
+    fontWeight: '500',
   };
 
   const handleChange = (index, field, value) => {
@@ -59,28 +64,50 @@ export default function MRLineItemTable({ items, onChange, isReadOnly = false })
   };
 
   const emptyStateStyle = {
-    padding: '32px 16px',
+    padding: '60px 20px',
     textAlign: 'center',
-    color: '#6b7280',
+    color: '#64748b',
+    fontSize: '16px',
+  };
+
+  const emptyIconStyle = {
+    fontSize: '64px',
+    marginBottom: '16px',
+    opacity: '0.5',
+  };
+
+  const emptyTitleStyle = {
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: '8px',
+  };
+
+  const emptyTextStyle = {
     fontSize: '14px',
+    color: '#64748b',
   };
 
   const removeButtonStyle = {
-    padding: '6px 10px',
-    backgroundColor: '#ef4444',
+    padding: '8px 16px',
+    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
     color: 'white',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '12px',
-    fontWeight: '500',
+    fontWeight: '600',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
   };
 
   if (items.length === 0) {
     return (
       <div style={containerStyle}>
         <div style={emptyStateStyle}>
-          No line items added. Add items to the material receipt.
+          <div style={emptyIconStyle}>📦</div>
+          <div style={emptyTitleStyle}>No Items Added</div>
+          <div style={emptyTextStyle}>Click "Add Item" to start adding line items to this material receipt</div>
         </div>
       </div>
     );
@@ -153,7 +180,7 @@ export default function MRLineItemTable({ items, onChange, isReadOnly = false })
                 <td style={tdStyle}>
                   <button
                     onClick={() => handleRemoveItem(index)}
-                    style={removeButtonStyle}
+                    className="btn-danger btn-small"
                   >
                     Remove
                   </button>

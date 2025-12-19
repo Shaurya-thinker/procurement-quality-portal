@@ -1,28 +1,16 @@
 const POStatusBadge = ({ status }) => {
-  const statusStyles = {
-    DRAFT: {
-      backgroundColor: '#fbbf24',
-      color: '#78350f',
-      borderRadius: '4px',
-      padding: '4px 8px',
-      fontSize: '12px',
-      fontWeight: '500',
-      display: 'inline-block',
-    },
-    SENT: {
-      backgroundColor: '#86efac',
-      color: '#15803d',
-      borderRadius: '4px',
-      padding: '4px 8px',
-      fontSize: '12px',
-      fontWeight: '500',
-      display: 'inline-block',
-    },
+  const getStatusClass = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'DRAFT':
+        return 'status-badge draft';
+      case 'SENT':
+        return 'status-badge sent';
+      default:
+        return 'status-badge draft';
+    }
   };
 
-  const style = statusStyles[status] || statusStyles.DRAFT;
-
-  return <span style={style}>{status}</span>;
+  return <span className={getStatusClass(status)}>{status}</span>;
 };
 
 export default POStatusBadge;
