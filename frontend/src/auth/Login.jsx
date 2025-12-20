@@ -69,63 +69,70 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-logo">
-          <h1 className="logo-text">SMG</h1>
-        </div>
+  <div className="login-page">
 
-        <h2 className="login-heading">Login</h2>
+    {/* LEFT PANEL */}
+    <div className="login-left">
+      <div className="login-brand">
+        <h1 className="logo-text">SMG</h1>
+        <h2 className="login-portal">Intern Portal</h2>
+        <p className="login-welcome">Welcome</p>
         <p className="login-subtitle">Sign in to your account</p>
+      </div>
 
-        {error && <div className="login-error">{error}</div>}
+      {error && <div className="login-error">{error}</div>}
 
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="form-input"
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="form-input"
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="login-button"
+      <form onSubmit={handleLogin} className="login-form">
+        <div className="form-group">
+          <label className="form-label">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="form-input"
             disabled={loading}
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="demo-credentials">
-          <strong>Demo Credentials:</strong>
-          <div>Email: procurement@demo.com (role: procurement)</div>
-          <div>Email: quality@demo.com (role: quality)</div>
-          <div>Email: store@demo.com (role: store)</div>
-          <div>Password: any password</div>
+          />
         </div>
 
-        <div className="login-helper-text">
-          This is a demo login. Use any password with the demo emails above.
+        <div className="form-group">
+          <label className="form-label">Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="form-input"
+            disabled={loading}
+          />
         </div>
+
+        <button type="submit" className="login-button" disabled={loading}>
+          {loading ? "Signing in..." : "Login"}
+        </button>
+      </form>
+
+      <div className="demo-credentials">
+        <strong>Demo Credentials:</strong>
+        <div>Email: procurement@demo.com</div>
+        <div>Email: quality@demo.com</div>
+        <div>Email: store@demo.com</div>
+        <div>Password: any</div>
+      </div>
+
+      <div className="login-helper-text">
+        This is a demo login. Use any password.
       </div>
     </div>
-  );
+
+    {/* RIGHT PANEL */}
+    <div className="login-right">
+      <div className="login-glass">
+  <p className="glass-text">
+    Welcome to SMG Intern Portal
+  </p>
+</div>
+    </div>
+
+  </div>
+  
+);
 }

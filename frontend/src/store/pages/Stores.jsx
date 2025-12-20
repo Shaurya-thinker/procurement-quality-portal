@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../hooks/useStore';
+import AddStoreForm from '../components/AddStoreForm';
 import '../css/Stores.css';
 
 export default function Stores() {
@@ -8,6 +9,7 @@ export default function Stores() {
   const { getAllStores, loading, error, clearError } = useStore();
   const [stores, setStores] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddStoreForm, setShowAddStoreForm] = useState(false);
 
   useEffect(() => {
     loadStores();
@@ -55,15 +57,35 @@ export default function Stores() {
         </div>
       )}
 
-      <div className="stores-filter">
-        <input
-          type="text"
-          placeholder="Search by Store ID, Name, or Plant..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-      </div>
+        <div className="stores-filter">
+          <input
+            type="text"
+            placeholder="Search by Store ID, Name, or Plant..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+
+          <button
+            className="back-button"
+            style={{ marginLeft: '16px' }}
+            onClick={() => setShowAddStoreForm(true)}
+          >
+            + Add Store
+          </button>
+        </div>
+      
+            {showAddStoreForm && (
+        <div style={{ marginBottom: '32px' }}>
+          <AddStoreForm
+            onCreated={() => {
+              setShowAddStoreForm(false);
+              loadStores();
+            }}
+            onCancel={() => setShowAddStoreForm(false)}
+          />
+        </div>
+      )}
 
       {loading ? (
         <div className="loading-state">

@@ -244,3 +244,31 @@
     max-width: 100%;
   }
 }
+
+/* Add Store Form Buttons */
+.btn-primary,
+.btn-secondary {
+  background-color: #3b82f6; /* same blue used across site */
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+/* Hover state */
+.btn-primary:hover,
+.btn-secondary:hover {
+  background-color: #1d4ed8;
+}
+
+/* Add Store Form – action buttons spacing */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
