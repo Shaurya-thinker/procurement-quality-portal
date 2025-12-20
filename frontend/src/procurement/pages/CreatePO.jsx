@@ -122,10 +122,12 @@ const CreatePO = () => {
       );
 
       const poData = {
-        vendor_id: vendorId,
-        po_date: poDate,
-        status: 'DRAFT',
-        line_items: validItems,
+        vendor_id: parseInt(vendorId),
+        lines: validItems.map(item => ({
+          item_id: parseInt(item.item_id),
+          quantity: parseInt(item.quantity),
+          price: item.rate
+        }))
       };
 
       const result = await createProcurementOrder(poData);
