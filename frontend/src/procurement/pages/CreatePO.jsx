@@ -22,7 +22,7 @@ const CreatePO = () => {
   const [vendorInfo, setVendorInfo] = useState(null);
   const [status, setStatus] = useState('DRAFT');
   const [lineItems, setLineItems] = useState([
-    { item_id: '', item_description: '', unit: '', quantity: '', rate: '' }
+    { item_id: null, item_code: '', item_description: '', unit: '', quantity: '', rate: '' }
   ]);
   const [validationErrors, setValidationErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
@@ -65,9 +65,10 @@ const CreatePO = () => {
     }
 
     validItems.forEach((item, idx) => {
-      if (!item.item_id?.trim()) {
-        errors[`item_${idx}_id`] = 'Item code is required';
+      if (!item.item_id) {
+        errors[`item_${idx}_id`] = 'Item is required';
       }
+
       if (!item.quantity || parseFloat(item.quantity) <= 0) {
         errors[`item_${idx}_qty`] = 'Quantity must be greater than 0';
       }
@@ -124,7 +125,7 @@ const CreatePO = () => {
       const poData = {
         vendor_id: parseInt(vendorId),
         lines: validItems.map(item => ({
-          item_id: parseInt(item.item_id),
+          item_id: item.item_id,
           quantity: parseInt(item.quantity),
           price: item.rate
         }))
