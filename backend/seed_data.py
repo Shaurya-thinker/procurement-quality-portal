@@ -3,7 +3,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.app.database import SessionLocal, create_tables, drop_tables
+from backend.app.core.db import SessionLocal, create_tables, drop_tables
 from backend.app.procurement.models import Item, PurchaseOrder, PurchaseOrderLine, POStatus
 from backend.app.store.models import Store, Bin
 from decimal import Decimal

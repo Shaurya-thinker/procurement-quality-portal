@@ -1,7 +1,8 @@
 from decimal import Decimal
 from sqlalchemy import Column, Integer, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
-from backend.app.procurement.models.item import Base
+from backend.app.core.db import Base
+
 
 
 class PurchaseOrderLine(Base):
