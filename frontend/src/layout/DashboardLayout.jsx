@@ -13,6 +13,8 @@ import UserIcon from "./icons/UserIcon"
 import BellIcon from "./icons/BellIcon"
 import MailIcon from "./icons/MailIcon"
 import LogoutIcon from "./icons/LogoutIcon"
+import Logo from "../assets/logo.png";
+
 
 export default function DashboardLayout({ children }) {
   const navigate = useNavigate()
@@ -71,9 +73,11 @@ export default function DashboardLayout({ children }) {
     {/* FULL WIDTH HEADER */}
     <header className="dashboard-header">
       <div className="header-left">
-        <div className="header-brand">
-          <span className="header-logo-text">SMG</span>
-        </div>
+        <div className="header-logo-wrapper">
+  <img src={Logo} alt="SMG Logo" className="header-logo" />
+</div>
+
+
       </div>
 
       <div className="header-center">

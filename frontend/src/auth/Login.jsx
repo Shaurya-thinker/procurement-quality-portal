@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
+import Logo from "../assets/logo.png";
+
 
 export const getRole = () => {
   return localStorage.getItem("role");
@@ -72,56 +74,49 @@ export default function Login() {
   <div className="login-page">
 
     {/* LEFT PANEL */}
-    <div className="login-left">
-      <div className="login-brand">
-        <h1 className="logo-text">SMG</h1>
-        <h2 className="login-portal">Intern Portal</h2>
-        <p className="login-welcome">Welcome</p>
-        <p className="login-subtitle">Sign in to your account</p>
-      </div>
+<div className="login-left">
+  <div className="login-left-content">
 
-      {error && <div className="login-error">{error}</div>}
-
-      <form onSubmit={handleLogin} className="login-form">
-        <div className="form-group">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="form-input"
-            disabled={loading}
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="form-input"
-            disabled={loading}
-          />
-        </div>
-
-        <button type="submit" className="login-button" disabled={loading}>
-          {loading ? "Signing in..." : "Login"}
-        </button>
-      </form>
-
-      <div className="demo-credentials">
-        <strong>Demo Credentials:</strong>
-        <div>Email: procurement@demo.com</div>
-        <div>Email: quality@demo.com</div>
-        <div>Email: store@demo.com</div>
-        <div>Password: any</div>
-      </div>
-
-      <div className="login-helper-text">
-        This is a demo login. Use any password.
-      </div>
+    <div className="login-brand">
+      <img src={Logo} alt="SMG Logo" className="login-logo" />
+      <h2 className="login-portal">Intern Portal</h2>
+      <p className="login-welcome">Welcome</p>
+      <p className="login-subtitle">Sign in to your account</p>
     </div>
+
+    {error && <div className="login-error">{error}</div>}
+
+    <form onSubmit={handleLogin} className="login-form">
+      <div className="form-group">
+        <label className="form-label">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="form-input"
+          disabled={loading}
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="form-input"
+          disabled={loading}
+        />
+      </div>
+
+      <button type="submit" className="login-button" disabled={loading}>
+        {loading ? "Signing in..." : "Login"}
+      </button>
+    </form>
+
+  </div>
+</div>
+
 
     {/* RIGHT PANEL */}
     <div className="login-right">

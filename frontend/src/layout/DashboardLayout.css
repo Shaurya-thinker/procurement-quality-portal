@@ -48,15 +48,25 @@
   align-items: center;
 }
 
-.header-logo-text {
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: 0.07em;
-  color: #1e3a8a;
-  font-family: "Cinzel", serif;
-  white-space: nowrap;
-  -webkit-text-stroke: 0.4px #1e3a8a;
+.header-logo-wrapper {
+  height: 48px;
+  width: 150px;          /* ⬅️ increased to fit full G */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
+
+.header-logo {
+  height: 100%;
+  width: auto;
+  transform: scale(1) translateX(-10px); /* ⬅️ move left */
+  transform-origin: left center;
+  display: block;
+}
+
+
+
 
 .header-center {
   flex: 1;
@@ -263,7 +273,7 @@
    SIDEBAR
 ========================= */
 .dashboard-sidebar {
-  width: 280px;
+  width: 240px;
   background: linear-gradient(
     180deg,
     var(--color-blue-900) 0%,
