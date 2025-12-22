@@ -81,3 +81,21 @@ class PurchaseOrderUpdate(BaseModel):
         None,
         description="Optional list of purchase order lines to replace existing lines"
     )
+
+class PurchaseOrderLineDetailRead(BaseModel):
+    item_id: int
+    item_code: str
+    item_description: str
+    unit: str
+    quantity: int
+    rate: Decimal
+
+
+class PurchaseOrderDetailRead(BaseModel):
+    id: int
+    po_number: str
+    vendor_id: int
+    status: POStatus
+    created_at: datetime
+    line_items: list[PurchaseOrderLineDetailRead]
+

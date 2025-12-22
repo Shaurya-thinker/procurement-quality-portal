@@ -8,6 +8,8 @@ import requests
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from backend.app.procurement.models import PurchaseOrder, Item
+from backend.app.procurement.schemas.purchase_order import (PurchaseOrderDetailRead, PurchaseOrderLineDetailRead,)
 
 from backend.app.procurement.models import (
     PurchaseOrder,
@@ -198,44 +200,37 @@ class ProcurementService:
         }
     
     @staticmethod
-    def get_purchase_order(db: Session, po_id: int) -> PurchaseOrderRead:
-        """
-        Get a single purchase order by ID.
-        
-        Args:
-            db: Database session
-            po_id: Purchase order ID
-            
-        Returns:
-            PurchaseOrderRead: Purchase order details
-            
-        Raises:
-            ValueError: If purchase order not found
-        """
+
+    def get_purchase_order(db: Session, po_id: int):
         db_po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
-        
+
         if not db_po:
             raise ValueError(f"Purchase order with ID {po_id} not found")
-        
-        # Build response dict
-        po_dict = {
-            "id": db_po.id,
-            "po_number": db_po.po_number,
-            "vendor_id": db_po.vendor_id,
-            "status": db_po.status,
-            "created_at": db_po.created_at,
-            "lines": [
-                {
-                    "id": line.id,
-                    "po_id": line.po_id,
-                    "item_id": line.item_id,
-                    "quantity": line.quantity,
-                    "price": line.price,
-                }
-                for line in db_po.lines
-            ]
-        }
-        return PurchaseOrderRead.model_validate(po_dict)
+
+        line_items = []
+        for line in db_po.lines:
+            item = db.query(Item).filter(Item.id == line.item_id).first()
+
+            line_items.append(
+                PurchaseOrderLineDetailRead(
+                    item_id=line.item_id,
+                    item_code=item.code if item else "",
+                    item_description=item.name if item else "",
+                    unit=item.unit if item else "",
+                    quantity=line.quantity,
+                    rate=line.price,
+                )
+            )
+
+        return PurchaseOrderDetailRead(
+            id=db_po.id,
+            po_number=db_po.po_number,
+            vendor_id=db_po.vendor_id,
+            status=db_po.status,
+            created_at=db_po.created_at,
+            line_items=line_items,
+        )
+
     
     @staticmethod
     def send_purchase_order(db: Session, po_id: int) -> PurchaseOrderRead:
