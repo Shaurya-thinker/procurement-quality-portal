@@ -93,7 +93,20 @@ export default function Dispatch() {
 
   return (
     <div style={containerStyle}>
-      <h1 style={headingStyle}>Material Dispatch</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+  <button
+    onClick={() => navigate(-1)}
+    className="back-arrow-btn"
+    aria-label="Go back"
+  >
+    ←
+  </button>
+
+  <h1 style={{ ...headingStyle, marginBottom: 0 }}>
+    Material Dispatch
+  </h1>
+</div>
+
 
       {error && (
         <div style={errorAlertStyle}>

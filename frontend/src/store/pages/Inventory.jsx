@@ -196,7 +196,27 @@ export default function Inventory() {
 
   return (
     <div style={containerStyle}>
-      <h1 style={headingStyle}>Inventory</h1>
+      <div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '24px',
+  }}
+>
+  <button
+    onClick={() => navigate(-1)}
+    className="back-arrow-btn"
+    aria-label="Go back"
+  >
+    ←
+  </button>
+
+  <h1 style={{ ...headingStyle, marginBottom: 0 }}>
+    Inventory
+  </h1>
+</div>
+
 
       {(error || localError) && (
         <div style={errorAlertStyle}>

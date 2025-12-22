@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import AddStoreForm from '../components/AddStoreForm';
 import { useStore } from '../hooks/useStore';
 import '../css/StoreDetail.css';
 
 export default function StoreDetail() {
   const { storeId } = useParams();
+  const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
-  const { getStoreDetails, addBin, deleteStore, loading, error, clearError } = useStore();
+  const { getStoreDetails, addBin, deleteStore, updateStore, loading, error, clearError } = useStore();
   const [store, setStore] = useState(null);
   const [showAddBinForm, setShowAddBinForm] = useState(false);
   const [binForm, setBinForm] = useState({
@@ -105,15 +107,18 @@ export default function StoreDetail() {
 
   return (
     <div className="store-detail-container">
-      <div className="detail-header">
-        <button
-          onClick={() => navigate('/store')}
-          className="back-button-link"
-        >
-          ← Back to Stores
-        </button>
-        <h1 className="store-detail-title">{store.name}</h1>
-      </div>
+     <div className="detail-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+  <button
+    onClick={() => navigate(-1)}
+    className="back-arrow-btn"
+    aria-label="Go back"
+  >
+    ←
+  </button>
+
+  <h1 className="store-detail-title">{store.name}</h1>
+</div>
+
 
       {(error || localError) && (
         <div className="error-alert">
@@ -150,35 +155,54 @@ export default function StoreDetail() {
       )}
 
       <div className="detail-content">
-        <div className="store-info-section">
-          <h2 className="section-title">Store Information</h2>
-          <div className="info-grid">
-            <div className="info-item">
-              <span className="info-label">Store ID:</span>
-              <span className="info-value">{store.store_id}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Plant Name:</span>
-              <span className="info-value">{store.plant_name}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">In-Charge Name:</span>
-              <span className="info-value">{store.in_charge_name}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Mobile:</span>
-              <span className="info-value">{store.in_charge_mobile}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Email:</span>
-              <span className="info-value">{store.in_charge_email}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Total Bins:</span>
-              <span className="info-value bins-count">{store.bins?.length || 0}</span>
-            </div>
-          </div>
+  {isEditing ? (
+    <AddStoreForm
+      initialData={store}
+      isEdit
+      onCancel={() => setIsEditing(false)}
+      onSubmit={async (formData) => {
+        try {
+          await updateStore(store.id, formData);
+          setIsEditing(false);
+          await getStoreDetails(store.id);
+        } catch (err) {
+          console.error('Failed to update store', err);
+        }
+      }}
+    />
+  ) : (
+    <div className="store-info-section">
+      <h2 className="section-title">Store Information</h2>
+      <div className="info-grid">
+        <div className="info-item">
+          <span className="info-label">Store ID:</span>
+          <span className="info-value">{store.store_id}</span>
         </div>
+        <div className="info-item">
+          <span className="info-label">Plant Name:</span>
+          <span className="info-value">{store.plant_name}</span>
+        </div>
+        <div className="info-item">
+          <span className="info-label">In-Charge Name:</span>
+          <span className="info-value">{store.in_charge_name}</span>
+        </div>
+        <div className="info-item">
+          <span className="info-label">Mobile:</span>
+          <span className="info-value">{store.in_charge_mobile}</span>
+        </div>
+        <div className="info-item">
+          <span className="info-label">Email:</span>
+          <span className="info-value">{store.in_charge_email}</span>
+        </div>
+        <div className="info-item">
+          <span className="info-label">Total Bins:</span>
+          <span className="info-value bins-count">
+            {store.bins?.length || 0}
+          </span>
+        </div>
+      </div>
+    </div>
+  )}
 
         <div className="bins-section">
           <div className="bins-header">
@@ -290,22 +314,27 @@ export default function StoreDetail() {
       </div>
 
       <div className="detail-actions">
-    <button
-      onClick={() => navigate('/store/inventory')}
-      className="action-button inventory-button"
-    >
-      View Inventory
-    </button>
+  <button
+    onClick={() => navigate('/store/inventory')}
+    className="action-button inventory-button"
+  >
+    View Inventory
+  </button>
 
-        <button
-      onClick={handleDeleteStore}
-      className="action-button delete-button"
-      disabled={loading}
-    >
-      Delete Store
-    </button>
+  <button
+    onClick={() => setIsEditing(true)}
+    className="action-button inventory-button"
+  >
+    Edit Store
+  </button>
 
-  </div>
+  <button
+    onClick={handleDeleteStore}
+    className="action-button delete-button"
+  >
+    Delete Store
+  </button>
+</div>
 </div>
 );
 }

@@ -103,17 +103,34 @@ export default function DispatchList() {
 
   return (
     <div style={containerStyle}>
-      <div style={headerStyle}>
-        <h1 style={titleStyle}>Material Dispatches</h1>
-        <button 
-          onClick={handleCreateDispatch}
-          style={createButtonStyle}
-          disabled={loading}
-        >
-          <span>+</span>
-          Create Dispatch
-        </button>
-      </div>
+      <div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '24px',
+  }}
+>
+  <button
+    onClick={() => navigate(-1)}
+    className="back-arrow-btn"
+    aria-label="Go back"
+  >
+    ←
+  </button>
+
+  <h1 style={titleStyle}>Material Dispatches</h1>
+
+  <button
+    onClick={handleCreateDispatch}
+    style={createButtonStyle}
+    disabled={loading}
+  >
+    <span>+</span>
+    Create Dispatch
+  </button>
+</div>
+
 
       {error && <div style={errorStyle}>{error}</div>}
 

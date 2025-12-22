@@ -100,47 +100,46 @@ export default function Stores() {
           <p>Loading stores...</p>
         </div>
       ) : filteredStores.length > 0 ? (
-        <div className="stores-grid">
-          {filteredStores.map(store => (
-            <div
-              key={store.id}
-              className="store-card"
-              onClick={() => handleStoreClick(store.id)}
-            >
-              <div className="store-card-header">
-                <h3 className="store-name">{store.name}</h3>
-                <span className="store-id-badge">{store.store_id}</span>
-              </div>
+        <div className="stores-table-wrapper">
+          <table className="stores-table">
+            <thead>
+              <tr>
+                <th>Store Name</th>
+                <th>Store ID</th>
+                <th>Plant</th>
+                <th>In-Charge</th>
+                <th>Mobile</th>
+                <th>Email</th>
+                <th>Bins</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-              <div className="store-card-content">
-                <div className="info-row">
-                  <span className="info-label">Plant:</span>
-                  <span className="info-value">{store.plant_name}</span>
-                </div>
+            <tbody>
+              {filteredStores.map(store => (
+                <tr key={store.id}>
+                  <td>{store.name}</td>
+                  <td>{store.store_id}</td>
+                  <td>{store.plant_name}</td>
+                  <td>{store.in_charge_name}</td>
+                  <td>{store.in_charge_mobile}</td>
+                  <td>{store.in_charge_email}</td>
+                  <td>{store.bins?.length || 0}</td>
 
-                <div className="info-row">
-                  <span className="info-label">In-Charge:</span>
-                  <span className="info-value">{store.in_charge_name}</span>
-                </div>
-
-                <div className="info-row">
-                  <span className="info-label">Mobile:</span>
-                  <span className="info-value">{store.in_charge_mobile}</span>
-                </div>
-
-                <div className="info-row">
-                  <span className="info-label">Email:</span>
-                  <span className="info-value">{store.in_charge_email}</span>
-                </div>
-
-                <div className="bins-count">
-                  <span className="bins-label">Bins:</span>
-                  <span className="bins-value">{store.bins?.length || 0}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+                  <td className="actions-cell">
+                  <button
+                    className="table-btn view"
+                    onClick={() => handleStoreClick(store.id)}
+                  >
+                    View
+                  </button>
+                </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+
       ) : (
         <div className="empty-state">
           <div className="empty-state-content">

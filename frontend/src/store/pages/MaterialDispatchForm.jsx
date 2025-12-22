@@ -178,9 +178,20 @@ export default function MaterialDispatchForm() {
 
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '24px', color: '#1e293b' }}>
-        Create Material Dispatch
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+  <button
+    onClick={() => navigate(-1)}
+    className="back-arrow-btn"
+    aria-label="Go back"
+  >
+    ←
+  </button>
+
+  <h1 style={{ fontSize: '28px', fontWeight: '700', margin: 0 }}>
+    Create Material Dispatch
+  </h1>
+</div>
+
       
       <form onSubmit={handleSubmit}>
         {/* Dispatch Header */}

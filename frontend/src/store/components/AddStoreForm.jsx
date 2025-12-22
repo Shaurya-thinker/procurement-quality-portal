@@ -2,16 +2,23 @@ import { useState } from 'react';
 import { useStore } from '../hooks/useStore';
 import '../../store/css/Stores.css';
 
-export default function AddStoreForm({ onCreated, onCancel }) {
+export default function AddStoreForm({
+  initialData = {},
+  isEdit = false,
+  onSubmit,
+  onCreated,
+  onCancel,
+}) 
+{
   const { createStore, loading, error, clearError } = useStore();
   const [form, setForm] = useState({
-    store_id: '',
-    name: '',
-    plant_name: '',
-    in_charge_name: '',
-    in_charge_mobile: '',
-    in_charge_email: '',
-  });
+  store_id: initialData.store_id || '',
+  name: initialData.name || '',
+  plant_name: initialData.plant_name || '',
+  in_charge_name: initialData.in_charge_name || '',
+  in_charge_mobile: initialData.in_charge_mobile || '',
+  in_charge_email: initialData.in_charge_email || '',
+});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,22 +26,34 @@ export default function AddStoreForm({ onCreated, onCancel }) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    clearError && clearError();
-    try {
+  e.preventDefault();
+  clearError && clearError();
+
+  try {
+    if (isEdit) {
+      const { store_id, ...updatePayload } = form;
+      await onSubmit(updatePayload);
+    } else {
       await createStore(form);
       onCreated && onCreated();
-    } catch (err) {
-      // error handled in hook
     }
-  };
+  } catch (err) {
+    // handled in hook
+  }
+};
 
   return (
     <div className="add-store-form">
       <form onSubmit={handleSubmit}>
         <div className="form-row">
           <label>Store ID</label>
-          <input name="store_id" value={form.store_id} onChange={handleChange} required />
+          <input
+            name="store_id"
+            value={form.store_id}
+            onChange={handleChange}
+            required
+            disabled={isEdit}
+          />
         </div>
 
         <div className="form-row">
@@ -63,7 +82,9 @@ export default function AddStoreForm({ onCreated, onCancel }) {
         </div>
 
         <div className="form-actions">
-          <button type="submit" className="btn-primary" disabled={loading}>Create Store</button>
+          <button type="submit" className="btn-primary" disabled={loading}>
+              {isEdit ? 'Update Store' : 'Create Store'}
+            </button>
           <button type="button" className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </form>

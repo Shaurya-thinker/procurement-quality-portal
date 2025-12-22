@@ -105,10 +105,23 @@ export default function CreateDispatch() {
 
   return (
     <div style={containerStyle}>
-      <div style={headerStyle}>
-        <h1 style={titleStyle}>Create Material Dispatch</h1>
-        <p style={subtitleStyle}>Issue materials from inventory with comprehensive tracking</p>
-      </div>
+      <div style={{ ...headerStyle, display: 'flex', alignItems: 'center', gap: '12px' }}>
+  <button
+    onClick={() => navigate(-1)}
+    className="back-arrow-btn"
+    aria-label="Go back"
+  >
+    ←
+  </button>
+
+  <div>
+    <h1 style={titleStyle}>Create Material Dispatch</h1>
+    <p style={subtitleStyle}>
+      Issue materials from inventory with comprehensive tracking
+    </p>
+  </div>
+</div>
+
 
       {successMessage && <div style={successStyle}>{successMessage}</div>}
       {errorMessage && <div style={errorStyle}>{errorMessage}</div>}
