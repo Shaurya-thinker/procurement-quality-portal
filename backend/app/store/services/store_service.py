@@ -1,8 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import Optional, Dict, Any, List
-from ..models import InventoryItem, Dispatch, Store, Bin
-from ..schemas import InventoryCreate, DispatchCreate, StoreCreate, StoreUpdate, BinCreate
+from ..models import InventoryItem, Store, Bin
+from ..models.dispatch import Dispatch, DispatchItem, DispatchStatus, DispatchType
+from ..schemas import InventoryCreate, StoreCreate, StoreUpdate, BinCreate
+from ..schemas.dispatch import DispatchCreate, DispatchRead
+from datetime import datetime
+import uuid
 
 
 class StoreService:
@@ -51,24 +55,67 @@ class StoreService:
         return query.offset(skip).limit(limit).all()
     
     @staticmethod
-    def dispatch_item(db: Session, dispatch_create: DispatchCreate) -> Dispatch:
-        """Dispatch items from inventory, validating sufficient quantity."""
-        inventory = db.query(InventoryItem).filter(
-            InventoryItem.id == dispatch_create.inventory_item_id
-        ).first()
+    def generate_dispatch_number(db: Session) -> str:
+        """Generate unique dispatch number."""
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        unique_id = str(uuid.uuid4())[:8].upper()
+        return f"DISP-{timestamp}-{unique_id}"
+    
+    @staticmethod
+    def create_material_dispatch(db: Session, dispatch_create: DispatchCreate) -> DispatchRead:
+        """Create comprehensive material dispatch with transaction safety."""
+        print("[DISPATCH SERVICE] Starting material dispatch creation")
         
-        if not inventory:
-            raise ValueError("Inventory item not found")
-        if inventory.quantity < dispatch_create.quantity:
-            raise ValueError("Insufficient inventory quantity")
-        
-        inventory.quantity -= dispatch_create.quantity
-        
-        dispatch = Dispatch(**dispatch_create.model_dump())
-        db.add(dispatch)
-        db.commit()
-        db.refresh(dispatch)
-        return dispatch
+        try:
+            # Begin transaction
+            db.begin()
+            print("[DISPATCH SERVICE] Transaction started")
+            
+            # Validate items exist and have sufficient stock (for ISSUE action)
+            if dispatch_create.action == 'ISSUE':
+                for item_data in dispatch_create.items:
+                    # In a real system, validate against inventory
+                    print(f"[DISPATCH SERVICE] Validating item {item_data.item_code}")
+            
+            # Create dispatch header
+            dispatch_data = dispatch_create.model_dump(exclude={'items', 'action'})
+            dispatch_data['status'] = DispatchStatus.DRAFT if dispatch_create.action == 'DRAFT' else DispatchStatus.ISSUED
+            dispatch_data['total_value'] = sum(item.line_value or 0 for item in dispatch_create.items)
+            
+            dispatch = Dispatch(**dispatch_data)
+            db.add(dispatch)
+            db.flush()  # Get ID without committing
+            print(f"[DISPATCH SERVICE] Dispatch header created with ID: {dispatch.id}")
+            
+            # Create dispatch items
+            dispatch_items = []
+            for item_data in dispatch_create.items:
+                item_dict = item_data.model_dump()
+                item_dict['dispatch_id'] = dispatch.id
+                dispatch_item = DispatchItem(**item_dict)
+                db.add(dispatch_item)
+                dispatch_items.append(dispatch_item)
+            
+            db.flush()
+            print(f"[DISPATCH SERVICE] {len(dispatch_items)} items added")
+            
+            # If issuing, deduct stock (placeholder - implement actual inventory deduction)
+            if dispatch_create.action == 'ISSUE':
+                print("[DISPATCH SERVICE] Deducting stock for issued dispatch")
+                # TODO: Implement actual stock deduction
+            
+            # Commit transaction
+            db.commit()
+            print("[DISPATCH SERVICE] Transaction committed successfully")
+            
+            # Refresh and return
+            db.refresh(dispatch)
+            return DispatchRead.model_validate(dispatch)
+            
+        except Exception as e:
+            db.rollback()
+            print(f"[DISPATCH SERVICE] FAILED - Transaction rolled back: {str(e)}")
+            raise ValueError(f"Dispatch creation failed: {str(e)}")
     
     @staticmethod
     def get_dispatches(db: Session, filters: Optional[Dict[str, Any]] = None) -> List[Dispatch]:

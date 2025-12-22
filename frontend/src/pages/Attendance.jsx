@@ -1,195 +1,329 @@
-import { useState } from 'react';
-import './Attendance.css';
-import CheckIcon from '../layout/icons/CheckIcon';
-import CalendarIcon from '../layout/icons/CalendarIcon';
+import { useState, useEffect } from 'react';
+import { checkIn, checkOut, getTodayAttendance, getAttendanceHistory } from '../api/attendanceApi';
 
 export default function Attendance() {
-  const [selectedMonth, setSelectedMonth] = useState('December');
-  const [selectedYear, setSelectedYear] = useState('2024');
+  const [todayData, setTodayData] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // Mock user ID - in real app, get from auth context
+  const userId = 1;
 
-  const attendanceData = [
-    { date: '01 Dec 2024', checkIn: '09:00 AM', checkOut: '06:15 PM', status: 'Present', break: '45m', overtime: '1h 15m' },
-    { date: '02 Dec 2024', checkIn: '09:10 AM', checkOut: '06:00 PM', status: 'Late', break: '30m', overtime: '0h' },
-    { date: '03 Dec 2024', checkIn: '—', checkOut: '—', status: 'Absent', break: '—', overtime: '—' },
-    { date: '04 Dec 2024', checkIn: '09:05 AM', checkOut: '05:45 PM', status: 'Present', break: '40m', overtime: '0h' },
-    { date: '05 Dec 2024', checkIn: '—', checkOut: '—', status: 'Leave', break: '—', overtime: '—' },
-    { date: '06 Dec 2024', checkIn: '09:00 AM', checkOut: '06:30 PM', status: 'Present', break: '50m', overtime: '1h 30m' },
-    { date: '07 Dec 2024', checkIn: '09:00 AM', checkOut: '06:00 PM', status: 'Present', break: '45m', overtime: '0h' },
-    { date: '08 Dec 2024', checkIn: '09:15 AM', checkOut: '06:00 PM', status: 'Late', break: '35m', overtime: '0h' },
-  ];
+  useEffect(() => {
+    loadTodayAttendance();
+    loadHistory();
+  }, []);
 
-  const attendanceSummary = {
-    present: 18,
-    absent: 2,
-    late: 3,
-    overtime: 12,
+  const loadTodayAttendance = async () => {
+    try {
+      const response = await getTodayAttendance(userId);
+      setTodayData(response.data);
+    } catch (err) {
+      console.log('Today attendance error:', err.response?.data);
+      // Only show error for actual server errors, not missing attendance
+      if (err.response?.status !== 404) {
+        handleError(err, 'Failed to load today\'s attendance');
+      } else {
+        // Handle 404 as NOT_STARTED state
+        const today = new Date().toISOString().split('T')[0];
+        setTodayData({
+          user_id: userId,
+          attendance_date: today,
+          check_in_time: null,
+          check_out_time: null,
+          total_worked_minutes: null,
+          status: 'NOT_STARTED',
+          can_check_in: true,
+          can_check_out: false
+        });
+      }
+    }
   };
 
-  const timeDistribution = {
-    productive: 75,
-    break: 15,
-    overtime: 10,
+  const loadHistory = async () => {
+    try {
+      const response = await getAttendanceHistory(userId);
+      setHistory(response.data.records || []);
+    } catch (err) {
+      console.log('History error:', err.response?.data);
+      handleError(err, 'Failed to load attendance history');
+    }
   };
 
-  const calendarDays = Array.from({ length: 31 }, (_, i) => i + 1);
-  const monthStart = 5; // December 2024 starts on Sunday (0-indexed)
+  const handleError = (err, defaultMessage) => {
+    console.log('Full error object:', err);
+    console.log('Error response data:', err.response?.data);
+    
+    let errorMessage = defaultMessage;
+    
+    if (err.response?.data) {
+      const errorData = err.response.data;
+      
+      if (errorData.detail && Array.isArray(errorData.detail)) {
+        errorMessage = errorData.detail.map(error => 
+          `${error.loc?.join('.')} - ${error.msg}`
+        ).join('; ');
+      } else if (errorData.detail) {
+        errorMessage = errorData.detail;
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    setError(errorMessage);
+    setTimeout(() => setError(''), 5000);
+  };
+
+  const handleCheckIn = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    
+    console.log('[FRONTEND] Attempting check-in for user:', userId);
+    console.log('[FRONTEND] API call will be made to:', 'POST /api/v1/attendance/check-in');
+    
+    try {
+      const response = await checkIn(userId);
+      console.log('[FRONTEND] Check-in response:', response);
+      setSuccess('Successfully checked in!');
+      loadTodayAttendance();
+      loadHistory();
+    } catch (err) {
+      console.log('[FRONTEND] Check-in error:', err);
+      console.log('[FRONTEND] Error response:', err.response);
+      handleError(err, 'Failed to check in');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckOut = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      await checkOut(userId);
+      setSuccess('Successfully checked out!');
+      loadTodayAttendance();
+      loadHistory();
+    } catch (err) {
+      handleError(err, 'Failed to check out');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = (dateTime) => {
+    if (!dateTime) return '-';
+    return new Date(dateTime).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const formatDuration = (minutes) => {
+    if (!minutes) return '-';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   return (
-    <div className="attendance-page">
-      <h1 className="page-title">Attendance</h1>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px', color: '#1f2937' }}>
+        Attendance & Time Tracking
+      </h1>
 
-      <div className="attendance-layout">
-        <div className="calendar-section">
-          <div className="calendar-header">
-            <h2 className="calendar-title">December 2024</h2>
-            <CalendarIcon size={20} />
-          </div>
-          <div className="calendar-grid">
-            <div className="calendar-weekdays">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="weekday">{day}</div>
-              ))}
-            </div>
-            <div className="calendar-days">
-              {Array.from({ length: monthStart }).map((_, i) => (
-                <div key={`empty-${i}`} className="calendar-day empty"></div>
-              ))}
-              {calendarDays.map(day => (
-                <div key={day} className={`calendar-day ${day <= 8 ? 'present' : ''} ${day === 3 ? 'absent' : ''} ${day === 5 ? 'leave' : ''}`}>
-                  {day}
-                </div>
-              ))}
-            </div>
-          </div>
+      {error && (
+        <div style={{
+          backgroundColor: '#fee2e2',
+          color: '#7f1d1d',
+          padding: '12px 16px',
+          borderRadius: '4px',
+          marginBottom: '16px'
+        }}>
+          {error}
+        </div>
+      )}
 
-          <div className="summary-cards">
-            <div className="summary-card present">
-              <div className="summary-icon"><CheckIcon size={20} /></div>
-              <div className="summary-content">
-                <div className="summary-value">{attendanceSummary.present}</div>
-                <div className="summary-label">Present</div>
-              </div>
+      {success && (
+        <div style={{
+          backgroundColor: '#dcfce7',
+          color: '#15803d',
+          padding: '12px 16px',
+          borderRadius: '4px',
+          marginBottom: '16px'
+        }}>
+          {success}
+        </div>
+      )}
+
+      {/* Today's Summary */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '6px',
+        border: '1px solid #e5e7eb',
+        padding: '24px',
+        marginBottom: '24px'
+      }}>
+        <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
+          Today's Attendance
+        </h2>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <div>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Check-in Time</div>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#1f2937' }}>
+              {formatTime(todayData?.check_in_time)}
             </div>
-            <div className="summary-card absent">
-              <div className="summary-icon">✕</div>
-              <div className="summary-content">
-                <div className="summary-value">{attendanceSummary.absent}</div>
-                <div className="summary-label">Absent</div>
-              </div>
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Check-out Time</div>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#1f2937' }}>
+              {formatTime(todayData?.check_out_time)}
             </div>
-            <div className="summary-card late">
-              <div className="summary-icon">⏰</div>
-              <div className="summary-content">
-                <div className="summary-value">{attendanceSummary.late}</div>
-                <div className="summary-label">Late</div>
-              </div>
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Total Worked</div>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#1f2937' }}>
+              {formatDuration(todayData?.total_worked_minutes)}
             </div>
-            <div className="summary-card overtime">
-              <div className="summary-icon">⏱</div>
-              <div className="summary-content">
-                <div className="summary-value">{attendanceSummary.overtime}</div>
-                <div className="summary-label">Overtime</div>
-              </div>
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Status</div>
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: '500',
+              color: todayData?.status === 'COMPLETED' ? '#059669' : 
+                     todayData?.status === 'IN_PROGRESS' ? '#d97706' : '#6b7280',
+              textTransform: 'capitalize'
+            }}>
+              {todayData?.status?.replace('_', ' ') || 'Not Started'}
             </div>
           </div>
         </div>
 
-        <div className="attendance-details">
-          <div className="time-distribution">
-            <h3 className="distribution-title">Time Distribution</h3>
-            <div className="distribution-bar">
-              <div className="bar-segment productive" style={{ width: `${timeDistribution.productive}%` }}>
-                <span className="bar-label">{timeDistribution.productive}%</span>
-              </div>
-              <div className="bar-segment break" style={{ width: `${timeDistribution.break}%` }}>
-                <span className="bar-label">{timeDistribution.break}%</span>
-              </div>
-              <div className="bar-segment overtime" style={{ width: `${timeDistribution.overtime}%` }}>
-                <span className="bar-label">{timeDistribution.overtime}%</span>
-              </div>
-            </div>
-            <div className="distribution-legend">
-              <div className="legend-item">
-                <span className="legend-dot productive"></span>
-                <span className="legend-text">Productive Hours</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-dot break"></span>
-                <span className="legend-text">Break Time</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-dot overtime"></span>
-                <span className="legend-text">Overtime</span>
-              </div>
-            </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            onClick={handleCheckIn}
+            disabled={loading || !todayData?.can_check_in}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: todayData?.can_check_in ? '#10b981' : '#9ca3af',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: todayData?.can_check_in ? 'pointer' : 'not-allowed',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            {loading ? 'Processing...' : 'Check In'}
+          </button>
+          
+          <button
+            onClick={handleCheckOut}
+            disabled={loading || !todayData?.can_check_out}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: todayData?.can_check_out ? '#ef4444' : '#9ca3af',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: todayData?.can_check_out ? 'pointer' : 'not-allowed',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            {loading ? 'Processing...' : 'Check Out'}
+          </button>
+        </div>
+      </div>
+
+      {/* Attendance History */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '6px',
+        border: '1px solid #e5e7eb',
+        padding: '24px'
+      }}>
+        <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
+          Attendance History
+        </h2>
+        
+        {history.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#6b7280', padding: '24px' }}>
+            No attendance records found
           </div>
-
-          <div className="attendance-table-section">
-            <div className="table-header">
-              <h2 className="section-title">Attendance Record</h2>
-              <div className="table-filters">
-                <select 
-                  value={selectedMonth} 
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="filter-select"
-                >
-                  <option>January</option>
-                  <option>February</option>
-                  <option>March</option>
-                  <option>April</option>
-                  <option>May</option>
-                  <option>June</option>
-                  <option>July</option>
-                  <option>August</option>
-                  <option>September</option>
-                  <option>October</option>
-                  <option>November</option>
-                  <option>December</option>
-                </select>
-                <select 
-                  value={selectedYear} 
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="filter-select"
-                >
-                  <option>2024</option>
-                  <option>2023</option>
-                  <option>2022</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="table-responsive">
-              <table className="attendance-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Check-in</th>
-                    <th>Check-out</th>
-                    <th>Status</th>
-                    <th>Break</th>
-                    <th>Overtime</th>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
+                    Date
+                  </th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
+                    Check In
+                  </th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
+                    Check Out
+                  </th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
+                    Total Time
+                  </th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((record, index) => (
+                  <tr key={index}>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
+                      {formatDate(record.attendance_date)}
+                    </td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
+                      {formatTime(record.check_in_time)}
+                    </td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
+                      {formatTime(record.check_out_time)}
+                    </td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
+                      {formatDuration(record.total_worked_minutes)}
+                    </td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
+                      <span style={{
+                        color: record.status === 'COMPLETED' ? '#059669' : '#d97706',
+                        textTransform: 'capitalize'
+                      }}>
+                        {record.status?.replace('_', ' ')}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {attendanceData.map((record, index) => (
-                    <tr key={index}>
-                      <td className="date-cell">{record.date}</td>
-                      <td>{record.checkIn}</td>
-                      <td>{record.checkOut}</td>
-                      <td>
-                        <span className={`status-badge status-${record.status.toLowerCase()}`}>
-                          {record.status}
-                        </span>
-                      </td>
-                      <td>{record.break}</td>
-                      <td className="overtime-cell">{record.overtime}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

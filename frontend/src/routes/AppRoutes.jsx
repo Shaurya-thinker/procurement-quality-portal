@@ -19,6 +19,7 @@ import StoreDetail from "../store/pages/StoreDetail";
 import Inventory from "../store/pages/Inventory";
 import Dispatch from "../store/pages/Dispatch";
 import DispatchList from "../store/pages/DispatchList";
+import CreateDispatch from "../store/pages/CreateDispatch";
 
 export default function AppRoutes() {
   return (
@@ -48,8 +49,9 @@ export default function AppRoutes() {
       {/* Store Routes */}
       <Route path="/store" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
       <Route path="/store/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+      <Route path="/store/dispatches" element={<ProtectedRoute><DispatchList /></ProtectedRoute>} />
+      <Route path="/store/dispatch/create" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
       <Route path="/store/dispatch" element={<ProtectedRoute><Dispatch /></ProtectedRoute>} />
-      <Route path="/store/dispatch-list" element={<ProtectedRoute><DispatchList /></ProtectedRoute>} />
       <Route path="/store/:storeId" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
     </Routes>
   );

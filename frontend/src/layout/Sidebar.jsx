@@ -23,6 +23,7 @@ export default function Sidebar() {
       {role === "store" && (
         <>
           <Link to="/store">Stores</Link>
+          <Link to="/store/dispatches">Material Dispatches</Link>
         </>
       )}
 

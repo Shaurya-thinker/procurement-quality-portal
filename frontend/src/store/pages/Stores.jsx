@@ -73,6 +73,14 @@ export default function Stores() {
           >
             + Add Store
           </button>
+
+          <button
+            className="back-button"
+            style={{ marginLeft: '8px', backgroundColor: '#10b981' }}
+            onClick={() => navigate('/store/dispatches')}
+          >
+            📦 Material Dispatches
+          </button>
         </div>
       
             {showAddStoreForm && (

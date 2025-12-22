@@ -1,3 +1,3 @@
-from .attendance import Attendance
+from .attendance import Attendance, AttendanceStatus
 
-__all__ = ["Attendance"]
+__all__ = ["Attendance", "AttendanceStatus"]

@@ -1,15 +1,17 @@
 from .attendance import (
-    AttendanceCreate,
-    AttendanceUpdate,
+    CheckInRequest,
+    CheckOutRequest,
     AttendanceResponse,
-    AttendanceCheckInOut,
-    AttendanceSummary,
+    TodayAttendanceResponse,
+    AttendanceHistoryItem,
+    AttendanceHistoryResponse
 )
 
 __all__ = [
-    "AttendanceCreate",
-    "AttendanceUpdate",
+    "CheckInRequest",
+    "CheckOutRequest", 
     "AttendanceResponse",
-    "AttendanceCheckInOut",
-    "AttendanceSummary",
+    "TodayAttendanceResponse",
+    "AttendanceHistoryItem",
+    "AttendanceHistoryResponse"
 ]

@@ -1,53 +1,55 @@
-from datetime import datetime, date
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Optional
+from ..models.attendance import AttendanceStatus
 
 
-class AttendanceCreate(BaseModel):
-    """Schema for creating attendance record."""
-    user_id: int
-    date: date
-    check_in_time: datetime | None = None
-    check_out_time: datetime | None = None
-    status: str = "Present"
-    working_hours: str | None = None
-    notes: str | None = None
+class CheckInRequest(BaseModel):
+    user_id: int = Field(..., gt=0, description="User ID must be positive")
 
 
-class AttendanceUpdate(BaseModel):
-    """Schema for updating attendance record."""
-    check_out_time: datetime | None = None
-    status: str | None = None
-    working_hours: str | None = None
-    notes: str | None = None
-
-
-class AttendanceCheckInOut(BaseModel):
-    """Schema for check-in/check-out."""
-    user_id: int
-    action: str  # "check_in" or "check_out"
+class CheckOutRequest(BaseModel):
+    user_id: int = Field(..., gt=0, description="User ID must be positive")
 
 
 class AttendanceResponse(BaseModel):
-    """Schema for attendance response."""
     id: int
     user_id: int
-    date: date
-    check_in_time: datetime | None
-    check_out_time: datetime | None
-    status: str
-    working_hours: str | None
-    notes: str | None
+    attendance_date: str
+    check_in_time: datetime
+    check_out_time: Optional[datetime]
+    total_worked_minutes: Optional[int]
+    status: AttendanceStatus
     created_at: datetime
     updated_at: datetime
+    is_active: bool
     
     class Config:
         from_attributes = True
 
 
-class AttendanceSummary(BaseModel):
-    """Schema for attendance summary."""
-    present: int
-    absent: int
-    leave: int
-    half_day: int
-    total_working_days: int
+class TodayAttendanceResponse(BaseModel):
+    user_id: int
+    attendance_date: str
+    check_in_time: Optional[datetime]
+    check_out_time: Optional[datetime]
+    total_worked_minutes: Optional[int]
+    status: Optional[AttendanceStatus]
+    can_check_in: bool
+    can_check_out: bool
+
+
+class AttendanceHistoryItem(BaseModel):
+    attendance_date: str
+    check_in_time: Optional[datetime]
+    check_out_time: Optional[datetime]
+    total_worked_minutes: Optional[int]
+    status: AttendanceStatus
+    
+    class Config:
+        from_attributes = True
+
+
+class AttendanceHistoryResponse(BaseModel):
+    records: list[AttendanceHistoryItem]
+    total: int
