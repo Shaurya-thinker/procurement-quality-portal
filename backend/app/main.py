@@ -3,17 +3,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import time
 
 # Import database
-from backend.app.database import engine, Base, get_db, create_tables
+from backend.app.database import engine, Base, create_tables
 
 # Import routers
 from backend.app.procurement.routers.procurement import router as procurement_router
 from backend.app.quality.router import router as quality_router
 from backend.app.store.routers.store import router as store_router
+from backend.app.attendance.routers.attendance import router as attendance_router
 
 # Create all tables
 create_tables()
@@ -34,10 +36,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Global request logger middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    print(f"\n🔵 [INCOMING] {request.method} {request.url.path}")
+    
+    response = await call_next(request)
+    
+    process_time = time.time() - start_time
+    status_emoji = "✅" if response.status_code < 400 else "❌"
+    print(f"{status_emoji} [{response.status_code}] {process_time:.3f}s\n")
+    
+    return response
+
+# Register attendance router under the /api/v1/attendance prefix
+# This ensures all attendance endpoints (check-in, check-out, today, history) are available
+
 # Include routers
 app.include_router(procurement_router)
 app.include_router(quality_router, prefix="/api/v1/quality", tags=["Quality"])
 app.include_router(store_router)
+app.include_router(attendance_router, prefix="/api/v1/attendance", tags=["Attendance"])
 
 # Root endpoint
 @app.get("/")
@@ -58,6 +78,10 @@ def root():
             "store": {
                 "status": "active",
                 "endpoints": "GET /api/v1/store/stores"
+            },
+            "attendance": {
+                "status": "active",
+                "endpoints": "GET /api/v1/attendance/today/{user_id}"
             }
         }
     }
@@ -114,20 +138,14 @@ def api_status():
     }
 
 if __name__ == "__main__":
-    print("=" * 80)
+    print("\n" + "=" * 80)
     print("PROCUREMENT QUALITY PORTAL - STARTING SERVER")
     print("=" * 80)
-    print()
-    print("Available Modules:")
-    print("  * Procurement  - Purchase order management")
-    print("  * Quality      - Quality inspection and control")
-    print("  * Store        - Store and inventory management")
-    print()
-    print("Server: http://localhost:8000")
-    print("API Documentation: http://localhost:8000/docs")
-    print("Health Check: http://localhost:8000/health")
-    print()
-    print("=" * 80)
-    print()
+    print("\nRegistered Routes:")
+    for route in app.routes:
+        if hasattr(route, 'path') and hasattr(route, 'methods'):
+            methods = ",".join(route.methods) if route.methods else "N/A"
+            print(f"   {methods:8} {route.path}")
+    print("\n" + "=" * 80 + "\n")
     
     uvicorn.run(app, host="0.0.0.0", port=8000)
