@@ -63,9 +63,8 @@ const CreatePO = () => {
       errors.vendorId = 'Vendor is required';
     }
 
-    const validItems = lineItems.filter(item => 
-      item.item_id?.trim() || item.item_description?.trim()
-    );
+    const validItems = lineItems.filter(item => item.item_id);
+
 
     if (validItems.length === 0) {
       errors.lineItems = 'At least one line item is required';
@@ -125,17 +124,17 @@ const CreatePO = () => {
     }
 
     try {
-      const validItems = lineItems.filter(item => 
-        item.item_id?.trim() || item.item_description?.trim()
-      );
+      const validItems = lineItems.filter(item => item.item_id);
+
 
       const poData = {
         vendor_id: parseInt(vendorId),
         lines: validItems.map(item => ({
-          item_id: item.item_id,
-          quantity: parseInt(item.quantity),
-          price: item.rate
+          item_id: Number(item.item_id),
+          quantity: Math.floor(Number(item.quantity)), // 👈 FIX
+          price: Number(item.rate)
         }))
+
       };
 
       const result = await createProcurementOrder(poData);
@@ -157,9 +156,8 @@ const CreatePO = () => {
     }
 
     try {
-      const validItems = lineItems.filter(item => 
-        item.item_id?.trim() || item.item_description?.trim()
-      );
+      const validItems = lineItems.filter(item => item.item_id);
+
 
       const poData = {
         vendor_id: vendorId,
