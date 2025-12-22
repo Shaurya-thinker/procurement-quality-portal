@@ -358,8 +358,9 @@ const PODetails = () => {
     color: '#6b7280',
   };
 
-  const subtotal = poData.line_items?.reduce((sum, item) => {
-    return sum + (parseFloat(item.quantity || 0) * parseFloat(item.rate || 0));
+  const subtotal =
+  poData.line_items?.reduce((sum, item) => {
+    return sum + item.quantity * item.rate;
   }, 0) || 0;
 
   const total = subtotal;
@@ -442,14 +443,14 @@ const PODetails = () => {
             <tbody>
               {poData.line_items && poData.line_items.length > 0 ? (
                 poData.line_items.map((item, index) => {
-                  const lineTotal = parseFloat(item.quantity || 0) * parseFloat(item.rate || 0);
+                  const lineTotal = Number(item.quantity || 0) * Number(item.rate || 0);
                   return (
                     <tr key={index}>
                       <td style={tdStyle}>{item.item_id || '-'}</td>
                       <td style={tdStyle}>{item.item_description || '-'}</td>
                       <td style={tdStyle}>{item.unit || '-'}</td>
                       <td style={tdStyle}>{item.quantity || '0'}</td>
-                      <td style={tdStyle}>₹ {parseFloat(item.rate || 0).toFixed(2)}</td>
+                      <td style={tdStyle}>₹ {Number(item.rate || 0).toFixed(2)}</td>
                       <td style={tdStyle}>₹ {lineTotal.toFixed(2)}</td>
                     </tr>
                   );

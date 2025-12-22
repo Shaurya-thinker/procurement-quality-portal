@@ -12,9 +12,9 @@ const POLineItemRow = ({
     });
   };
 
-  const lineTotal = item.quantity && item.rate 
-    ? (parseFloat(item.quantity) * parseFloat(item.rate)).toFixed(2)
-    : '0.00';
+  const rate = Number(item.rate ?? item.price ?? 0);
+  const qty = Number(item.quantity ?? 0);
+  const lineTotal = (qty * rate).toFixed(2);          
 
   const inputStyle = {
     padding: '8px',
@@ -97,6 +97,7 @@ const POLineItemRow = ({
           step="0.01"
         />
       </td>
+
       <td style={cellStyle}>
         <input
           type="number"
