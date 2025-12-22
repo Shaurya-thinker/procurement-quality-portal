@@ -4,6 +4,7 @@ import { useProcurement } from '../hooks/useProcurement';
 import POLineItemRow from '../components/POLineItemRow';
 import VendorInfoCard from '../components/VendorInfoCard';
 import POStatusBadge from '../components/POStatusBadge';
+import { getItems } from '../../api/procurement.api';
 
 const CreatePO = () => {
   const navigate = useNavigate();
@@ -28,6 +29,12 @@ const CreatePO = () => {
   const [submitError, setSubmitError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isEditing, setIsEditing] = useState(!!id);
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+  getItems().then(res => setItems(res.data));
+}, []);
+
 
   useEffect(() => {
     if (id) {
@@ -424,6 +431,7 @@ const CreatePO = () => {
                   key={index}
                   index={index}
                   item={item}
+                  items={items}
                   onChange={handleLineItemChange}
                   onRemove={handleRemoveLineItem}
                   isReadOnly={isReadOnly}

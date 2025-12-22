@@ -1,6 +1,7 @@
 const POLineItemRow = ({
   index,
   item,
+  items,
   onChange,
   onRemove,
   isReadOnly = false,
@@ -12,9 +13,9 @@ const POLineItemRow = ({
     });
   };
 
-  const lineTotal = item.quantity && item.rate 
-    ? (parseFloat(item.quantity) * parseFloat(item.rate)).toFixed(2)
-    : '0.00';
+  const rate = Number(item.rate ?? item.price ?? 0);
+  const qty = Number(item.quantity ?? 0);
+  const lineTotal = (qty * rate).toFixed(2);          
 
   const inputStyle = {
     padding: '8px',
@@ -56,15 +57,33 @@ const POLineItemRow = ({
   return (
     <tr>
       <td style={cellStyle}>
-        <input
-          type="text"
-          value={item.item_id || ''}
-          onChange={(e) => handleChange('item_id', e.target.value)}
-          disabled={isReadOnly}
-          style={isReadOnly ? readOnlyInputStyle : inputStyle}
-          placeholder="Item Code"
-        />
-      </td>
+  <select
+    value={item.item_id || ''}
+    disabled={isReadOnly}
+    style={isReadOnly ? readOnlyInputStyle : inputStyle}
+    onChange={(e) => {
+      const selected = items.find(
+        (i) => i.id === Number(e.target.value)
+      );
+      if (!selected) return;
+
+      onChange(index, {
+        ...item,
+        item_id: selected.id,
+        item_description: selected.description,
+        unit: selected.unit,
+      });
+    }}
+  >
+    <option value="">Select Item</option>
+    {items.map((i) => (
+      <option key={i.id} value={i.id}>
+        {i.code} – {i.name}
+      </option>
+    ))}
+  </select>
+</td>
+
       <td style={cellStyle}>
         <input
           type="text"
@@ -97,6 +116,7 @@ const POLineItemRow = ({
           step="0.01"
         />
       </td>
+
       <td style={cellStyle}>
         <input
           type="number"

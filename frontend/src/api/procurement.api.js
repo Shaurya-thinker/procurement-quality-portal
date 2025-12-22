@@ -23,3 +23,6 @@ export const getPOsByVendor = (vendorId) =>
 
 export const getVendorDetails = (vendorId) =>
   api.get(`/api/v1/procurement/vendors/${vendorId}`);
+
+export const getItems = () =>
+  api.get("/api/v1/procurement/items");

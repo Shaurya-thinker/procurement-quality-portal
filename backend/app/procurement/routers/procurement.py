@@ -12,6 +12,9 @@ from backend.app.procurement.schemas import (
 from backend.app.procurement.schemas import VendorRead
 from backend.app.procurement.schemas import PurchaseOrderTracking
 from backend.app.procurement.services import ProcurementService
+from backend.app.procurement.schemas.purchase_order import PurchaseOrderDetailRead
+from backend.app.procurement.models import Item
+from backend.app.procurement.schemas.item import ItemRead
 
 router = APIRouter(prefix="/api/v1/procurement", tags=["Procurement"])
 
@@ -29,6 +32,9 @@ def create_purchase_order(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/items", response_model=list[ItemRead], summary="List Items")
+def list_items(db: Session = Depends(get_db)):
+    return db.query(Item).all()
 
 @router.get("/", response_model=list[PurchaseOrderRead], summary="List Purchase Orders")
 def list_purchase_orders(
@@ -45,7 +51,7 @@ def list_purchase_orders(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/{po_id}", response_model=PurchaseOrderRead, summary="Get Purchase Order Details")
+@router.get("/{po_id}", response_model=PurchaseOrderDetailRead, summary="Get Purchase Order Details")
 def get_purchase_order(
     po_id: int,
     db: Session = Depends(get_db),
@@ -139,3 +145,4 @@ def get_po_tracking(
         return tracking
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
