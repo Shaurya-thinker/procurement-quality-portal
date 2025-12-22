@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.core.db import Base
+from backend.app.core.db import Base
 from ..models import InventoryItem, Dispatch
 from ..schemas import InventoryCreate, DispatchCreate
 from ..services import StoreService

@@ -1,94 +1,107 @@
-from fastapi import APIRouter, Depends, HTTPException
+print("[STARTUP] Attendance router file loaded")
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from datetime import date
-from backend.app.database import get_db
-from backend.app.attendance.schemas.attendance import (
-    AttendanceCreate,
-    AttendanceUpdate,
+from ..services.attendance_service import AttendanceService
+from ..schemas.attendance import (
+    CheckInRequest,
+    CheckOutRequest,
     AttendanceResponse,
-    AttendanceCheckInOut,
-    AttendanceSummary,
+    TodayAttendanceResponse,
+    AttendanceHistoryResponse
 )
-from backend.app.attendance.services.attendance_service import AttendanceService
+from ...database import get_db
+import logging
 
-router = APIRouter(prefix="/api/v1/attendance", tags=["Attendance"])
-
-
-@router.post("", response_model=AttendanceResponse)
-def create_attendance(attendance: AttendanceCreate, db: Session = Depends(get_db)):
-    """Create a new attendance record."""
-    db_attendance = AttendanceService.create_attendance(db, attendance)
-    return db_attendance
-
-
-@router.get("/{attendance_id}", response_model=AttendanceResponse)
-def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
-    """Get attendance record by ID."""
-    attendance = AttendanceService.get_attendance_by_id(db, attendance_id)
-    if not attendance:
-        raise HTTPException(status_code=404, detail="Attendance record not found")
-    return attendance
-
-
-@router.get("/user/{user_id}", response_model=list[AttendanceResponse])
-def get_user_attendance(
-    user_id: int,
-    month: int | None = None,
-    year: int | None = None,
-    db: Session = Depends(get_db),
-):
-    """Get attendance records for a user."""
-    attendance_records = AttendanceService.get_user_attendance(db, user_id, month, year)
-    return attendance_records
+logger = logging.getLogger(__name__)
+router = APIRouter()
+print(f"[STARTUP] Attendance APIRouter created (no prefix in router definition)")
 
 
 @router.post("/check-in", response_model=AttendanceResponse)
-def check_in(check_in: AttendanceCheckInOut, db: Session = Depends(get_db)):
-    """Check in user."""
+def check_in(
+    request: CheckInRequest,
+    db: Session = Depends(get_db)
+):
+    """Check in user for today."""
+    print(f"[CONTROLLER HIT] Check-in endpoint called for user {request.user_id}")
+    logger.info(f"[API] Check-in request for user {request.user_id}")
+    
     try:
-        attendance = AttendanceService.check_in(db, check_in.user_id)
+        attendance = AttendanceService.check_in(db, request.user_id)
+        logger.info(f"[API] Check-in successful for user {request.user_id}")
         return attendance
-    except Exception as e:
+    except ValueError as e:
+        logger.error(f"[API] Check-in failed for user {request.user_id}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[API] Check-in error for user {request.user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error during check-in")
 
 
 @router.post("/check-out", response_model=AttendanceResponse)
-def check_out(check_out: AttendanceCheckInOut, db: Session = Depends(get_db)):
-    """Check out user."""
+def check_out(
+    request: CheckOutRequest,
+    db: Session = Depends(get_db)
+):
+    """Check out user for today."""
+    logger.info(f"[API] Check-out request for user {request.user_id}")
+    
     try:
-        attendance = AttendanceService.check_out(db, check_out.user_id)
+        attendance = AttendanceService.check_out(db, request.user_id)
+        logger.info(f"[API] Check-out successful for user {request.user_id}")
         return attendance
     except ValueError as e:
+        logger.error(f"[API] Check-out failed for user {request.user_id}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[API] Check-out error for user {request.user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error during check-out")
 
 
-@router.get("/user/{user_id}/today", response_model=AttendanceResponse | None)
-def get_today_status(user_id: int, db: Session = Depends(get_db)):
-    """Get today's attendance status."""
-    attendance = AttendanceService.get_today_status(db, user_id)
-    return attendance
-
-
-@router.get("/user/{user_id}/summary", response_model=AttendanceSummary)
-def get_attendance_summary(
+@router.get("/today/{user_id}", response_model=TodayAttendanceResponse)
+def get_today_attendance(
     user_id: int,
-    month: int,
-    year: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
-    """Get attendance summary for a user."""
-    summary = AttendanceService.get_attendance_summary(db, user_id, month, year)
-    return summary
+    """Get today's attendance summary for user."""
+    logger.info(f"[API] Today attendance request for user {user_id}")
+    
+    try:
+        if user_id <= 0:
+            raise HTTPException(status_code=400, detail="User ID must be positive")
+        
+        summary = AttendanceService.get_today_attendance(db, user_id)
+        logger.info(f"[API] Today attendance retrieved for user {user_id}")
+        return summary
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[API] Today attendance error for user {user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error fetching today's attendance")
 
 
-@router.put("/{attendance_id}", response_model=AttendanceResponse)
-def update_attendance(
-    attendance_id: int,
-    attendance_update: AttendanceUpdate,
-    db: Session = Depends(get_db),
+@router.get("/history/{user_id}", response_model=AttendanceHistoryResponse)
+def get_attendance_history(
+    user_id: int,
+    limit: int = 30,
+    db: Session = Depends(get_db)
 ):
-    """Update attendance record."""
-    attendance = AttendanceService.update_attendance(db, attendance_id, attendance_update)
-    if not attendance:
-        raise HTTPException(status_code=404, detail="Attendance record not found")
-    return attendance
+    """Get attendance history for user."""
+    logger.info(f"[API] History request for user {user_id}, limit {limit}")
+    
+    try:
+        if user_id <= 0:
+            raise HTTPException(status_code=400, detail="User ID must be positive")
+        
+        if limit <= 0 or limit > 100:
+            raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
+        
+        history = AttendanceService.get_attendance_history(db, user_id, limit)
+        logger.info(f"[API] History retrieved for user {user_id}: {history['total']} records")
+        return history
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[API] History error for user {user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error fetching attendance history")

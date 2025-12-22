@@ -51,13 +51,41 @@ export const useStore = () => {
   const dispatchMaterialAsync = useCallback(async (data) => {
     setLoading(true);
     setError(null);
+    console.log('[STORE HOOK] Starting dispatch with data:', data);
+    
     try {
-      const response = await dispatchItem(data);
+      // Add 10 second timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout - dispatch took too long')), 10000)
+      );
+      
+      const dispatchPromise = dispatchItem(data);
+      const response = await Promise.race([dispatchPromise, timeoutPromise]);
+      
+      console.log('[STORE HOOK] Dispatch successful:', response.data);
       return response.data;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to dispatch material';
+      console.error('[STORE HOOK] Dispatch failed:', err);
+      
+      let errorMessage = 'Failed to dispatch material';
+      
+      if (err.message === 'Request timeout - dispatch took too long') {
+        errorMessage = 'Dispatch request timed out. Please try again.';
+      } else if (err.response?.data?.detail) {
+        // FastAPI validation error format
+        if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail.map(e => e.msg).join(', ');
+        } else {
+          errorMessage = err.response.data.detail;
+        }
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
-      throw err;
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }

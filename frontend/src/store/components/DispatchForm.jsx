@@ -251,24 +251,24 @@ export default function DispatchForm({ availableInventory = [], onSubmit, loadin
       return false;
     }
 
-    for (let item of dispatchItems) {
-      if (!item.item_id) {
-        setError('All items must have an item code selected');
-        return false;
-      }
+    // Only validate the first item since we're using single-item dispatch
+    const item = dispatchItems[0];
+    if (!item.item_id) {
+      setError('Please select an item to dispatch');
+      return false;
+    }
 
-      const inventoryItem = getInventoryItem(item.item_id);
-      const issueQuantity = parseInt(item.issue_quantity) || 0;
+    const inventoryItem = getInventoryItem(item.item_id);
+    const issueQuantity = parseInt(item.issue_quantity) || 0;
 
-      if (issueQuantity <= 0) {
-        setError(`Item ${inventoryItem?.item_code}: Issue quantity must be greater than 0`);
-        return false;
-      }
+    if (issueQuantity <= 0) {
+      setError('Issue quantity must be greater than 0');
+      return false;
+    }
 
-      if (issueQuantity > (inventoryItem?.quantity_available || 0)) {
-        setError(`Item ${inventoryItem?.item_code}: Issue quantity cannot exceed available quantity (${inventoryItem?.quantity_available})`);
-        return false;
-      }
+    if (issueQuantity > (inventoryItem?.quantity_available || 0)) {
+      setError(`Issue quantity cannot exceed available quantity (${inventoryItem?.quantity_available})`);
+      return false;
     }
 
     return true;
@@ -280,21 +280,21 @@ export default function DispatchForm({ availableInventory = [], onSubmit, loadin
     }
 
     const payload = {
-      dispatch_slip_no: dispatchSlipNo,
-      date: formData.date,
+      inventory_item_id: parseInt(dispatchItems[0].item_id),
+      quantity: parseInt(dispatchItems[0].issue_quantity),
       requested_by: formData.requested_by,
-      purpose_reference: formData.purpose_reference,
-      items: dispatchItems.map(item => {
-        const invItem = getInventoryItem(item.item_id);
-        return {
-          item_id: item.item_id,
-          item_code: invItem?.item_code,
-          issue_quantity: parseInt(item.issue_quantity),
-        };
-      }),
+      reference: formData.purpose_reference || null,
     };
 
-    onSubmit(payload);
+    console.log('[DISPATCH FORM] Submitting payload:', payload);
+    
+    try {
+      await onSubmit(payload);
+      console.log('[DISPATCH FORM] Submit successful');
+    } catch (error) {
+      console.error('[DISPATCH FORM] Submit failed:', error);
+      setError(error.message || 'Dispatch creation failed');
+    }
   };
 
   const totalIssueQuantity = useMemo(() => {
