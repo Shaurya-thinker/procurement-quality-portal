@@ -139,7 +139,7 @@ def get_po_tracking(
 ) -> dict:
     """Get tracking information for a purchase order."""
     try:
-        tracking = ProcurementService.get_po_tracking(db, po_id)
+        tracking = ProcurementService.get_po_tracking_summary(db, po_id)
         if not tracking:
             raise HTTPException(status_code=404, detail="Tracking information not found")
         return tracking
