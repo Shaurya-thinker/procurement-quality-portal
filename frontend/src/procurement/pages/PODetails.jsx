@@ -487,30 +487,32 @@ const PODetails = () => {
       {tracking && (
         <div style={sectionStyle}>
           <div style={sectionTitleStyle}>Tracking Information</div>
-          {Array.isArray(tracking) && tracking.length > 0 ? (
-            <div>
-              {tracking.map((entry, index) => (
-                <div key={index} style={trackingItemStyle}>
-                  <span style={trackingLabelStyle}>{entry.status || 'Update'}:</span>
-                  <span style={trackingValueStyle}>
-                    {entry.timestamp 
-                      ? new Date(entry.timestamp).toLocaleDateString('en-IN', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                      : 'N/A'
-                    }
-                  </span>
-                  {entry.notes && <div style={trackingValueStyle}>{entry.notes}</div>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={trackingItemStyle}>No tracking information available</div>
-          )}
+          {tracking ? (
+  <>
+    <div style={trackingItemStyle}>
+      <span style={trackingLabelStyle}>Material Receipt:</span>
+      <span style={trackingValueStyle}>
+        {tracking.material_receipt_status || 'Not Received'}
+      </span>
+    </div>
+
+    <div style={trackingItemStyle}>
+      <span style={trackingLabelStyle}>QC Accepted:</span>
+      <span style={trackingValueStyle}>
+        {tracking.qc_accepted_quantity ?? 0}
+      </span>
+    </div>
+
+    <div style={trackingItemStyle}>
+      <span style={trackingLabelStyle}>QC Rejected:</span>
+      <span style={trackingValueStyle}>
+        {tracking.qc_rejected_quantity ?? 0}
+      </span>
+    </div>
+  </>
+) : (
+  <div style={trackingItemStyle}>No tracking information available</div>
+)}
         </div>
       )}
 

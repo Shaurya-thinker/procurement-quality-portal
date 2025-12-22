@@ -31,6 +31,7 @@ const CreatePO = () => {
   const [isEditing, setIsEditing] = useState(!!id);
   const [items, setItems] = useState([]);
 
+
   useEffect(() => {
   getItems().then(res => setItems(res.data));
 }, []);
@@ -47,9 +48,21 @@ const CreatePO = () => {
       const data = await fetchPODetails(id);
       setPoNumber(data.po_number || '');
       setPoDate(data.po_date || new Date().toISOString().split('T')[0]);
-      setVendorId(data.vendor_id || '');
-      setStatus(data.status || 'DRAFT');
-      setLineItems(data.line_items || [{ item_id: '', item_description: '', unit: '', quantity: '', rate: '' }]);
+      setVendorId(String(data.vendor_id ?? ''));
+      setStatus(String(data.status).toUpperCase());
+      setLineItems(
+        (data.line_items || []).map(item => ({
+          item_id: item.item_id ?? '',
+          item_description: item.item_description ?? '',
+          unit: item.unit ?? '',
+          quantity: item.quantity ?? '',
+          rate: item.rate ?? '',
+        }))
+      );
+
+      if (!data.line_items || data.line_items.length === 0) {
+  setLineItems([{ item_id: '', item_description: '', unit: '', quantity: '', rate: '' }]);}
+
       setVendorInfo(data.vendor || null);
     } catch (err) {
       setSubmitError('Failed to load PO for editing');
@@ -59,7 +72,7 @@ const CreatePO = () => {
   const validateForm = () => {
     const errors = {};
     
-    if (!vendorId.trim()) {
+    if (!String(vendorId).trim()) {
       errors.vendorId = 'Vendor is required';
     }
 
@@ -160,10 +173,14 @@ const CreatePO = () => {
 
 
       const poData = {
-        vendor_id: vendorId,
-        po_date: poDate,
-        line_items: validItems,
+        vendor_id: parseInt(vendorId),
+        lines: validItems.map(item => ({
+          item_id: Number(item.item_id),
+          quantity: Math.floor(Number(item.quantity)),
+          price: Number(item.rate),
+        })),
       };
+
 
       await updateProcurementOrder(id, poData);
       setSuccessMessage('PO updated successfully');
@@ -175,7 +192,7 @@ const CreatePO = () => {
     }
   };
 
-  const isReadOnly = status !== 'DRAFT';
+  const isReadOnly = String(status).toUpperCase() !== 'DRAFT';
   const subtotal = calculateSubtotal();
   const total = subtotal;
 
@@ -335,6 +352,8 @@ const CreatePO = () => {
     color: '#1f2937',
   };
 
+  console.log("STATUS =", status, "READONLY =", isReadOnly);
+
   return (
     <div style={containerStyle}>
       <h1 style={headingStyle}>
@@ -480,7 +499,7 @@ const CreatePO = () => {
 
       <div style={buttonGroupStyle}>
         <button
-          onClick={handleSaveAsDraft}
+          onClick={isEditing ? handleUpdateDraft : handleSaveAsDraft}
           disabled={loading || isReadOnly}
           style={{
             ...primaryButtonStyle,
