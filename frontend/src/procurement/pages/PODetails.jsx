@@ -4,6 +4,7 @@ import { useProcurement } from '../hooks/useProcurement';
 import POStatusBadge from '../components/POStatusBadge';
 import VendorInfoCard from '../components/VendorInfoCard';
 import POLineItemRow from '../components/POLineItemRow';
+import { getVendorDetails } from '../../api/procurement.api';
 
 const PODetails = () => {
   const navigate = useNavigate();
@@ -30,20 +31,38 @@ const PODetails = () => {
   }, [id]);
 
   const loadPOData = async () => {
-    setLoadingData(true);
-    setErrorMessage('');
+  setLoadingData(true);
+  setErrorMessage('');
+
+  try {
+    const data = await fetchPODetails(id);
+
+    let vendor = null;
     try {
-      const data = await fetchPODetails(id);
-      setPoData(data);
-      if (data.status === 'SENT') {
-        loadTracking();
-      }
-    } catch (err) {
-      setErrorMessage(err.response?.data?.message || 'Failed to load PO details');
-    } finally {
-      setLoadingData(false);
+      const res = await getVendorDetails(data.vendor_id);
+      vendor = res.data;
+    } catch {
+      vendor = {
+        name: 'Unknown Vendor',
+        status: 'UNKNOWN',
+      };
     }
-  };
+
+    setPoData({
+      ...data,
+      vendor,
+    });
+
+    if (data.status === 'SENT') {
+      loadTracking();
+    }
+  } catch (err) {
+    setErrorMessage(err.response?.data?.message || 'Failed to load PO details');
+  } finally {
+    setLoadingData(false);
+  }
+};
+
 
   const loadTracking = async () => {
     try {

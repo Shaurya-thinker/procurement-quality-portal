@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProcurement } from '../hooks/useProcurement';
 import POStatusBadge from '../components/POStatusBadge';
+import { getVendorDetails } from '../../api/procurement.api';
 
 const POList = () => {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ const POList = () => {
   const [itemsPerPage] = useState(10);
   const [loadingError, setLoadingError] = useState('');
   const [hoveredRow, setHoveredRow] = useState(null);
+  const [vendorMap, setVendorMap] = useState({});
+
 
   useEffect(() => {
     loadProcurementOrders();
@@ -23,17 +26,43 @@ const POList = () => {
     applyFilters();
   }, [procurementOrders, statusFilter]);
 
-  const loadProcurementOrders = async () => {
-    setLoadingError('');
+  const resolveVendors = async (pos) => {
+  const uniqueVendorIds = [...new Set(pos.map(po => po.vendor_id).filter(Boolean))];
+
+  const vendorPromises = uniqueVendorIds.map(async (id) => {
+    if (vendorMap[id]) return;
     try {
-      const data = await fetchProcurementOrders();
-      const posArray = Array.isArray(data) ? data : data.data || [];
-      setProcurementOrders(posArray);
-    } catch (err) {
-      setLoadingError(err.response?.data?.message || 'Failed to load POs');
-      setProcurementOrders([]);
+      const res = await getVendorDetails(id);
+      return { id, name: res.data.name };
+    } catch {
+      return { id, name: 'Unknown Vendor' };
     }
-  };
+  });
+
+  const results = await Promise.all(vendorPromises);
+  const newMap = { ...vendorMap };
+
+  results.forEach(v => {
+    if (v) newMap[v.id] = v.name;
+  });
+
+  setVendorMap(newMap);
+};
+
+
+  const loadProcurementOrders = async () => {
+  setLoadingError('');
+  try {
+    const data = await fetchProcurementOrders();
+    const posArray = Array.isArray(data) ? data : data.data || [];
+    setProcurementOrders(posArray);
+    resolveVendors(posArray); // 👈 ADD THIS
+  } catch (err) {
+    setLoadingError(err.response?.data?.message || 'Failed to load POs');
+    setProcurementOrders([]);
+  }
+};
+
 
   const applyFilters = () => {
     let filtered = procurementOrders;
@@ -344,7 +373,7 @@ const POList = () => {
               <thead>
                 <tr>
                   <th style={thStyle}>PO Number</th>
-                  <th style={thStyle}>Vendor ID</th>
+                  <th style={thStyle}>Vendor</th>
                   <th style={thStyle}>Status</th>
                   <th style={thStyle}>Created Date</th>
                   <th style={thStyle}>Actions</th>
@@ -367,7 +396,7 @@ const POList = () => {
                       </td>
                       <td style={tdStyle}>
                         <span style={{ color: '#3b82f6', fontWeight: '600' }}>
-                          {po.vendor_id || '-'}
+                          {vendorMap[po.vendor_id] || 'Loading...'}
                         </span>
                       </td>
                       <td style={tdStyle}>

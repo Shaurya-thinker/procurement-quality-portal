@@ -5,6 +5,7 @@ import POLineItemRow from '../components/POLineItemRow';
 import VendorInfoCard from '../components/VendorInfoCard';
 import POStatusBadge from '../components/POStatusBadge';
 import { getItems } from '../../api/procurement.api';
+import { getVendors, getVendorById } from '../../api/vendor.api';
 
 const CreatePO = () => {
   const navigate = useNavigate();
@@ -19,7 +20,8 @@ const CreatePO = () => {
 
   const [poNumber, setPoNumber] = useState('');
   const [poDate, setPoDate] = useState(new Date().toISOString().split('T')[0]);
-  const [vendorId, setVendorId] = useState('');
+  const [vendorId, setVendorId] = useState(null);
+  const [vendors, setVendors] = useState([]);
   const [vendorInfo, setVendorInfo] = useState(null);
   const [status, setStatus] = useState('DRAFT');
   const [lineItems, setLineItems] = useState([
@@ -30,6 +32,11 @@ const CreatePO = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isEditing, setIsEditing] = useState(!!id);
   const [items, setItems] = useState([]);
+
+
+  useEffect(() => {
+  getVendors().then(setVendors);
+}, []);
 
 
   useEffect(() => {
@@ -405,14 +412,26 @@ const CreatePO = () => {
             <label style={labelStyle}>
               Vendor ID {validationErrors.vendorId && <span style={{ color: '#dc2626' }}>*</span>}
             </label>
-            <input
-              type="text"
-              value={vendorId}
-              onChange={(e) => setVendorId(e.target.value)}
-              disabled={isReadOnly}
-              style={isReadOnly ? readOnlyInputStyle : inputStyle}
-              placeholder="Enter vendor ID"
-            />
+            <select
+  value={vendorId ?? ''}
+  onChange={async (e) => {
+    const id = Number(e.target.value);
+    setVendorId(id);
+
+    const res = await getVendorById(id);
+    setVendorInfo(res.data);
+  }}
+  disabled={isReadOnly}
+  style={isReadOnly ? readOnlyInputStyle : inputStyle}
+>
+  <option value="">Select Vendor</option>
+  {vendors.map(v => (
+    <option key={v.id} value={v.id}>
+      {v.name}
+    </option>
+  ))}
+</select>
+
             {validationErrors.vendorId && (
               <div style={errorMessageStyle}>{validationErrors.vendorId}</div>
             )}
