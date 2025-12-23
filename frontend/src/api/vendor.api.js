@@ -5,25 +5,15 @@ import api from "./axios";
  * This will later be replaced by Vendor Portal API
  */
 export const getVendors = async () => {
-  // Mocked data based on Vendor Portal UI
-  return Promise.resolve([
-    {
-      id: 1,
-      name: "ElectroParts India Pvt Ltd",
-      status: "APPROVED",
-    },
-    {
-      id: 2,
-      name: "BatteryTech Solutions",
-      status: "APPROVED",
-    },
-    {
-      id: 3,
-      name: "AutoBody Works",
-      status: "PENDING",
-    },
-  ]);
+  return Promise.resolve({
+    data: [
+      { id: 1, name: "ElectroParts India Pvt Ltd", status: "APPROVED" },
+      { id: 2, name: "BatteryTech Solutions", status: "APPROVED" },
+      { id: 3, name: "AutoBody Works", status: "PENDING" },
+    ],
+  });
 };
+
 
 /**
  * REAL backend call (already exists)

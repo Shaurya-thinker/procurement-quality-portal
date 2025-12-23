@@ -5,7 +5,9 @@ import POLineItemRow from '../components/POLineItemRow';
 import VendorInfoCard from '../components/VendorInfoCard';
 import POStatusBadge from '../components/POStatusBadge';
 import { getItems } from '../../api/procurement.api';
-import { getVendors, getVendorById } from '../../api/vendor.api';
+import { getVendorDetails } from '../../api/procurement.api';
+import { getVendors } from '../../api/vendor.api';
+import {getVendorById} from "../../api/vendor.api";
 
 const CreatePO = () => {
   const navigate = useNavigate();
@@ -35,8 +37,9 @@ const CreatePO = () => {
 
 
   useEffect(() => {
-  getVendors().then(setVendors);
+  getVendors().then(res => setVendors(res.data));
 }, []);
+
 
 
   useEffect(() => {
@@ -54,7 +57,11 @@ const CreatePO = () => {
     try {
       const data = await fetchPODetails(id);
       setPoNumber(data.po_number || '');
-      setPoDate(data.po_date || new Date().toISOString().split('T')[0]);
+      setPoDate(
+        data.created_at
+          ? data.created_at.split('T')[0]
+          : new Date().toISOString().split('T')[0]
+      );
       setVendorId(String(data.vendor_id ?? ''));
       setStatus(String(data.status).toUpperCase());
       setLineItems(
@@ -66,11 +73,26 @@ const CreatePO = () => {
           rate: item.rate ?? '',
         }))
       );
+            if (data.vendor_id) {
+        const res = await getVendorById(data.vendor_id);
+        setVendorInfo(res.data);
+      }
+
 
       if (!data.line_items || data.line_items.length === 0) {
-  setLineItems([{ item_id: '', item_description: '', unit: '', quantity: '', rate: '' }]);}
+    setLineItems([{ item_id: '', item_description: '', unit: '', quantity: '', rate: '' }]);}
 
-      setVendorInfo(data.vendor || null);
+      try {
+    const res = await getVendorDetails(data.vendor_id);
+    setVendorInfo(res.data);
+  } catch {
+    setVendorInfo({
+      name: 'Unknown Vendor',
+      contact: '-',
+      status: 'INACTIVE',
+    });
+}
+
     } catch (err) {
       setSubmitError('Failed to load PO for editing');
     }
@@ -79,9 +101,10 @@ const CreatePO = () => {
   const validateForm = () => {
     const errors = {};
     
-    if (!String(vendorId).trim()) {
-      errors.vendorId = 'Vendor is required';
-    }
+    if (!vendorId || Number(vendorId) <= 0) {
+  errors.vendorId = 'Vendor is required';
+}
+
 
     const validItems = lineItems.filter(item => item.item_id);
 
@@ -415,12 +438,24 @@ const CreatePO = () => {
             <select
   value={vendorId ?? ''}
   onChange={async (e) => {
-    const id = Number(e.target.value);
-    setVendorId(id);
+  const id = Number(e.target.value);
+  setVendorId(id);
+  setVendorInfo(null);
 
-    const res = await getVendorById(id);
+  if (!id) return;
+
+  try {
+    const res = await getVendorDetails(id);
     setVendorInfo(res.data);
-  }}
+  } catch {
+    setVendorInfo({
+      name: 'Unknown Vendor',
+      contact: '-',
+      status: 'INACTIVE',
+    });
+  }
+}}
+
   disabled={isReadOnly}
   style={isReadOnly ? readOnlyInputStyle : inputStyle}
 >

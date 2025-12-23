@@ -1,16 +1,49 @@
-const POStatusBadge = ({ status }) => {
-  const getStatusClass = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'DRAFT':
-        return 'status-badge draft';
-      case 'SENT':
-        return 'status-badge sent';
-      default:
-        return 'status-badge draft';
-    }
-  };
+const getStatusStyle = (status) => {
+  let color = '#1f2937';
+  let background = '#e5e7eb';
 
-  return <span className={getStatusClass(status)}>{status}</span>;
+  switch (status) {
+    case 'DRAFT':
+      color = '#1d4ed8';
+      background = '#dbeafe';
+      break;
+
+    case 'SENT':
+      color = '#065f46';
+      background = '#d1fae5';
+      break;
+
+    case 'CANCELLED':
+      color = '#7f1d1d';
+      background = '#fee2e2';
+      break;
+
+    default:
+      break;
+  }
+
+  return { color, background };
+};
+
+const POStatusBadge = ({ status }) => {
+  const { color, background } = getStatusStyle(status);
+
+  return (
+    <span
+      style={{
+        padding: '4px 10px',
+        borderRadius: '999px',
+        fontSize: '12px',
+        fontWeight: '600',
+        color,
+        backgroundColor: background,
+        display: 'inline-block',
+        textTransform: 'uppercase',
+      }}
+    >
+      {status}
+    </span>
+  );
 };
 
 export default POStatusBadge;

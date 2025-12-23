@@ -26,3 +26,6 @@ export const getVendorDetails = (vendorId) =>
 
 export const getItems = () =>
   api.get("/api/v1/procurement/items");
+
+export const cancelPO = (id) =>
+  api.post(`/api/v1/procurement/${id}/cancel`);

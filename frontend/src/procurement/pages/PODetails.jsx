@@ -12,10 +12,29 @@ const PODetails = () => {
   const { 
     fetchPODetails, 
     sendProcurementOrder, 
+    cancelProcurementOrder,
     fetchPOTracking, 
     loading, 
     error 
   } = useProcurement();
+
+  const formatDateTime = (dateString) => {
+  if (!dateString) return '-';
+
+  const date = new Date(dateString + 'Z'); // 👈 FORCE UTC
+
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Kolkata',
+  });
+};
+
+
 
   const [poData, setPoData] = useState(null);
   const [tracking, setTracking] = useState(null);
@@ -91,6 +110,19 @@ const PODetails = () => {
       setSendingPO(false);
     }
   };
+
+  const handleCancelPO = async () => {
+  if (!window.confirm('Are you sure you want to cancel this PO?')) return;
+
+  try {
+    await cancelProcurementOrder(id);
+    setPoData({ ...poData, status: 'CANCELLED' });
+    setSuccessMessage('Purchase Order cancelled successfully');
+  } catch (err) {
+    setSendError(err.response?.data?.detail || 'Failed to cancel PO');
+  }
+};
+
 
   const handleEditPO = () => {
     navigate(`/procurement/${id}/edit`);
@@ -415,29 +447,16 @@ const PODetails = () => {
             </div>
           </div>
           <div style={infoItemStyle}>
-            <div style={infoLabelStyle}>PO Date</div>
+            <div style={infoLabelStyle}>PO Date & Time</div>
             <div style={infoValueStyle}>
-              {poData.po_date 
-                ? new Date(poData.po_date).toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })
-                : '-'
-              }
+              {formatDateTime(poData.po_date || poData.created_at)}
             </div>
           </div>
           <div style={infoItemStyle}>
             <div style={infoLabelStyle}>Created Date</div>
             <div style={infoValueStyle}>
-              {poData.created_at 
-                ? new Date(poData.created_at).toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })
-                : '-'
-              }
+              {formatDateTime(poData.created_at)}
+
             </div>
           </div>
         </div>
@@ -537,21 +556,25 @@ const PODetails = () => {
 
       <div style={buttonGroupStyle}>
         {poData.status === 'DRAFT' && (
-          <>
-            <button
-              onClick={handleEditPO}
-              style={primaryButtonStyle}
-            >
-              Edit
+            <>
+              <button onClick={handleEditPO} style={primaryButtonStyle}>
+                Edit
+              </button>
+              <button onClick={() => setShowSendConfirm(true)} style={dangerButtonStyle}>
+                Send PO
+              </button>
+              <button onClick={handleCancelPO} style={secondaryButtonStyle}>
+                Cancel PO
+              </button>
+            </>
+          )}
+
+          {poData.status === 'SENT' && (
+            <button onClick={handleCancelPO} style={secondaryButtonStyle}>
+              Cancel PO
             </button>
-            <button
-              onClick={() => setShowSendConfirm(true)}
-              style={dangerButtonStyle}
-            >
-              Send PO
-            </button>
-          </>
-        )}
+          )}
+
 
         <button
           onClick={() => navigate('/procurement')}

@@ -5,6 +5,7 @@ import {
   getPODetails,
   updatePO,
   sendPO,
+  cancelPO,
   getPOTracking,
   getPOsByVendor,
   getVendorDetails,
@@ -13,6 +14,7 @@ import {
 export const useProcurement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [vendorCache, setVendorCache] = useState({});
 
   const createProcurementOrder = useCallback(async (data) => {
     setLoading(true);
@@ -28,6 +30,23 @@ export const useProcurement = () => {
       setLoading(false);
     }
   }, []);
+
+  const cancelProcurementOrder = useCallback(async (id) => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await cancelPO(id);
+    return response.data;
+  } catch (err) {
+    const errorMessage =
+      err.response?.data?.detail || err.message || 'Failed to cancel PO';
+    setError(errorMessage);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   const fetchProcurementOrders = useCallback(async () => {
     setLoading(true);
@@ -119,20 +138,43 @@ export const useProcurement = () => {
     }
   }, []);
 
-  const fetchVendorDetails = useCallback(async (vendorId) => {
+  const fetchVendorDetails = useCallback(
+  async (vendorId) => {
+    if (!vendorId) return null;
+
+    // ✅ 1. Return from cache if exists
+    if (vendorCache[vendorId]) {
+      return vendorCache[vendorId];
+    }
+
     setLoading(true);
     setError(null);
+
     try {
       const response = await getVendorDetails(vendorId);
-      return response.data;
+      const vendor = response.data;
+
+      // ✅ 2. Save to cache
+      setVendorCache((prev) => ({
+        ...prev,
+        [vendorId]: vendor,
+      }));
+
+      return vendor;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch vendor details';
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to fetch vendor details';
       setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  },
+  [vendorCache]
+);
+
 
   const clearError = useCallback(() => {
     setError(null);
@@ -146,6 +188,7 @@ export const useProcurement = () => {
     fetchPODetails,
     updateProcurementOrder,
     sendProcurementOrder,
+    cancelProcurementOrder,
     fetchPOTracking,
     fetchPOsByVendor,
     fetchVendorDetails,
