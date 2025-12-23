@@ -10,7 +10,7 @@ class POStatus(str, Enum):
     """Purchase Order status enumeration."""
     DRAFT = "DRAFT"
     SENT = "SENT"
-
+    CANCELLED = "CANCELLED"
 
 class PurchaseOrder(Base):
     """Purchase Order model."""

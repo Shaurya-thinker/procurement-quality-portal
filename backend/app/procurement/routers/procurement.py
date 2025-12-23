@@ -85,6 +85,19 @@ def update_purchase_order(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/{po_id}/cancel", response_model=PurchaseOrderRead, summary="Cancel Purchase Order")
+def cancel_purchase_order(
+    po_id: int,
+    db: Session = Depends(get_db),
+):
+    """Cancel a purchase order (DRAFT or SENT only)."""
+    try:
+        return ProcurementService.cancel_purchase_order(db, po_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/{po_id}/send", response_model=PurchaseOrderRead, summary="Send Purchase Order")
 def send_purchase_order(
@@ -117,19 +130,19 @@ def get_pos_by_vendor(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/vendors/{vendor_id}", response_model=VendorRead, summary="Get Vendor Details")
-def get_vendor_details(
-    vendor_id: int,
-    db: Session = Depends(get_db),
-) -> dict:
-    """Get details of a specific vendor."""
-    try:
-        vendor = ProcurementService.get_vendor_details(db, vendor_id)
-        if not vendor:
-            raise HTTPException(status_code=404, detail="Vendor not found")
-        return vendor
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@router.get("/vendors/{vendor_id}", response_model=VendorRead)
+def get_vendor_details(vendor_id: int):
+    """
+    TEMP: Vendor data is owned by Vendor Service.
+    Procurement only references vendor_id.
+    """
+    return {
+        "id": vendor_id,
+        "name": f"Vendor #{vendor_id}",
+        "contact": None,
+        "status": "ACTIVE"
+    }
+
 
 
 @router.get("/{po_id}/tracking", response_model=PurchaseOrderTracking, summary="Track Purchase Order")

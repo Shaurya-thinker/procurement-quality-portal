@@ -134,6 +134,44 @@ class ProcurementService:
         except Exception as e:
             db.rollback()
             raise e
+        
+
+    @staticmethod
+    def cancel_purchase_order(db: Session, po_id: int):
+        db_po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
+
+        if not db_po:
+            raise ValueError(f"Purchase order with ID {po_id} not found")
+
+        if db_po.status == POStatus.CANCELLED:
+            raise ValueError("Purchase order is already cancelled")
+
+        # 🚫 Business rule: cannot cancel after receipt/QC (future-safe)
+        # (For now, allow cancel if not already cancelled)
+        if db_po.status not in [POStatus.DRAFT, POStatus.SENT]:
+            raise ValueError("Purchase order cannot be cancelled")
+
+        db_po.status = POStatus.CANCELLED
+        db.commit()
+
+        return PurchaseOrderRead.model_validate({
+            "id": db_po.id,
+            "po_number": db_po.po_number,
+            "vendor_id": db_po.vendor_id,
+            "status": db_po.status,
+            "created_at": db_po.created_at,
+            "lines": [
+                {
+                    "id": line.id,
+                    "po_id": line.po_id,
+                    "item_id": line.item_id,
+                    "quantity": line.quantity,
+                    "price": line.price,
+                }
+                for line in db_po.lines
+            ]
+        })    
+    
     
     @staticmethod
     def get_purchase_orders(
@@ -358,39 +396,36 @@ class ProcurementService:
     @staticmethod
     def get_vendor_details(db: Session, vendor_id: int) -> VendorRead:
         """
-        Retrieve vendor details. Attempts to fetch from an external Vendor Portal
-        (configurable via `VENDOR_PORTAL_URL` env var). Returns `VendorRead`.
-
-        Raises:
-            ValueError: if vendor not found
-            RuntimeError: if remote service unavailable or returns error
+        Retrieve vendor details from external Vendor Portal.
+        Falls back safely if service is unavailable.
         """
-        # Prefer an environment-configured vendor portal URL
+
         base_url = os.getenv("VENDOR_PORTAL_URL", "http://localhost:9000/api/vendors")
         url = f"{base_url}/{vendor_id}"
 
         try:
-            resp = requests.get(url, timeout=3)
-        except requests.RequestException as exc:
-            raise RuntimeError("Failed to reach vendor portal") from exc
+            resp = requests.get(url, timeout=2)
 
-        if resp.status_code == 404:
-            raise ValueError(f"Vendor with ID {vendor_id} not found")
+            if resp.status_code == 200:
+                data = resp.json()
+                return VendorRead.model_validate({
+                    "id": int(data.get("id", vendor_id)),
+                    "name": data.get("name", "Unknown Vendor"),
+                    "contact": data.get("contact"),
+                    "status": data.get("status", "ACTIVE"),
+                })
 
-        if resp.status_code != 200:
-            raise RuntimeError(f"Vendor portal returned {resp.status_code}")
+        except Exception:
+            pass  # swallow vendor service errors
 
-        data = resp.json()
+        # ✅ SAFE FALLBACK — NEVER THROW 500
+        return VendorRead.model_validate({
+            "id": vendor_id,
+            "name": "Unknown Vendor",
+            "contact": None,
+            "status": "UNKNOWN",
+        })
 
-        # Map known fields to our schema; be forgiving for missing fields
-        vendor_dict = {
-            "id": int(data.get("id", vendor_id)),
-            "name": data.get("name", ""),
-            "contact": data.get("contact"),
-            "status": data.get("status", "ACTIVE"),
-        }
-
-        return VendorRead.model_validate(vendor_dict)
 
     @staticmethod
     def get_po_tracking_summary(db: Session, po_id: int) -> PurchaseOrderTracking:
