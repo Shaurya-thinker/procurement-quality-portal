@@ -503,6 +503,7 @@ const CreatePO = () => {
                   index={index}
                   item={item}
                   items={items}
+                  selectedItemIds={lineItems.map(li => Number(li.item_id)).filter(Boolean)}
                   onChange={handleLineItemChange}
                   onRemove={handleRemoveLineItem}
                   isReadOnly={isReadOnly}

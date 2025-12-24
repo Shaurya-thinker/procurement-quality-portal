@@ -2,6 +2,7 @@ const POLineItemRow = ({
   index,
   item,
   items,
+  selectedItemIds = [], 
   onChange,
   onRemove,
   isReadOnly = false,
@@ -76,11 +77,21 @@ const POLineItemRow = ({
     }}
   >
     <option value="">Select Item</option>
-    {items.map((i) => (
-      <option key={i.id} value={i.id}>
-        {i.code} – {i.name}
-      </option>
-    ))}
+    {items.map((i) => {
+  const isAlreadySelected =
+    selectedItemIds.includes(i.id) && i.id !== item.item_id;
+
+  return (
+    <option
+      key={i.id}
+      value={i.id}
+      disabled={isAlreadySelected}
+    >
+      {i.code} – {i.name}
+    </option>
+  );
+})}
+
   </select>
 </td>
 
@@ -88,21 +99,21 @@ const POLineItemRow = ({
         <input
           type="text"
           value={item.item_description || ''}
-          onChange={(e) => handleChange('item_description', e.target.value)}
-          disabled={isReadOnly}
-          style={isReadOnly ? readOnlyInputStyle : inputStyle}
+          disabled
+          style={readOnlyInputStyle}
           placeholder="Description"
         />
+
       </td>
       <td style={cellStyle}>
         <input
           type="text"
           value={item.unit || ''}
-          onChange={(e) => handleChange('unit', e.target.value)}
-          disabled={isReadOnly}
-          style={isReadOnly ? readOnlyInputStyle : inputStyle}
+          disabled
+          style={readOnlyInputStyle}
           placeholder="Unit"
         />
+
       </td>
       <td style={cellStyle}>
         <input

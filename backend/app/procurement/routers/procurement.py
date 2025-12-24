@@ -1,6 +1,9 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Header
 from sqlalchemy.orm import Session
+from typing import List
+from backend.app.core.config import DEBUG
+
 
 from backend.app.database import get_db
 from backend.app.procurement.schemas import (
@@ -14,9 +17,45 @@ from backend.app.procurement.schemas import PurchaseOrderTracking
 from backend.app.procurement.services import ProcurementService
 from backend.app.procurement.schemas.purchase_order import PurchaseOrderDetailRead
 from backend.app.procurement.models import Item
-from backend.app.procurement.schemas.item import ItemRead
+from backend.app.procurement.schemas.item import ItemRead, ItemCreate
 
 router = APIRouter(prefix="/api/v1/procurement", tags=["Procurement"])
+
+
+@router.post(
+    "/items",
+    response_model=ItemRead,
+    status_code=status.HTTP_201_CREATED
+)
+def create_item_api(
+    item: ItemCreate,
+    db: Session = Depends(get_db),
+):
+    # 🚫 Block in production
+    if not DEBUG:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Item creation is disabled in production"
+        )
+
+    try:
+        return ProcurementService.create_item(db, item)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+
+
+@router.get("/items", response_model=List[ItemRead])
+def list_items_api(
+    db: Session = Depends(get_db),
+):
+    return ProcurementService.get_all_items(db)
+
+
 
 
 @router.post("/", response_model=PurchaseOrderRead, summary="Create Purchase Order")

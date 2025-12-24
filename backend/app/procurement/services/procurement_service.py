@@ -8,8 +8,10 @@ import requests
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from sqlalchemy.exc import IntegrityError
 from backend.app.procurement.models import PurchaseOrder, Item
 from backend.app.procurement.schemas.purchase_order import (PurchaseOrderDetailRead, PurchaseOrderLineDetailRead,)
+from backend.app.procurement.schemas.item import ItemCreate, ItemRead
 
 from backend.app.procurement.models import (
     PurchaseOrder,
@@ -29,6 +31,40 @@ from backend.app.procurement.schemas import (
 
 class ProcurementService:
     """Service for procurement-related business logic."""
+
+    @staticmethod
+    def create_item(db: Session, item_data: ItemCreate):
+        """
+        Create a new item in item master.
+        Used ONLY for internal/testing purposes.
+        """
+
+        item = Item(
+            name=item_data.name,
+            code=item_data.code,
+            unit=item_data.unit,
+            description=item_data.description,
+        )
+
+        db.add(item)
+
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            raise ValueError("Item with this code already exists")
+
+        db.refresh(item)
+        return item
+    
+    @staticmethod
+    def get_all_items(db: Session):
+        """
+        Fetch all items for procurement dropdowns (read-only).
+        """
+        return db.query(Item).order_by(Item.name).all()
+
+
     
     @staticmethod
     def _generate_po_number() -> str:
@@ -42,7 +78,16 @@ class ProcurementService:
         """Validate vendor_id is positive."""
         if vendor_id <= 0:
             raise ValueError("vendor_id must be greater than 0")
-    
+        
+
+    @staticmethod
+    def _validate_no_duplicate_items(item_ids: List[int]) -> None:
+        """
+        Ensure no duplicate item IDs are present in a single PO.
+        """
+        if len(item_ids) != len(set(item_ids)):
+            raise ValueError("Duplicate items are not allowed in a single purchase order")
+        
     @staticmethod
     def _validate_items_exist(db: Session, item_ids: List[int]) -> None:
         """Validate that all items exist in the database."""
@@ -55,7 +100,12 @@ class ProcurementService:
         
         if missing_ids:
             raise ValueError(f"Items with IDs {missing_ids} do not exist")
-    
+        
+
+# IMPORTANT:
+# We trust ONLY item_id from client.
+# Item name, unit, and description are always derived from Item Master.
+
     @staticmethod
     def create_purchase_order(
         db: Session,
@@ -79,7 +129,9 @@ class ProcurementService:
         
         # Extract item IDs and validate they exist
         item_ids = [line.item_id for line in po_create.lines]
+        ProcurementService._validate_no_duplicate_items(item_ids)
         ProcurementService._validate_items_exist(db, item_ids)
+
         
         try:
             # Generate unique PO number
@@ -342,6 +394,7 @@ class ProcurementService:
             lines_data = []
             if po_update.lines is not None:
                 item_ids = [line.item_id for line in po_update.lines]
+                ProcurementService._validate_no_duplicate_items(item_ids)
                 ProcurementService._validate_items_exist(db, item_ids)
 
                 # Clear existing lines through relationship (cascade will delete)
