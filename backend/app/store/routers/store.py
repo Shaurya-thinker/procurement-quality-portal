@@ -15,7 +15,7 @@ from ..schemas import (
     BinRead,
 )
 from ..models import InventoryItem, Store, Bin
-from ...database import get_db
+from ...core.db import get_db
 
 router = APIRouter(prefix="/api/v1/store", tags=["Store"])
 

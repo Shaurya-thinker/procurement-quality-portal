@@ -9,11 +9,21 @@ import uvicorn
 import time
 
 # Import database
-from backend.app.database import engine, Base, create_tables
+from backend.app.core.db import create_tables
+
+# 🔹 FORCE model imports (VERY IMPORTANT)
+import backend.app.procurement.models
+import backend.app.quality.models
+import backend.app.store.models
+import backend.app.attendance.models
 
 # Import routers
 from backend.app.procurement.routers.procurement import router as procurement_router
-from backend.app.quality.router import router as quality_router
+from backend.app.quality.routers import (
+    material_receipt_router,
+    inspection_router,
+    gate_pass_router,
+)
 from backend.app.store.routers.store import router as store_router
 from backend.app.attendance.routers.attendance import router as attendance_router
 
@@ -55,7 +65,9 @@ async def log_requests(request: Request, call_next):
 
 # Include routers
 app.include_router(procurement_router)
-app.include_router(quality_router, prefix="/api/v1/quality", tags=["Quality"])
+app.include_router(material_receipt_router, prefix="/api/v1/quality")
+app.include_router(inspection_router, prefix="/api/v1/quality")
+app.include_router(gate_pass_router, prefix="/api/v1/quality")
 app.include_router(store_router)
 app.include_router(attendance_router, prefix="/api/v1/attendance", tags=["Attendance"])
 

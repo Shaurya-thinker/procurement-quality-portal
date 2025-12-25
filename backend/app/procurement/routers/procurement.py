@@ -5,7 +5,7 @@ from typing import List
 from backend.app.core.config import DEBUG
 
 
-from backend.app.database import get_db
+from backend.app.core.db import get_db
 from backend.app.procurement.schemas import (
     PurchaseOrderCreate,
     PurchaseOrderRead,
@@ -56,8 +56,6 @@ def list_items_api(
     return ProcurementService.get_all_items(db)
 
 
-
-
 @router.post("/", response_model=PurchaseOrderRead, summary="Create Purchase Order")
 def create_purchase_order(
     po_data: PurchaseOrderCreate,
@@ -71,9 +69,6 @@ def create_purchase_order(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/items", response_model=list[ItemRead], summary="List Items")
-def list_items(db: Session = Depends(get_db)):
-    return db.query(Item).all()
 
 @router.get("/", response_model=list[PurchaseOrderRead], summary="List Purchase Orders")
 def list_purchase_orders(

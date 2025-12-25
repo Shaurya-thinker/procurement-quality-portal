@@ -1,11 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DATABASE_URL = f"sqlite:///{BASE_DIR}/backend/app.db"
+# PROJECT ROOT → backend/
+BASE_DIR = Path(__file__).resolve().parents[2]
+DB_PATH = BASE_DIR / "app.db"
 
+print("🗄️ SQLite DB Path:", DB_PATH)
+
+DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
     DATABASE_URL,
@@ -19,6 +22,13 @@ SessionLocal = sessionmaker(
 )
 
 Base = declarative_base()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def create_tables():
     Base.metadata.create_all(bind=engine)

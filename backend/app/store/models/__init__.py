@@ -1,7 +1,6 @@
 from backend.app.core.db import Base
 from .inventory import InventoryItem
 from .dispatch import Dispatch
-from .gatepass import GatePass
 from .store import Store, Bin
 
 __all__ = ["Base", "InventoryItem", "Dispatch", "GatePass", "Store", "Bin"]

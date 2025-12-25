@@ -66,7 +66,6 @@ class InspectionService:
             inspection_line = QualityInspectionLine(
                 inspection_id=inspection.id,
                 mr_line_id=mr_line.id,
-                received_quantity=mr_line.received_quantity,
                 accepted_quantity=line.accepted_quantity,
                 rejected_quantity=line.rejected_quantity
             )
@@ -91,3 +90,9 @@ class InspectionService:
         db.commit()
         db.refresh(inspection)
         return inspection
+    
+    @staticmethod
+    def get_inspection(db: Session, inspection_id: int):
+        return db.query(QualityInspection).filter(
+            QualityInspection.id == inspection_id
+        ).first()

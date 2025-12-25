@@ -25,7 +25,7 @@ class MaterialReceiptService:
             raise ValueError("Invalid Purchase Order number")
         
         # 🚫 BLOCK cancelled PO
-        if po.status == "CANCELLED":
+        if po.status == POStatus.CANCELLED:
             raise ValueError("Cannot create Material Receipt for a CANCELLED PO")
 
         # 2️⃣ Create MR header
@@ -112,7 +112,7 @@ class MaterialReceiptService:
     @staticmethod
     def list_material_receipts(db: Session):
         return db.query(MaterialReceipt).order_by(
-            MaterialReceipt.created_at.desc()
+            MaterialReceipt.received_at.desc()
         ).all()
 
     @staticmethod

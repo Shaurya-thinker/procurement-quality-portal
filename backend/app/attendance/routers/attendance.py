@@ -10,7 +10,7 @@ from ..schemas.attendance import (
     TodayAttendanceResponse,
     AttendanceHistoryResponse
 )
-from ...database import get_db
+from backend.app.core.db import get_db
 import logging
 
 logger = logging.getLogger(__name__)

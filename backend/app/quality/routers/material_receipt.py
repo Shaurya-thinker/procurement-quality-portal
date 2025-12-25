@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.app.database import get_db
+from backend.app.core.db import get_db
 from backend.app.quality.schemas.material_receipt import (
     MaterialReceiptCreate,
     MaterialReceiptRead
@@ -20,6 +20,10 @@ def create_material_receipt(
         return MaterialReceiptService.create_material_receipt(db, payload)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/", response_model=list[MaterialReceiptRead])
+def list_material_receipts(db: Session = Depends(get_db)):
+    return MaterialReceiptService.list_material_receipts(db)
 
 
 @router.get("/{mr_id}", response_model=MaterialReceiptRead)

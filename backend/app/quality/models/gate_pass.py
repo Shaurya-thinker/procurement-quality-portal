@@ -19,9 +19,9 @@ class GatePass(Base):
     issued_at = Column(DateTime, default=datetime.utcnow)
 
     items = relationship(
-        "GatePassItem",
-        back_populates="gate_pass",
-        cascade="all, delete-orphan"
+    "backend.app.quality.models.gate_pass.GatePassItem",
+    back_populates="gate_pass",
+    cascade="all, delete-orphan"
     )
 
 
