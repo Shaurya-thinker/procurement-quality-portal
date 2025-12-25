@@ -9,6 +9,8 @@ class POStatus(str, Enum):
     """Purchase Order status enumeration."""
     DRAFT = "DRAFT"
     SENT = "SENT"
+    PARTIALLY_RECEIVED = "PARTIALLY_RECEIVED"
+    RECEIVED = "RECEIVED"
     CANCELLED = "CANCELLED"
 
 

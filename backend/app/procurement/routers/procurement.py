@@ -47,8 +47,6 @@ def create_item_api(
         )
 
 
-
-
 @router.get("/items", response_model=List[ItemRead])
 def list_items_api(
     db: Session = Depends(get_db),

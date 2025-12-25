@@ -24,11 +24,12 @@ class MaterialReceipt(Base):
     # CREATED → INSPECTED
 
     lines = relationship(
-    "backend.app.quality.models.material_receipt.MaterialReceiptLine",
+    "MaterialReceiptLine",
     back_populates="material_receipt",
     cascade="all, delete-orphan",
     lazy="joined"
-)
+    )
+
 
 
 
