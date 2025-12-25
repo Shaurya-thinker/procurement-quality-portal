@@ -1,8 +1,7 @@
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from datetime import datetime, date
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from backend.app.core.db import Base
-
 
 
 class MaterialReceipt(Base):
@@ -10,27 +9,39 @@ class MaterialReceipt(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
+    # System generated
     mr_number = Column(String(50), unique=True, nullable=False, index=True)
 
+    # References
     po_id = Column(Integer, nullable=False, index=True)
     vendor_id = Column(Integer, nullable=False, index=True)
+
+    # Company-required fields
+    bill_no = Column(String(50), nullable=True)
+    entry_no = Column(String(50), nullable=True)
+    mr_reference_no = Column(String(50), nullable=True)
+
+    receipt_date = Column(Date, nullable=True)  # user-entered date
 
     vehicle_no = Column(String(50), nullable=True)
     challan_no = Column(String(50), nullable=True)
 
+    store_id = Column(Integer, nullable=True)
+    bin_id = Column(Integer, nullable=True)
+
+    remarks = Column(String(500), nullable=True)
+
     received_at = Column(DateTime, default=datetime.utcnow)
 
-    status = Column(String(20), default="CREATED")  
-    # CREATED → INSPECTED
+    status = Column(String(20), default="CREATED")
+    # CREATED → INSPECTED → GATE_PASSED
 
     lines = relationship(
-    "MaterialReceiptLine",
-    back_populates="material_receipt",
-    cascade="all, delete-orphan",
-    lazy="joined"
+        "MaterialReceiptLine",
+        back_populates="material_receipt",
+        cascade="all, delete-orphan",
+        lazy="joined"
     )
-
-
 
 
 class MaterialReceiptLine(Base):
@@ -44,4 +55,7 @@ class MaterialReceiptLine(Base):
     ordered_quantity = Column(Integer, nullable=False)
     received_quantity = Column(Integer, nullable=False)
 
-    material_receipt = relationship("MaterialReceipt", back_populates="lines")
+    material_receipt = relationship(
+        "MaterialReceipt",
+        back_populates="lines"
+    )
