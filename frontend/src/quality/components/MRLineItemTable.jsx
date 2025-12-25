@@ -171,8 +171,12 @@ export default function MRLineItemTable({ items, onChange, isReadOnly = false })
                   type="number"
                   value={item.received_quantity || ''}
                   onChange={(e) => handleChange(index, 'received_quantity', e.target.value)}
-                  disabled={isReadOnly}
-                  style={inputStyle}
+                  disabled={false}   // 👈 ALWAYS editable
+                  style={{
+                    ...inputStyle,
+                    backgroundColor: 'white',
+                    cursor: 'text',
+                  }}
                   min="0"
                 />
               </td>

@@ -3,25 +3,54 @@ import { useNavigate } from 'react-router-dom';
 import { useQuality } from '../hooks/useQuality';
 import MRHeader from '../components/MRHeader';
 import MRLineItemTable from '../components/MRLineItemTable';
+import { getPODetails } from '../../api/procurement.api';
+import { getPOs } from '../../api/procurement.api';
+
+
 
 export default function MaterialReceipt() {
   const navigate = useNavigate();
-  const { createMaterialReceipt, loading, error, clearError } = useQuality();
+  const {
+  createMaterialReceipt,
+  getPurchaseOrders,
+  loading,
+  error,
+  clearError,
+} = useQuality();
 
   const [mrData, setMrData] = useState({
-    bill_no: '',
-    date: '',
-    vehicle_no: '',
-    entry_no: '',
-    vendor_name: '',
-    component_details: '',
-    quantity: '',
-    store_no_bin_no: '',
-    purchase_number: '',
-    mr_reference_no: '',
-  });
+  bill_no: '',
+  entry_no: '',
+  mr_reference_no: '',
+  receipt_date: '',
+  vehicle_no: '',
+  challan_no: '',
+  store_id: '',
+  bin_id: '',
+  remarks: '',
+});
+
 
   const [lineItems, setLineItems] = useState([]);
+
+  /*
+Each item:
+{
+  po_line_id,
+  item_code,        // readonly
+  description,      // readonly
+  unit,             // readonly
+  ordered_quantity, // readonly
+  received_quantity // editable
+}
+*/
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [selectedPO, setSelectedPO] = useState(null);
+
+  useEffect(() => {
+  getPOs().then(res => setPurchaseOrders(res.data));
+}, []);
+
 
   const containerStyle = {
     padding: '32px',
@@ -151,45 +180,77 @@ export default function MaterialReceipt() {
     transition: 'background-color 0.3s ease',
   };
 
-  const handleAddItem = () => {
-    setLineItems([
-      ...lineItems,
-      {
-        item_code: '',
-        description: '',
-        unit: '',
-        ordered_quantity: '',
-        received_quantity: '',
-      },
-    ]);
-  };
+  const handlePOSelect = async (poId) => {
+  try {
+    const res = await getPODetails(poId);
+    const po = res.data;
+
+    setSelectedPO(po);
+
+    const mappedItems = po.line_items.map(line => ({
+      po_line_id: line.item_id,        // or line.id if you add it later
+      item_code: line.item_code,
+      description: line.item_description,
+      unit: line.unit,
+      ordered_quantity: line.quantity,
+      received_quantity: '',
+    }));
+    setMrData(prev => ({
+      ...prev,
+      vendor_name: `Vendor #${po.vendor_id}`,
+      purchase_number: po.po_number,
+    }));
+
+    setLineItems(mappedItems);
+  } catch (err) {
+    console.error('Failed to load PO details', err);
+  }
+};
+
+
+
 
   const handleSaveReceipt = async () => {
-    if (!mrData.bill_no || !mrData.vendor_name || !mrData.entry_no || !mrData.purchase_number || !mrData.mr_reference_no || lineItems.length === 0) {
-      alert('Please fill in all required fields and add at least one line item');
-      return;
-    }
+  if (!mrData.bill_no || !mrData.entry_no || !mrData.mr_reference_no || lineItems.length === 0) {
+    alert('Please fill required fields and add received quantities');
+    return;
+  }
 
-    try {
-      const payload = {
-        ...mrData,
-        line_items: lineItems,
-      };
+  try {
+    const payload = {
+      po_id: selectedPO.id,           // REQUIRED
+      vendor_id: selectedPO.vendor_id, // REQUIRED
 
-      const result = await createMaterialReceipt(payload);
-      
-      // Navigate to inspection with the MR number
-      if (result && result.mr_number) {
-        navigate(`/quality/inspection/${result.mr_number}`, {
-          state: { mrData: result },
-        });
-      } else {
-        alert('Material Receipt created successfully');
-      }
-    } catch (err) {
-      console.error('Error creating material receipt:', err);
-    }
-  };
+      bill_no: mrData.bill_no,
+      entry_no: mrData.entry_no,
+      mr_reference_no: mrData.mr_reference_no,
+      receipt_date: mrData.receipt_date || null,
+
+      vehicle_no: mrData.vehicle_no,
+      challan_no: mrData.challan_no,
+
+      store_id: mrData.store_id || null,
+      bin_id: mrData.bin_id || null,
+
+      remarks: mrData.remarks,
+
+      lines: lineItems.map(item => ({
+        po_line_id: item.po_line_id,
+        received_quantity: Number(item.received_quantity),
+      })),
+    };
+
+    const result = await createMaterialReceipt(payload);
+
+    navigate(`/quality/inspection/${result.id}`, {
+      state: { mrData: result },
+    });
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   return (
     <div style={containerStyle}>
@@ -207,18 +268,58 @@ export default function MaterialReceipt() {
 
       <MRHeader mrData={mrData} onChange={setMrData} isReadOnly={false} />
 
+      <div style={{
+        background: 'white',
+        borderRadius: '16px',
+        padding: '24px',
+        border: '1px solid #f1f5f9',
+      }}>
+        <label style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#374151',
+          marginBottom: '8px',
+          display: 'block'
+        }}>
+          Purchase Order
+        </label>
+
+        <select
+          value={selectedPO?.id || ''}
+          onChange={(e) => {
+            const poId = Number(e.target.value);
+            if (poId) {
+              handlePOSelect(poId);
+            }
+          }}
+
+          style={{
+            padding: '12px 16px',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            width: '100%',
+          }}
+          required
+        >
+          <option value="">Select Purchase Order</option>
+          {purchaseOrders.map(po => (
+            <option key={po.id} value={po.id}>
+              {po.po_number}
+            </option>
+          ))}
+        </select>
+      </div>
+
+
       <div style={lineItemsSectionStyle}>
         <div style={sectionHeaderStyle}>
           <h2 style={sectionTitleStyle}>Line Items</h2>
-          <button 
-            onClick={handleAddItem} 
-            className="btn-success"
-          >
-            <span style={{ fontSize: '18px', fontWeight: 'bold' }}>+</span>
-            Add Item
-          </button>
         </div>
-        <MRLineItemTable items={lineItems} onChange={setLineItems} isReadOnly={false} />
+        <MRLineItemTable
+          items={lineItems}
+          onChange={setLineItems}
+          isReadOnly={false}
+        />
       </div>
 
       <div style={footerStyle}>

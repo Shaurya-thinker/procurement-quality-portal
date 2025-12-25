@@ -8,6 +8,8 @@ import {
   createQualityChecklist,
   createQualitySheet,
 } from '../../api/quality.api';
+import { getPOs } from '../../api/procurement.api';
+
 
 export const useQuality = () => {
   const [loading, setLoading] = useState(false);
@@ -42,6 +44,20 @@ export const useQuality = () => {
       setLoading(false);
     }
   }, []);
+
+  const getPurchaseOrdersAsync = useCallback(async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await getPOs();
+    return response.data;
+  } catch (err) {
+    setError("Failed to load purchase orders");
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const inspectMaterialAsync = useCallback(async (data) => {
     setLoading(true);
@@ -126,6 +142,7 @@ export const useQuality = () => {
     loading,
     error,
     createMaterialReceipt: createMaterialReceiptAsync,
+    getPurchaseOrders: getPurchaseOrdersAsync,
     getMaterialReceipts: getMaterialReceiptsAsync,
     getMaterialReceiptDetails: getMaterialReceiptDetailsAsync,
     inspectMaterial: inspectMaterialAsync,
