@@ -3,6 +3,8 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuality } from '../hooks/useQuality';
 import MRHeader from '../components/MRHeader';
 import InspectionSummary from '../components/InspectionSummary';
+import { getPODetails } from '../../api/procurement.api';
+
 
 export default function Inspection() {
   const navigate = useNavigate();
@@ -21,12 +23,18 @@ export default function Inspection() {
       setMrData(mr);
       
       // Initialize inspection items from material receipt
-      const items = (mr.line_items || []).map(item => ({
-        ...item,
+      const items = (mr.lines || []).map(item => ({
+        item_code: item.item_code || item.code || '-',
+        description: item.description || item.item_description || '-',
+        unit: item.unit || '-',
+        received_quantity: item.received_quantity || 0,
+
         accepted_quantity: '',
         rejected_quantity: '',
         remarks: '',
       }));
+
+
       setInspectionItems(items);
     }
   }, [location.state]);

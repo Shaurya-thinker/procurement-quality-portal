@@ -188,7 +188,7 @@ Each item:
     setSelectedPO(po);
 
     const mappedItems = po.line_items.map(line => ({
-      po_line_id: line.item_id,        // or line.id if you add it later
+      po_line_id: line.id,        // or line.id if you add it later
       item_code: line.item_code,
       description: line.item_description,
       unit: line.unit,
@@ -211,15 +211,46 @@ Each item:
 
 
   const handleSaveReceipt = async () => {
-  if (!mrData.bill_no || !mrData.entry_no || !mrData.mr_reference_no || lineItems.length === 0) {
-    alert('Please fill required fields and add received quantities');
+  if (!mrData.bill_no || !mrData.entry_no || !mrData.mr_reference_no) {
+    alert('Please fill all mandatory header fields');
     return;
   }
 
+  if (lineItems.length === 0) {
+    alert('No line items found');
+    return;
+  }
+
+  // 🔴 LINE ITEM VALIDATION
+  for (let i = 0; i < lineItems.length; i++) {
+    const item = lineItems[i];
+
+    const received = Number(item.received_quantity);
+    const ordered = Number(item.ordered_quantity);
+
+    if (isNaN(received)) {
+      alert(`Received quantity missing for item ${item.item_code}`);
+      return;
+    }
+
+    if (received < 0) {
+      alert(`Received quantity cannot be negative for item ${item.item_code}`);
+      return;
+    }
+
+    if (received > ordered) {
+      alert(
+        `Received quantity (${received}) cannot exceed ordered quantity (${ordered}) for item ${item.item_code}`
+      );
+      return;
+    }
+  }
+
+  // ✅ SAFE TO SUBMIT
   try {
     const payload = {
-      po_id: selectedPO.id,           // REQUIRED
-      vendor_id: selectedPO.vendor_id, // REQUIRED
+      po_id: selectedPO.id,
+      vendor_id: selectedPO.vendor_id,
 
       bill_no: mrData.bill_no,
       entry_no: mrData.entry_no,
@@ -250,6 +281,7 @@ Each item:
     console.error(err);
   }
 };
+
 
 
   return (
@@ -318,7 +350,7 @@ Each item:
         <MRLineItemTable
           items={lineItems}
           onChange={setLineItems}
-          isReadOnly={false}
+          isReadOnly={true}
         />
       </div>
 

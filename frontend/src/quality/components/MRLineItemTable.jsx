@@ -48,7 +48,7 @@ export default function MRLineItemTable({ items, onChange, isReadOnly = false })
   };
 
   const handleChange = (index, field, value) => {
-    if (!isReadOnly && onChange) {
+    if (onChange) {
       const updatedItems = items.map((item, i) => 
         i === index ? { ...item, [field]: value } : item
       );
@@ -107,7 +107,7 @@ export default function MRLineItemTable({ items, onChange, isReadOnly = false })
         <div style={emptyStateStyle}>
           <div style={emptyIconStyle}>📦</div>
           <div style={emptyTitleStyle}>No Items Added</div>
-          <div style={emptyTextStyle}>Click "Add Item" to start adding line items to this material receipt</div>
+          <div style={emptyTextStyle}>Select a Purchase Order to load items</div>
         </div>
       </div>
     );

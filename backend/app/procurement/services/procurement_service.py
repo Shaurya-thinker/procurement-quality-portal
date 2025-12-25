@@ -303,6 +303,7 @@ class ProcurementService:
 
             line_items.append(
                 PurchaseOrderLineDetailRead(
+                    id=line.id,
                     item_id=line.item_id,
                     item_code=item.code if item else "",
                     item_description=item.name if item else "",

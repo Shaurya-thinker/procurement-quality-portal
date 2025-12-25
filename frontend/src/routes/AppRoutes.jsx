@@ -44,8 +44,9 @@ export default function AppRoutes() {
 
       {/* Quality Routes */}
       <Route path="/quality" element={<ProtectedRoute><MaterialReceipt /></ProtectedRoute>} />
-      <Route path="/quality/inspection" element={<ProtectedRoute><Inspection /></ProtectedRoute>} />
-      <Route path="/quality/report" element={<ProtectedRoute><QualityReport /></ProtectedRoute>} />
+      <Route path="/quality/inspection/:mrNumber" element={<ProtectedRoute><Inspection /></ProtectedRoute>} />
+      <Route path="/quality/report/:inspectionId" element={<ProtectedRoute><QualityReport /></ProtectedRoute>} />
+
 
       {/* Store Routes */}
       <Route path="/store" element={<ProtectedRoute><Stores /></ProtectedRoute>} />

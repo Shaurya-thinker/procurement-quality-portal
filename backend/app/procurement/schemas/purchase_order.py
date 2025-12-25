@@ -86,6 +86,7 @@ class PurchaseOrderUpdate(BaseModel):
     )
 
 class PurchaseOrderLineDetailRead(BaseModel):
+    id: int
     item_id: int
     item_code: str
     item_description: str
