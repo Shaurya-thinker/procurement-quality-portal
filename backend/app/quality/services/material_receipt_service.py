@@ -37,6 +37,9 @@ class MaterialReceiptService:
             po_id=data.po_id,
             vendor_id=data.vendor_id,
 
+            vendor_name=data.vendor_name,
+            component_details=data.component_details,
+
             bill_no=data.bill_no,
             entry_no=data.entry_no,
             mr_reference_no=data.mr_reference_no,

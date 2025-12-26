@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
-from backend.app.core.db import Base
+from app.core.db import Base
 
 
 class InventoryItem(Base):

@@ -1,3 +1,7 @@
+import { getVendors } from '../../api/vendor.api';
+import { useEffect, useState } from 'react';
+
+
 export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
   const containerStyle = {
     background: 'white',
@@ -44,6 +48,19 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
     lineHeight: '1.4',
   };
 
+  const handleChange = (field, value) => {
+    if (!isReadOnly && onChange) {
+      onChange({ ...mrData, [field]: value });
+    }
+  };
+
+  const [vendors, setVendors] = useState([]);
+
+  useEffect(() => {
+      getVendors().then(res => setVendors(res.data));
+    }, []);
+
+  
   const inputStyle = {
     padding: '12px 16px',
     border: '1px solid #e2e8f0',
@@ -57,14 +74,6 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
     fontWeight: '500',
   };
 
-  const handleChange = (field, value) => {
-    if (!isReadOnly && onChange) {
-      onChange({
-        ...mrData,
-        [field]: value,
-      });
-    }
-  };
 
   return (
     <div style={containerStyle}>
@@ -89,11 +98,71 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
           <label style={labelStyle}>Date</label>
           <input
             type="date"
-            value={mrData.date || ''}
-            onChange={(e) => handleChange('date', e.target.value)}
+            value={mrData.receipt_date || ''}
+            onChange={(e) => handleChange('receipt_date', e.target.value)}
             disabled={isReadOnly}
             style={inputStyle}
             required
+          />
+        </div>
+
+        <div style={fieldStyle}>
+  <label style={labelStyle}>Vendor</label>
+
+  {isReadOnly ? (
+    <input
+      type="text"
+      value={
+        mrData.vendor_name ||
+        vendors.find(v => v.id === mrData.vendor_id)?.name ||
+        '—'
+      }
+      readOnly
+      style={{
+        ...inputStyle,
+        backgroundColor: '#f8fafc',
+        cursor: 'not-allowed',
+      }}
+    />
+  ) : (
+    <select
+      value={mrData.vendor_id ?? ''}
+      onChange={(e) => {
+              const vendorId = Number(e.target.value);
+              const vendor = vendors.find(v => v.id === vendorId);
+
+              onChange({
+                ...mrData,
+                vendor_id: vendorId,
+                vendor_name: vendor?.name || '',
+              });
+            }}
+            style={{
+              ...inputStyle,
+              cursor: 'pointer',
+            }}
+            required
+          >
+            <option value="">Select Vendor</option>
+            {vendors
+              .filter(v => v.status === 'APPROVED')
+              .map(v => (
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                </option>
+              ))}
+          </select>
+        )}
+      </div>
+
+
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Component Details</label>
+          <input
+            type="text"
+            value={mrData.component_details || 'Auto-generated from line items'}
+            disabled
+            style={{ ...inputStyle, backgroundColor: '#f8fafc' }}
           />
         </div>
 
@@ -121,63 +190,23 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Vendor Name</label>
+          <label style={labelStyle}>Store ID</label>
           <input
-            type="text"
-            value={mrData.vendor_name || ''}
-            onChange={(e) => handleChange('vendor_name', e.target.value)}
+            value={mrData.store_id || ''}
+            onChange={(e) => handleChange('store_id', Number(e.target.value))}
             disabled={isReadOnly}
             style={inputStyle}
-            required
           />
-        </div>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Component Details</label>
-          <textarea
-            value={mrData.component_details || ''}
-            onChange={(e) => handleChange('component_details', e.target.value)}
-            disabled={isReadOnly}
-            style={{...inputStyle, minHeight: '80px', resize: 'vertical'}}
-            required
-          />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Quantity</label>
+          <label style={{ ...labelStyle, marginTop: 8 }}>Bin ID</label>
           <input
-            type="number"
-            value={mrData.quantity || ''}
-            onChange={(e) => handleChange('quantity', e.target.value)}
-            disabled={isReadOnly}
-            style={inputStyle}
-            min="1"
-            required
-          />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Store No/Bin No</label>
-          <input
-            type="text"
-            value={mrData.store_no_bin_no || ''}
-            onChange={(e) => handleChange('store_no_bin_no', e.target.value)}
+            value={mrData.bin_id || ''}
+            onChange={(e) => handleChange('bin_id', Number(e.target.value))}
             disabled={isReadOnly}
             style={inputStyle}
           />
         </div>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Purchase Number</label>
-          <input
-            type="text"
-            value={mrData.purchase_number || ''}
-            onChange={(e) => handleChange('purchase_number', e.target.value)}
-            disabled={isReadOnly}
-            style={inputStyle}
-            required
-          />
-        </div>
 
         <div style={fieldStyle}>
           <label style={labelStyle}>MR Reference No</label>

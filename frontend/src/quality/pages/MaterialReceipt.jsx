@@ -5,8 +5,7 @@ import MRHeader from '../components/MRHeader';
 import MRLineItemTable from '../components/MRLineItemTable';
 import { getPODetails } from '../../api/procurement.api';
 import { getPOs } from '../../api/procurement.api';
-
-
+import { getVendors } from '../../api/vendor.api';
 
 export default function MaterialReceipt() {
   const navigate = useNavigate();
@@ -28,10 +27,36 @@ export default function MaterialReceipt() {
   store_id: '',
   bin_id: '',
   remarks: '',
+  vendor_id: '',     
+  vendor_name: '',
 });
 
 
   const [lineItems, setLineItems] = useState([]);
+
+  useEffect(() => {
+  if (lineItems.length === 0) return;
+
+  const componentDetails = lineItems
+    .filter(item => item.received_quantity)
+    .map(item =>
+      `${item.description} – ${item.received_quantity} ${item.unit}`
+    )
+    .join(', ');
+
+  setMrData(prev => ({
+    ...prev,
+    component_details: componentDetails,
+  }));
+}, [lineItems]);
+
+  const [vendors, setVendors] = useState([]);
+
+  useEffect(() => {
+    getVendors().then(res => setVendors(res.data));
+  }, []);
+
+
 
   /*
 Each item:
@@ -197,7 +222,7 @@ Each item:
     }));
     setMrData(prev => ({
       ...prev,
-      vendor_name: `Vendor #${po.vendor_id}`,
+      vendor_id: po.vendor_id,
       purchase_number: po.po_number,
     }));
 
@@ -206,9 +231,6 @@ Each item:
     console.error('Failed to load PO details', err);
   }
 };
-
-
-
 
   const handleSaveReceipt = async () => {
   if (!mrData.bill_no || !mrData.entry_no || !mrData.mr_reference_no) {
@@ -220,6 +242,13 @@ Each item:
     alert('No line items found');
     return;
   }
+
+  const componentDetails = lineItems
+  .map(item =>
+    `${item.description} – ${item.received_quantity} ${item.unit}`
+  )
+  .join(', ');
+
 
   // 🔴 LINE ITEM VALIDATION
   for (let i = 0; i < lineItems.length; i++) {
@@ -252,11 +281,14 @@ Each item:
       po_id: selectedPO.id,
       vendor_id: selectedPO.vendor_id,
 
+      vendor_name: mrData.vendor_name,       
+      component_details: componentDetails,
+
       bill_no: mrData.bill_no,
       entry_no: mrData.entry_no,
       mr_reference_no: mrData.mr_reference_no,
-      receipt_date: mrData.receipt_date || null,
 
+      receipt_date: mrData.receipt_date || null,
       vehicle_no: mrData.vehicle_no,
       challan_no: mrData.challan_no,
 
@@ -297,6 +329,7 @@ Each item:
           <span style={closeErrorStyle} onClick={clearError}>✕</span>
         </div>
       )}
+
 
       <MRHeader mrData={mrData} onChange={setMrData} isReadOnly={false} />
 

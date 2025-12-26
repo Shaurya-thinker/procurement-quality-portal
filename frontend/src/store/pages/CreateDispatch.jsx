@@ -51,7 +51,7 @@ export default function CreateDispatch() {
         errorMsg = Array.isArray(err.response.data.detail) 
           ? err.response.data.detail.map(e => e.msg || e).join(', ')
           : err.response.data.detail;
-      } else if (err.response?.data?.message) {
+      } else if (err.response?.data?.detail || err.message) {
         errorMsg = err.response.data.message;
       } else if (err.message) {
         errorMsg = err.message;

@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum as SQLEn
 from sqlalchemy.sql import func
 from datetime import datetime
 from enum import Enum
-from backend.app.core.db import Base
+from app.core.db import Base
 
 
 class AttendanceStatus(str, Enum):

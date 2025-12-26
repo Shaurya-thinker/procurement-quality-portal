@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text
-from backend.app.core.db import Base
+from app.core.db import Base
 
 
 class Item(Base):

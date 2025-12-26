@@ -1,20 +1,21 @@
 from datetime import datetime, date
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Date
 from sqlalchemy.orm import relationship
-from backend.app.core.db import Base
+from app.core.db import Base
 
 
 class MaterialReceipt(Base):
     __tablename__ = "material_receipts"
 
     id = Column(Integer, primary_key=True, index=True)
-
-    # System generated
     mr_number = Column(String(50), unique=True, nullable=False, index=True)
 
     # References
     po_id = Column(Integer, nullable=False, index=True)
     vendor_id = Column(Integer, nullable=False, index=True)
+
+    vendor_name = Column(String(255), nullable=True)
+    component_details = Column(String(1000), nullable=True)
 
     # Company-required fields
     bill_no = Column(String(50), nullable=True)
@@ -22,7 +23,6 @@ class MaterialReceipt(Base):
     mr_reference_no = Column(String(50), nullable=True)
 
     receipt_date = Column(Date, nullable=True)  # user-entered date
-
     vehicle_no = Column(String(50), nullable=True)
     challan_no = Column(String(50), nullable=True)
 
@@ -30,9 +30,7 @@ class MaterialReceipt(Base):
     bin_id = Column(Integer, nullable=True)
 
     remarks = Column(String(500), nullable=True)
-
     received_at = Column(DateTime, default=datetime.utcnow)
-
     status = Column(String(20), default="CREATED")
     # CREATED → INSPECTED → GATE_PASSED
 

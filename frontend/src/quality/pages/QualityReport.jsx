@@ -275,6 +275,19 @@ export default function QualityReport() {
       </div>
 
       <div style={sectionStyle}>
+
+        {validationError && (
+          <div style={{
+            background: '#fee2e2',
+            color: '#7f1d1d',
+            padding: '12px',
+            borderRadius: '6px',
+            marginBottom: '16px',
+          }}>
+            {validationError}
+          </div>
+        )}
+
         <MRHeader mrData={mrData} isReadOnly={true} />
       </div>
 

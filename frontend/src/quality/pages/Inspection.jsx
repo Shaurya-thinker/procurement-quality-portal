@@ -10,34 +10,53 @@ export default function Inspection() {
   const navigate = useNavigate();
   const { mrNumber } = useParams();
   const location = useLocation();
-  const { inspectMaterial, loading, error, clearError } = useQuality();
+  const { submitInspection, loading, error, clearError } = useQuality();
+  const [poData, setPoData] = useState(null);
 
   const [mrData, setMrData] = useState(location.state?.mrData || null);
   const [inspectionItems, setInspectionItems] = useState([]);
   const [inspectorName, setInspectorName] = useState('');
   const [validationError, setValidationError] = useState('');
 
-  useEffect(() => {
-    if (location.state?.mrData) {
-      const mr = location.state.mrData;
-      setMrData(mr);
-      
       // Initialize inspection items from material receipt
-      const items = (mr.lines || []).map(item => ({
-        item_code: item.item_code || item.code || '-',
-        description: item.description || item.item_description || '-',
-        unit: item.unit || '-',
-        received_quantity: item.received_quantity || 0,
+      useEffect(() => {
+        const initInspection = async () => {
+          if (!location.state?.mrData) return;
 
-        accepted_quantity: '',
-        rejected_quantity: '',
-        remarks: '',
-      }));
+          const mr = location.state.mrData;
+          setMrData(mr);
 
+          try {
+            const poRes = await getPODetails(mr.po_id);
+            const po = poRes.data;
 
-      setInspectionItems(items);
-    }
-  }, [location.state]);
+            setPoData(po);
+
+            const items = po.line_items.map(poLine => {
+              const mrLine = mr.lines.find(
+                l => l.po_line_id === poLine.id
+              );
+
+              return {
+                mr_line_id: mrLine.id,   // ✅ CRITICAL
+                po_line_id: poLine.id,
+                item_code: poLine.item_code,
+                description: poLine.item_description,
+                unit: poLine.unit,
+                received_quantity: mrLine?.received_quantity || 0,
+                accepted_quantity: '',
+                rejected_quantity: '',
+              };
+            });
+
+            setInspectionItems(items);
+          } catch (err) {
+            console.error('Failed to load PO for inspection', err);
+          }
+        };
+
+        initInspection();
+      }, [location.state]);
 
   const containerStyle = {
     padding: '24px',
@@ -142,141 +161,106 @@ export default function Inspection() {
   };
 
   const validateInspection = () => {
-    setValidationError('');
+  setValidationError('');
 
-    if (!inspectorName.trim()) {
-      setValidationError('Inspector name is required');
+  if (!inspectorName.trim()) {
+    setValidationError('Inspector name is required');
+    return false;
+  }
+
+  for (const item of inspectionItems) {
+    const received = Number(item.received_quantity);
+    const accepted = Number(item.accepted_quantity || 0);
+    const rejected = Number(item.rejected_quantity || 0);
+
+    if (accepted + rejected !== received) {
+      setValidationError(
+        `Item ${item.item_code}: Accepted + Rejected must equal Received`
+      );
       return false;
     }
 
-    for (let item of inspectionItems) {
-      const received = parseInt(item.received_quantity) || 0;
-      const accepted = parseInt(item.accepted_quantity) || 0;
-      const rejected = parseInt(item.rejected_quantity) || 0;
-
-      if (accepted + rejected !== received) {
-        setValidationError(
-          `Item ${item.item_code}: Accepted (${accepted}) + Rejected (${rejected}) must equal Received (${received})`
-        );
-        return false;
-      }
-
-      if (accepted === 0 && rejected === 0) {
-        setValidationError(`Item ${item.item_code}: Must specify either accepted or rejected quantity`);
-        return false;
-      }
+    if (accepted === 0 && rejected === 0) {
+      setValidationError(
+        `Item ${item.item_code}: Either accepted or rejected quantity must be entered`
+      );
+      return false;
     }
+  }
 
-    return true;
-  };
+  return true;
+};
+
 
   const handleSubmitInspection = async () => {
-    if (!validateInspection()) {
-      return;
-    }
+  if (!validateInspection()) return;
 
-    try {
-      const payload = {
-        mr_number: mrData?.mr_number,
-        inspector_name: inspectorName,
-        items: inspectionItems.map(item => ({
-          item_code: item.item_code,
-          accepted_quantity: parseInt(item.accepted_quantity) || 0,
-          rejected_quantity: parseInt(item.rejected_quantity) || 0,
-          remarks: item.remarks || '',
-        })),
-      };
+  try {
+    const payload = {
+      mr_id: mrData.id,
+      inspected_by: inspectorName,
+      remarks: "Inspection completed",
+      lines: inspectionItems.map(item => ({
+        mr_line_id: item.mr_line_id, // YOU MUST ADD THIS (see Bug #3)
+        accepted_quantity: Number(item.accepted_quantity),
+        rejected_quantity: Number(item.rejected_quantity),
+      })),
+    };
 
-      const result = await inspectMaterial(payload);
+    const result = await submitInspection(payload);
 
-      if (result && result.inspection_id) {
-        navigate(`/quality/report/${result.inspection_id}`, {
-          state: { inspectionData: result, mrData },
-        });
-      } else {
-        alert('Inspection submitted successfully');
-      }
-    } catch (err) {
-      console.error('Error submitting inspection:', err);
-    }
-  };
+    navigate(`/quality/gate-pass/${result.id}`, {
+      state: {
+        mrData,
+        inspectionData: result,
+        poData,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   if (!mrData) {
-    return (
-      <div style={containerStyle}>
-        <h1 style={headingStyle}>Inspection</h1>
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '6px',
-          border: '1px solid #e5e7eb',
-          padding: '32px',
-          textAlign: 'center',
-          color: '#6b7280',
-        }}>
-          <p>No material receipt data available. Please create a material receipt first.</p>
-        </div>
-      </div>
-    );
+    return <div style={{ padding: 24 }}>No Material Receipt found</div>;
   }
 
   return (
-    <div style={containerStyle}>
-      <h1 style={headingStyle}>Material Inspection</h1>
+    <div style={{ padding: 24 }}>
 
-      {(error || validationError) && (
-        <div style={errorAlertStyle}>
-          <span>{error || validationError}</span>
-          <span
-            style={closeErrorStyle}
-            onClick={() => {
-              clearError();
-              setValidationError('');
-            }}
-          >
-            ✕
-          </span>
+      {validationError && (
+        <div style={{
+          background: '#fee2e2',
+          color: '#7f1d1d',
+          padding: '12px',
+          borderRadius: '6px',
+          marginBottom: '16px',
+        }}>
+          {validationError}
         </div>
       )}
 
-      <div style={sectionStyle}>
-        <MRHeader mrData={mrData} isReadOnly={true} />
+      <MRHeader mrData={mrData} isReadOnly />
+
+      <div style={{ margin: '16px 0' }}>
+        <label style={{ fontWeight: 600 }}>Inspector Name</label>
+        <input
+          style={{ display: 'block', marginTop: 6 }}
+          value={inspectorName}
+          onChange={e => setInspectorName(e.target.value)}
+        />
       </div>
 
-      <div style={inspectorSectionStyle}>
-        <h2 style={sectionTitleStyle}>Inspection Details</h2>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Inspector Name</label>
-          <input
-            type="text"
-            value={inspectorName}
-            onChange={(e) => setInspectorName(e.target.value)}
-            style={inputStyle}
-            placeholder="Enter inspector name"
-          />
-        </div>
-      </div>
 
-      <div style={sectionStyle}>
-        <h2 style={sectionTitleStyle}>Received Items</h2>
-        <InspectionSummary items={inspectionItems} onChange={setInspectionItems} />
-      </div>
+      <InspectionSummary
+        items={inspectionItems}
+        onChange={setInspectionItems}
+      />
 
-      <div style={actionButtonsStyle}>
-        <button onClick={() => navigate('/quality')} style={cancelButtonStyle}>
-          Cancel
-        </button>
-        <button
-          onClick={handleSubmitInspection}
-          style={{
-            ...buttonStyle,
-            opacity: loading ? 0.6 : 1,
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-          disabled={loading}
-        >
-          {loading ? 'Submitting...' : 'Submit Inspection'}
-        </button>
-      </div>
+      <button onClick={handleSubmitInspection} disabled={loading}>
+        Submit Inspection
+      </button>
     </div>
   );
 }

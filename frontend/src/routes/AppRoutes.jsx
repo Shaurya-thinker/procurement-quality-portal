@@ -5,8 +5,8 @@ import Dashboard from "../pages/Dashboard";
 import Attendance from "../pages/Attendance";
 import Profile from "../pages/Profile";
 import ApplyLeave from "../pages/ApplyLeave";
-import LeaveHistory from "../pages/LeaveHistory";
-import GatePass from "../pages/GatePass";
+import LeaveHistory from "../pages/LeaveHistory";;
+import QualityGatePass from "../quality/pages/QualityGatePass";
 import Resignation from "../pages/Resignation";
 import POList from "../procurement/pages/POList";
 import CreatePO from "../procurement/pages/CreatePO";
@@ -32,19 +32,19 @@ export default function AppRoutes() {
       <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
       <Route path="/apply-leave" element={<ProtectedRoute><ApplyLeave /></ProtectedRoute>} />
       <Route path="/leave-history" element={<ProtectedRoute><LeaveHistory /></ProtectedRoute>} />
-      <Route path="/gate-pass" element={<ProtectedRoute><GatePass /></ProtectedRoute>} />
       <Route path="/resignation" element={<ProtectedRoute><Resignation /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
       {/* Procurement Routes */}
       <Route path="/procurement" element={<ProtectedRoute><POList /></ProtectedRoute>} />
       <Route path="/procurement/create" element={<ProtectedRoute><CreatePO /></ProtectedRoute>} />
-      <Route path="/procurement/:id" element={<ProtectedRoute><PODetails /></ProtectedRoute>} />
+      <Route path="/procurement/:mrid" element={<ProtectedRoute><PODetails /></ProtectedRoute>} />
       <Route path="/procurement/:id/edit" element={<ProtectedRoute><CreatePO /></ProtectedRoute>}/>
 
       {/* Quality Routes */}
       <Route path="/quality" element={<ProtectedRoute><MaterialReceipt /></ProtectedRoute>} />
       <Route path="/quality/inspection/:mrNumber" element={<ProtectedRoute><Inspection /></ProtectedRoute>} />
+      <Route path="/quality/gate-pass/:inspectionId" element={<ProtectedRoute><QualityGatePass /></ProtectedRoute>}/>
       <Route path="/quality/report/:inspectionId" element={<ProtectedRoute><QualityReport /></ProtectedRoute>} />
 
 

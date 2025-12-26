@@ -100,6 +100,9 @@ class GatePassService:
 
             db.add(gate_pass_item)
 
+        # 9️⃣ Update MR status after gate pass
+        mr.status = "GATE_PASSED"
+
         # 8️⃣ Commit transaction
         db.commit()
         db.refresh(gate_pass)

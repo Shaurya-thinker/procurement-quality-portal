@@ -59,20 +59,25 @@ export const useQuality = () => {
   }
 }, []);
 
-  const inspectMaterialAsync = useCallback(async (data) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await inspectMaterial(data);
-      return response.data;
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to submit inspection';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const submitInspection = useCallback(async (data) => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await inspectMaterial(data);
+    return response.data;
+  } catch (err) {
+    const errorMessage =
+      err.response?.data?.detail ||
+      err.response?.data?.message ||
+      err.message ||
+      'Failed to submit inspection';
+    setError(errorMessage);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   const getInspectionReportAsync = useCallback(async (inspectionId) => {
     setLoading(true);
@@ -145,7 +150,7 @@ export const useQuality = () => {
     getPurchaseOrders: getPurchaseOrdersAsync,
     getMaterialReceipts: getMaterialReceiptsAsync,
     getMaterialReceiptDetails: getMaterialReceiptDetailsAsync,
-    inspectMaterial: inspectMaterialAsync,
+    submitInspection,
     getInspectionReport: getInspectionReportAsync,
     createQualityChecklist: createQualityChecklistAsync,
     createQualitySheet: createQualitySheetAsync,

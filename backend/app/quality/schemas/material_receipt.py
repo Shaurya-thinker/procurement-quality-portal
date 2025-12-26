@@ -23,6 +23,9 @@ class MaterialReceiptCreate(BaseModel):
     po_id: int
     vendor_id: int
 
+    vendor_name: Optional[str] = None
+    component_details: Optional[str] = None
+
     bill_no: Optional[str] = None
     entry_no: Optional[str] = None
     mr_reference_no: Optional[str] = None
@@ -47,23 +50,24 @@ class MaterialReceiptRead(BaseModel):
     po_id: int
     vendor_id: int
 
+    vendor_name: Optional[str] = None
+    component_details: Optional[str] = None
+
     bill_no: Optional[str]
     entry_no: Optional[str]
     mr_reference_no: Optional[str]
 
     receipt_date: Optional[date]
-
     vehicle_no: Optional[str]
     challan_no: Optional[str]
 
     store_id: Optional[int]
     bin_id: Optional[int]
 
-    remarks: Optional[str]
 
+    remarks: Optional[str]
     received_at: datetime
     status: str
-
     lines: List[MaterialReceiptLineRead]
 
     class Config:

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float, Text, Enum
 from datetime import datetime
-from backend.app.core.db import Base
+from app.core.db import Base
 import enum
 
 class DispatchStatus(enum.Enum):
