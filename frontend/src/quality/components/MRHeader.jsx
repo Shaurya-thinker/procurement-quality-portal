@@ -155,7 +155,6 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
         )}
       </div>
 
-
         <div style={fieldStyle}>
           <label style={labelStyle}>Component Details</label>
           <input
