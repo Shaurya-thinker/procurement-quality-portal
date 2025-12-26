@@ -5,6 +5,7 @@ from decimal import Decimal
 from ..models.material_dispatch import DispatchStatus, ReferenceType
 
 class MaterialDispatchLineItemCreate(BaseModel):
+    inventory_item_id: int = Field(..., gt=0)
     item_id: int = Field(..., gt=0)
     item_code: str = Field(..., min_length=1, max_length=50)
     item_name: str = Field(..., min_length=1, max_length=200)

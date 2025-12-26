@@ -12,6 +12,55 @@ import uuid
 class StoreService:
     
     @staticmethod
+    def receive_gate_pass(db: Session, gate_pass_id: int):
+        from backend.app.quality.models.gate_pass import GatePass
+        from backend.app.quality.models.material_receipt import MaterialReceipt
+
+        # 1️⃣ Fetch Gate Pass
+        gate_pass = db.query(GatePass).filter(
+            GatePass.id == gate_pass_id
+        ).first()
+
+        if not gate_pass:
+            raise ValueError("Gate Pass not found")
+
+        if gate_pass.store_status == "RECEIVED":
+            raise ValueError("Gate Pass already received into store")
+
+        # 2️⃣ Fetch MR for location
+        mr = db.query(MaterialReceipt).filter(
+            MaterialReceipt.id == gate_pass.mr_id
+        ).first()
+
+        if not mr:
+            raise ValueError("Material Receipt not found")
+
+        if not mr.store_id or not mr.bin_id:
+            raise ValueError("Store or Bin not assigned in MR")
+
+        # 3️⃣ Receive inventory
+        for item in gate_pass.items:
+            inventory = InventoryItem(
+                item_id=item.item_id,
+                quantity=item.accepted_quantity,
+                store_id=mr.store_id,
+                bin_id=mr.bin_id,
+                gate_pass_id=gate_pass.id
+            )
+            db.add(inventory)
+
+        # 4️⃣ Lock gate pass
+        gate_pass.store_status = "RECEIVED"
+
+        db.commit()
+
+        return {
+            "message": "Inventory received successfully",
+            "gate_pass_id": gate_pass.id
+        }
+
+
+    @staticmethod
     def add_inventory(db: Session, inventory_create: InventoryCreate) -> InventoryItem:
         """Add inventory item or increase quantity if exists at same location.
         

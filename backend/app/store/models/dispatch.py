@@ -1,3 +1,8 @@
+# ⚠️ DEPRECATED
+# This model is NOT inventory-aware.
+# Do NOT use for new development.
+# Will be removed after migration to MaterialDispatch.
+
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float, Text, Enum
 from datetime import datetime
 from app.core.db import Base

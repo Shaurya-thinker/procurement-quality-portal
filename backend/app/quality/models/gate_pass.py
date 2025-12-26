@@ -17,6 +17,8 @@ class GatePass(Base):
 
     issued_by = Column(String(100), nullable=False)
     issued_at = Column(DateTime, default=datetime.utcnow)
+    
+    store_status = Column(String(20), default="PENDING")
 
     items = relationship(
     "backend.app.quality.models.gate_pass.GatePassItem",

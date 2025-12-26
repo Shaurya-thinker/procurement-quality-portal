@@ -10,9 +10,19 @@ from pathlib import Path
 
 from alembic import context
 from app.core.db import Base
-from app.quality.models.material_receipt import (MaterialReceipt, MaterialReceiptLine)
+# 👇 IMPORT ALL MODELS HERE (NOT in db.py)
 from app.procurement.models.purchase_order import PurchaseOrder
 from app.procurement.models.purchase_order_line import PurchaseOrderLine
+from app.procurement.models.item import Item
+
+from app.quality.models.material_receipt import MaterialReceipt, MaterialReceiptLine
+from app.quality.models.inspection import QualityInspection, QualityInspectionLine
+from app.quality.models.gate_pass import GatePass, GatePassItem
+
+from app.store.models.inventory import InventoryItem
+from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem
+from app.store.models.store import Store, Bin
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

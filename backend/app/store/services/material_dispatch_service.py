@@ -5,6 +5,8 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from ..models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem, DispatchStatus
 from ..schemas.material_dispatch import MaterialDispatchCreate, MaterialDispatchRead, MaterialDispatchUpdate
+from sqlalchemy.exc import IntegrityError
+from ..models.inventory import InventoryItem
 
 class MaterialDispatchService:
     
@@ -16,17 +18,12 @@ class MaterialDispatchService:
         return f"MD-{timestamp}-{random_suffix}"
     
     @staticmethod
-    def create_material_dispatch(db: Session, dispatch_create: MaterialDispatchCreate) -> MaterialDispatchRead:
-        """Create a new material dispatch"""
-        print(f"[DEBUG] Service create_material_dispatch called with: {dispatch_create.dict()}")
+    def create_material_dispatch(db: Session, dispatch_create: MaterialDispatchCreate):
         try:
-            # Generate dispatch number
-            dispatch_number = MaterialDispatchService._generate_dispatch_number()
-            print(f"[DEBUG] Generated dispatch number: {dispatch_number}")
-            
-            # Create dispatch
-            db_dispatch = MaterialDispatch(
-                dispatch_number=dispatch_number,
+            db.begin()
+
+            dispatch = MaterialDispatch(
+                dispatch_number=MaterialDispatchService._generate_dispatch_number(),
                 dispatch_date=dispatch_create.dispatch_date,
                 dispatch_status=DispatchStatus.DRAFT,
                 reference_type=dispatch_create.reference_type,
@@ -40,47 +37,52 @@ class MaterialDispatchService:
                 vehicle_number=dispatch_create.vehicle_number,
                 driver_name=dispatch_create.driver_name,
                 driver_contact=dispatch_create.driver_contact,
-                eway_bill_number=dispatch_create.eway_bill_number
             )
-            print(f"[DEBUG] Created dispatch object: {db_dispatch.__dict__}")
-            
-            db.add(db_dispatch)
-            print(f"[DEBUG] Added dispatch to session")
-            db.flush()  # Get the ID
-            print(f"[DEBUG] Flushed - dispatch ID: {db_dispatch.id}")
-            
-            # Create line items
-            for i, line_item in enumerate(dispatch_create.line_items):
-                print(f"[DEBUG] Creating line item {i}: {line_item.dict()}")
-                db_line_item = MaterialDispatchLineItem(
-                    dispatch_id=db_dispatch.id,
-                    item_id=line_item.item_id,
-                    item_code=line_item.item_code,
-                    item_name=line_item.item_name,
-                    quantity_dispatched=line_item.quantity_dispatched,
-                    uom=line_item.uom,
-                    batch_number=line_item.batch_number,
-                    remarks=line_item.remarks
+
+            db.add(dispatch)
+            db.flush()
+
+            for line in dispatch_create.line_items:
+                inventory = (
+                    db.query(InventoryItem)
+                    .filter(InventoryItem.id == line.inventory_item_id)
+                    .with_for_update()
+                    .first()
                 )
-                db.add(db_line_item)
-                print(f"[DEBUG] Added line item {i} to session")
-            
-            print(f"[DEBUG] Committing transaction")
+
+                if not inventory:
+                    raise ValueError("Inventory item not found")
+
+                if inventory.quantity < line.quantity_dispatched:
+                    raise ValueError(
+                        f"Insufficient stock for item {line.item_code}"
+                    )
+
+                inventory.quantity -= line.quantity_dispatched
+
+                dispatch_line = MaterialDispatchLineItem(
+                    dispatch_id=dispatch.id,
+                    inventory_item_id=inventory.id,
+                    item_id=line.item_id,
+                    item_code=line.item_code,
+                    item_name=line.item_name,
+                    quantity_dispatched=line.quantity_dispatched,
+                    uom=line.uom,
+                    batch_number=line.batch_number,
+                    remarks=line.remarks
+                )
+
+                db.add(dispatch_line)
+
+            dispatch.dispatch_status = DispatchStatus.DISPATCHED
+
             db.commit()
-            print(f"[DEBUG] Transaction committed successfully")
-            db.refresh(db_dispatch)
-            print(f"[DEBUG] Refreshed dispatch object")
-            
-            result = MaterialDispatchRead.from_orm(db_dispatch)
-            print(f"[DEBUG] Created MaterialDispatchRead: {result.dict()}")
-            return result
-            
+            db.refresh(dispatch)
+
+            return MaterialDispatchRead.from_orm(dispatch)
+
         except Exception as e:
-            print(f"[DEBUG] Service exception: {type(e).__name__}: {str(e)}")
-            import traceback
-            print(f"[DEBUG] Service traceback: {traceback.format_exc()}")
             db.rollback()
-            print(f"[DEBUG] Transaction rolled back")
             raise e
     
     @staticmethod
