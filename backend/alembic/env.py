@@ -19,6 +19,8 @@ from app.quality.models.material_receipt import MaterialReceipt, MaterialReceipt
 from app.quality.models.inspection import QualityInspection, QualityInspectionLine
 from app.quality.models.gate_pass import GatePass, GatePassItem
 
+from app.attendance.models.attendance import Attendance
+
 from app.store.models.inventory import InventoryItem
 from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem
 from app.store.models.store import Store, Bin

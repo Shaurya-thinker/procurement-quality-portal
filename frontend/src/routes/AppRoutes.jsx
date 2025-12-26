@@ -38,7 +38,7 @@ export default function AppRoutes() {
       {/* Procurement Routes */}
       <Route path="/procurement" element={<ProtectedRoute><POList /></ProtectedRoute>} />
       <Route path="/procurement/create" element={<ProtectedRoute><CreatePO /></ProtectedRoute>} />
-      <Route path="/procurement/:mrid" element={<ProtectedRoute><PODetails /></ProtectedRoute>} />
+      <Route path="/procurement/:id" element={<ProtectedRoute><PODetails /></ProtectedRoute>} />
       <Route path="/procurement/:id/edit" element={<ProtectedRoute><CreatePO /></ProtectedRoute>}/>
 
       {/* Quality Routes */}

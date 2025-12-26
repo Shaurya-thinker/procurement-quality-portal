@@ -45,11 +45,17 @@ export const useQuality = () => {
     }
   }, []);
 
-  const getPurchaseOrdersAsync = useCallback(async () => {
+  const getPurchaseOrdersAsync = useCallback(async (params = {}) => {
+  // 🔐 HARD GUARD
+  if (!params || Object.keys(params).length === 0) {
+    console.warn("⚠️ Skipping getPurchaseOrders: missing params");
+    return [];
+  }
+
   setLoading(true);
   setError(null);
   try {
-    const response = await getPOs();
+    const response = await getPOs(params);
     return response.data;
   } catch (err) {
     setError("Failed to load purchase orders");
@@ -58,6 +64,7 @@ export const useQuality = () => {
     setLoading(false);
   }
 }, []);
+
 
   const submitInspection = useCallback(async (data) => {
   setLoading(true);
