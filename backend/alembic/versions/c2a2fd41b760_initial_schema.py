@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 5a7a4c08ccea
+Revision ID: c2a2fd41b760
 Revises: 
-Create Date: 2025-12-26 21:21:21.007616
+Create Date: 2025-12-27 21:12:17.041396
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '5a7a4c08ccea'
+revision: str = 'c2a2fd41b760'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -37,28 +37,6 @@ def upgrade() -> None:
     op.create_index(op.f('ix_attendance_attendance_date'), 'attendance', ['attendance_date'], unique=False)
     op.create_index(op.f('ix_attendance_id'), 'attendance', ['id'], unique=False)
     op.create_index(op.f('ix_attendance_user_id'), 'attendance', ['user_id'], unique=False)
-    op.create_table('dispatches',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('dispatch_number', sa.String(length=50), nullable=False),
-    sa.Column('dispatch_date', sa.DateTime(), nullable=False),
-    sa.Column('dispatch_type', sa.Enum('INTERNAL', 'EXTERNAL', name='dispatchtype'), nullable=False),
-    sa.Column('status', sa.Enum('DRAFT', 'ISSUED', 'CANCELLED', name='dispatchstatus'), nullable=False),
-    sa.Column('store', sa.String(length=100), nullable=True),
-    sa.Column('department', sa.String(length=100), nullable=True),
-    sa.Column('vendor', sa.String(length=100), nullable=True),
-    sa.Column('project_site', sa.String(length=100), nullable=True),
-    sa.Column('issued_by', sa.String(length=100), nullable=False),
-    sa.Column('received_by', sa.String(length=100), nullable=False),
-    sa.Column('vehicle_number', sa.String(length=50), nullable=True),
-    sa.Column('gate_pass_number', sa.String(length=50), nullable=True),
-    sa.Column('remarks', sa.Text(), nullable=True),
-    sa.Column('total_value', sa.Float(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_index(op.f('ix_dispatches_dispatch_number'), 'dispatches', ['dispatch_number'], unique=True)
-    op.create_index(op.f('ix_dispatches_id'), 'dispatches', ['id'], unique=False)
     op.create_table('gate_passes',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('gate_pass_number', sa.String(length=50), nullable=False),
@@ -183,20 +161,6 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_bins_bin_no'), 'bins', ['bin_no'], unique=False)
     op.create_index(op.f('ix_bins_id'), 'bins', ['id'], unique=False)
-    op.create_table('dispatch_items',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('dispatch_id', sa.Integer(), nullable=False),
-    sa.Column('item_code', sa.String(length=50), nullable=False),
-    sa.Column('item_name', sa.String(length=200), nullable=False),
-    sa.Column('unit', sa.String(length=20), nullable=False),
-    sa.Column('dispatch_qty', sa.Float(), nullable=False),
-    sa.Column('batch_lot', sa.String(length=50), nullable=True),
-    sa.Column('rate', sa.Float(), nullable=True),
-    sa.Column('line_value', sa.Float(), nullable=True),
-    sa.ForeignKeyConstraint(['dispatch_id'], ['dispatches.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_index(op.f('ix_dispatch_items_id'), 'dispatch_items', ['id'], unique=False)
     op.create_table('gate_pass_items',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('gate_pass_id', sa.Integer(), nullable=False),
@@ -288,8 +252,6 @@ def downgrade() -> None:
     # op.drop_index(op.f('ix_material_dispatch_line_items_id'), table_name='material_dispatch_line_items')
     # op.drop_table('material_dispatch_line_items')
     # op.drop_table('gate_pass_items')
-    # op.drop_index(op.f('ix_dispatch_items_id'), table_name='dispatch_items')
-    # op.drop_table('dispatch_items')
     # op.drop_index(op.f('ix_bins_id'), table_name='bins')
     # op.drop_index(op.f('ix_bins_bin_no'), table_name='bins')
     # op.drop_table('bins')
@@ -317,9 +279,6 @@ def downgrade() -> None:
     # op.drop_table('inventory_items')
     # op.drop_index(op.f('ix_gate_passes_id'), table_name='gate_passes')
     # op.drop_table('gate_passes')
-    # op.drop_index(op.f('ix_dispatches_id'), table_name='dispatches')
-    # op.drop_index(op.f('ix_dispatches_dispatch_number'), table_name='dispatches')
-    # op.drop_table('dispatches')
     # op.drop_index(op.f('ix_attendance_user_id'), table_name='attendance')
     # op.drop_index(op.f('ix_attendance_id'), table_name='attendance')
     # op.drop_index(op.f('ix_attendance_attendance_date'), table_name='attendance')
