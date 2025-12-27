@@ -3,10 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 from ..services import StoreService
 from ..schemas import (
-    InventoryCreate,
     InventoryRead,
-    DispatchCreate,
-    DispatchRead,
     StoreCreate,
     StoreRead,
     StoreUpdate,
@@ -60,51 +57,6 @@ def get_inventory_item(
     if not item:
         raise HTTPException(status_code=404, detail="Inventory item not found")
     return item
-
-
-""" @router.post("/material-dispatch")
-def create_material_dispatch(
-    request: dict,
-    db: Session = Depends(get_db),
-):
-    print(f"[MATERIAL DISPATCH] Received: {request}")
-    
-    try:
-        # Generate dispatch number
-        import time
-        dispatch_number = f"MD-{int(time.time())}"
-        
-        # Create response
-        response = {
-            "id": 1,
-            "dispatch_number": dispatch_number,
-            "status": "DRAFT" if request.get("action") == "DRAFT" else "ISSUED",
-            "message": "Dispatch created successfully"
-        }
-        
-        print(f"[MATERIAL DISPATCH] Success: {response}")
-        return response
-        
-    except Exception as e:
-        print(f"[MATERIAL DISPATCH] Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) """
-
-
-""" @router.get("/dispatches")
-def get_dispatches(
-    db: Session = Depends(get_db),
-):
-    # Return mock data for now
-    return [
-        {
-            "id": 1,
-            "dispatch_number": "MD-1234567890",
-            "requested_by": "John Doe",
-            "quantity": 10,
-            "dispatched_at": "2024-01-01T10:00:00",
-            "reference": "Test dispatch"
-        }
-    ] """
 
 
 # Store Management Endpoints

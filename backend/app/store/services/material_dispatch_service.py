@@ -51,14 +51,19 @@ class MaterialDispatchService:
                 )
 
                 if not inventory:
-                    raise ValueError("Inventory item not found")
-
-                if inventory.quantity < line.quantity_dispatched:
                     raise ValueError(
-                        f"Insufficient stock for item {line.item_code}"
+                        f"Inventory item not found (ID: {line.inventory_item_id})"
                     )
 
-                inventory.quantity -= line.quantity_dispatched
+                dispatch_qty = int(line.quantity_dispatched)  # ✅ FIXED
+
+                if inventory.quantity < dispatch_qty:
+                    raise ValueError(
+                        f"Insufficient stock for item {line.item_code}. "
+                        f"Available: {inventory.quantity}, Requested: {dispatch_qty}"
+                    )
+
+                inventory.quantity -= dispatch_qty
 
                 dispatch_line = MaterialDispatchLineItem(
                     dispatch_id=dispatch.id,
