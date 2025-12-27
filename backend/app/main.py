@@ -161,3 +161,6 @@ if __name__ == "__main__":
     print("\n" + "=" * 80 + "\n")
     
     uvicorn.run(app, host="0.0.0.0", port=8000)
+from app.announcements.router import router as announcements_router
+
+app.include_router(announcements_router)

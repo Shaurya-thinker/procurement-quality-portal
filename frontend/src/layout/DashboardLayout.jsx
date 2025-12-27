@@ -22,6 +22,9 @@ export default function DashboardLayout({ children }) {
   const [showUserDropdown, setShowUserDropdown] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false)
+  const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata')
+  const [showEventsDropdown, setShowEventsDropdown] = useState(false)
   const userEmail = localStorage.getItem("userEmail") || "user@smg.com"
 
   useEffect(() => {
@@ -29,11 +32,21 @@ export default function DashboardLayout({ children }) {
     return () => clearInterval(timer)
   }, [])
 
+  const timezones = {
+    'Asia/Kolkata': 'Indian Standard Time',
+    'America/Sao_Paulo': 'Brazil',
+    'Asia/Colombo': 'Srilanka', 
+    'Europe/London': 'UK',
+    'Europe/Amsterdam': 'Netherlands',
+    'Australia/Melbourne': 'Australia(Melbourne)'
+  }
+
   const formatTime = (date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
+      timeZone: selectedTimezone
     })
   }
 
@@ -43,6 +56,7 @@ export default function DashboardLayout({ children }) {
       day: "numeric",
       month: "long",
       year: "numeric",
+      timeZone: selectedTimezone
     })
   }
 
@@ -94,15 +108,59 @@ export default function DashboardLayout({ children }) {
         <div className="header-datetime">
           <span className="header-time">{formatTime(currentTime)}</span>
           <span className="header-date">{formatDate(currentTime)}</span>
+          <div className="timezone-selector">
+            <button 
+              className="timezone-button"
+              onClick={() => setShowTimezoneDropdown(!showTimezoneDropdown)}
+            >
+              <span className="timezone-label">{timezones[selectedTimezone]}</span>
+              <span className="timezone-arrow">▼</span>
+            </button>
+            {showTimezoneDropdown && (
+              <div className="timezone-dropdown">
+                {Object.entries(timezones).map(([tz, label]) => (
+                  <button
+                    key={tz}
+                    className={`timezone-option ${selectedTimezone === tz ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedTimezone(tz)
+                      setShowTimezoneDropdown(false)
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <button className="header-icon-button">
           <BellIcon />
         </button>
 
-        <button className="header-icon-button">
-          <MailIcon />
-        </button>
+        <div className="events-menu">
+          <button 
+            className="header-icon-button events-button"
+            onClick={() => setShowEventsDropdown(!showEventsDropdown)}
+          >
+            <MailIcon />
+          </button>
+          {showEventsDropdown && (
+            <div className="events-dropdown">
+              <div className="dropdown-header">Events & Information</div>
+              <button className="dropdown-item">
+                <span>📅 Events and Information</span>
+              </button>
+              <button className="dropdown-item">
+                <span>🎓 Upcoming Training</span>
+              </button>
+              <button className="dropdown-item">
+                <span>📋 Meeting Schedule</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="user-menu">
           <button
