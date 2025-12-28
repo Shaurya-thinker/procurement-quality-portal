@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
-from ...core.dependencies import get_db, require_store_role
+from ...core.dependencies import require_store_role
+from ...core.db import get_db
 from ..schemas.material_dispatch import MaterialDispatchCreate, MaterialDispatchRead, MaterialDispatchUpdate
 from ..services.material_dispatch_service import MaterialDispatchService
 

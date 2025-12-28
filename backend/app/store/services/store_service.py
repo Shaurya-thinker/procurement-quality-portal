@@ -2,9 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import Optional, Dict, Any, List
 from ..models import InventoryItem, Store, Bin
-from ..models.dispatch import Dispatch, DispatchItem, DispatchStatus, DispatchType
-from ..schemas import InventoryCreate, StoreCreate, StoreUpdate, BinCreate
-from ..schemas.dispatch import DispatchCreate, DispatchRead
+from ..schemas import InventoryRead, StoreCreate, StoreUpdate, BinCreate
 from datetime import datetime
 import uuid
 
@@ -12,33 +10,53 @@ import uuid
 class StoreService:
     
     @staticmethod
-    def add_inventory(db: Session, inventory_create: InventoryCreate) -> InventoryItem:
-        """Add inventory item or increase quantity if exists at same location.
-        
-        This method represents receiving ONLY accepted items from Quality.
-        inventory_create may include:
-        - inspection_id OR accepted_material_id (optional reference)
-        Store does NOT validate quality itself.
-        Store trusts Quality module as source of truth.
-        """
-        existing = db.query(InventoryItem).filter(
-            and_(
-                InventoryItem.item_id == inventory_create.item_id,
-                InventoryItem.location == inventory_create.location
-            )
+    def receive_gate_pass(db: Session, gate_pass_id: int):
+        from backend.app.quality.models.gate_pass import GatePass
+        from backend.app.quality.models.material_receipt import MaterialReceipt
+
+        # 1️⃣ Fetch Gate Pass
+        gate_pass = db.query(GatePass).filter(
+            GatePass.id == gate_pass_id
         ).first()
-        
-        if existing:
-            existing.quantity += inventory_create.quantity
-            db.commit()
-            db.refresh(existing)
-            return existing
-        
-        item = InventoryItem(**inventory_create.model_dump())
-        db.add(item)
+
+        if not gate_pass:
+            raise ValueError("Gate Pass not found")
+
+        if gate_pass.store_status == "RECEIVED":
+            raise ValueError("Gate Pass already received into store")
+
+        # 2️⃣ Fetch MR for location
+        mr = db.query(MaterialReceipt).filter(
+            MaterialReceipt.id == gate_pass.mr_id
+        ).first()
+
+        if not mr:
+            raise ValueError("Material Receipt not found")
+
+        if not mr.store_id or not mr.bin_id:
+            raise ValueError("Store or Bin not assigned in MR")
+
+        # 3️⃣ Receive inventory
+        for item in gate_pass.items:
+            inventory = InventoryItem(
+                item_id=item.item_id,
+                quantity=item.accepted_quantity,
+                store_id=mr.store_id,
+                bin_id=mr.bin_id,
+                gate_pass_id=gate_pass.id
+            )
+            db.add(inventory)
+
+        # 4️⃣ Lock gate pass
+        gate_pass.store_status = "RECEIVED"
+
         db.commit()
-        db.refresh(item)
-        return item
+
+        return {
+            "message": "Inventory received successfully",
+            "gate_pass_id": gate_pass.id
+        }
+
     
     @staticmethod
     def get_inventory(db: Session, filters: Optional[Dict[str, Any]] = None, 
@@ -53,82 +71,7 @@ class StoreService:
                 query = query.filter(InventoryItem.location == filters["location"])
         
         return query.offset(skip).limit(limit).all()
-    
-    @staticmethod
-    def generate_dispatch_number(db: Session) -> str:
-        """Generate unique dispatch number."""
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        unique_id = str(uuid.uuid4())[:8].upper()
-        return f"DISP-{timestamp}-{unique_id}"
-    
-    @staticmethod
-    def create_material_dispatch(db: Session, dispatch_create: DispatchCreate) -> DispatchRead:
-        """Create comprehensive material dispatch with transaction safety."""
-        print("[DISPATCH SERVICE] Starting material dispatch creation")
-        
-        try:
-            # Begin transaction
-            db.begin()
-            print("[DISPATCH SERVICE] Transaction started")
-            
-            # Validate items exist and have sufficient stock (for ISSUE action)
-            if dispatch_create.action == 'ISSUE':
-                for item_data in dispatch_create.items:
-                    # In a real system, validate against inventory
-                    print(f"[DISPATCH SERVICE] Validating item {item_data.item_code}")
-            
-            # Create dispatch header
-            dispatch_data = dispatch_create.model_dump(exclude={'items', 'action'})
-            dispatch_data['status'] = DispatchStatus.DRAFT if dispatch_create.action == 'DRAFT' else DispatchStatus.ISSUED
-            dispatch_data['total_value'] = sum(item.line_value or 0 for item in dispatch_create.items)
-            
-            dispatch = Dispatch(**dispatch_data)
-            db.add(dispatch)
-            db.flush()  # Get ID without committing
-            print(f"[DISPATCH SERVICE] Dispatch header created with ID: {dispatch.id}")
-            
-            # Create dispatch items
-            dispatch_items = []
-            for item_data in dispatch_create.items:
-                item_dict = item_data.model_dump()
-                item_dict['dispatch_id'] = dispatch.id
-                dispatch_item = DispatchItem(**item_dict)
-                db.add(dispatch_item)
-                dispatch_items.append(dispatch_item)
-            
-            db.flush()
-            print(f"[DISPATCH SERVICE] {len(dispatch_items)} items added")
-            
-            # If issuing, deduct stock (placeholder - implement actual inventory deduction)
-            if dispatch_create.action == 'ISSUE':
-                print("[DISPATCH SERVICE] Deducting stock for issued dispatch")
-                # TODO: Implement actual stock deduction
-            
-            # Commit transaction
-            db.commit()
-            print("[DISPATCH SERVICE] Transaction committed successfully")
-            
-            # Refresh and return
-            db.refresh(dispatch)
-            return DispatchRead.model_validate(dispatch)
-            
-        except Exception as e:
-            db.rollback()
-            print(f"[DISPATCH SERVICE] FAILED - Transaction rolled back: {str(e)}")
-            raise ValueError(f"Dispatch creation failed: {str(e)}")
-    
-    @staticmethod
-    def get_dispatches(db: Session, filters: Optional[Dict[str, Any]] = None) -> List[Dispatch]:
-        """Get dispatch records with optional filtering."""
-        query = db.query(Dispatch)
 
-        if filters:
-            if "inventory_item_id" in filters:
-                query = query.filter(Dispatch.inventory_item_id == filters["inventory_item_id"])
-            if "requested_by" in filters:
-                query = query.filter(Dispatch.requested_by == filters["requested_by"])
-
-        return query.all()
 
     @staticmethod
     def create_store(db: Session, store_create: StoreCreate) -> Store:

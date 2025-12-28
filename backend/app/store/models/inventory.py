@@ -1,14 +1,30 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, UniqueConstraint
 from datetime import datetime
 from app.core.db import Base
 
 
 class InventoryItem(Base):
     __tablename__ = "inventory_items"
-    
+
     id = Column(Integer, primary_key=True, index=True)
+
     item_id = Column(Integer, nullable=False, index=True)
-    quantity = Column(Integer, nullable=False, default=0)
-    location = Column(String(255), nullable=False)
-    source_reference = Column(String(255), nullable=True)  # inspection_id or accepted_material_id
+
+    store_id = Column(Integer, nullable=False)
+    bin_id = Column(Integer, nullable=False)
+
+    quantity = Column(Integer, nullable=False)
+
+    gate_pass_id = Column(Integer, nullable=False, unique=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "item_id",
+            "store_id",
+            "bin_id",
+            "gate_pass_id",
+            name="uq_inventory_gate_pass"
+        ),
+    )
