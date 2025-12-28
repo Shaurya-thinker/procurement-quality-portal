@@ -325,3 +325,4 @@ def downgrade() -> None:
     # op.drop_index(op.f('ix_attendance_attendance_date'), table_name='attendance')
     # op.drop_table('attendance')
     # ### end Alembic commands ###
+
