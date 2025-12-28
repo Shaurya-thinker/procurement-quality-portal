@@ -17,7 +17,6 @@ import QualityReport from "../quality/pages/QualityReport";
 import Stores from "../store/pages/Stores";
 import StoreDetail from "../store/pages/StoreDetail";
 import Inventory from "../store/pages/Inventory";
-import Dispatch from "../store/pages/Dispatch";
 import DispatchList from "../store/pages/DispatchList";
 import CreateDispatch from "../store/pages/CreateDispatch";
 
@@ -38,7 +37,7 @@ export default function AppRoutes() {
       {/* Procurement Routes */}
       <Route path="/procurement" element={<ProtectedRoute><POList /></ProtectedRoute>} />
       <Route path="/procurement/create" element={<ProtectedRoute><CreatePO /></ProtectedRoute>} />
-      <Route path="/procurement/:mrid" element={<ProtectedRoute><PODetails /></ProtectedRoute>} />
+      <Route path="/procurement/:id" element={<ProtectedRoute><PODetails /></ProtectedRoute>} />
       <Route path="/procurement/:id/edit" element={<ProtectedRoute><CreatePO /></ProtectedRoute>}/>
 
       {/* Quality Routes */}
@@ -53,7 +52,6 @@ export default function AppRoutes() {
       <Route path="/store/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
       <Route path="/store/dispatches" element={<ProtectedRoute><DispatchList /></ProtectedRoute>} />
       <Route path="/store/dispatch/create" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
-      <Route path="/store/dispatch" element={<ProtectedRoute><Dispatch /></ProtectedRoute>} />
       <Route path="/store/:storeId" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
     </Routes>
   );

@@ -36,11 +36,8 @@ export const getInventoryItem = (id) =>
 
 /* Dispatch */
 
-export const dispatchItem = (data) =>
-  api.post("/api/v1/store/dispatch", data);
-
 export const getDispatches = (params = {}) =>
-  api.get("/api/v1/store/dispatches", { params });
+  api.get("/api/v1/store/material-dispatch", { params });
 
 export const getInventoryItemDetails = (id) =>
   api.get(`/api/v1/store/inventory/${id}`);

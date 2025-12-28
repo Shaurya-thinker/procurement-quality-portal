@@ -1,0 +1,156 @@
+/* ===============================
+   Inspection Table Wrapper
+================================ */
+
+.inspection-table-wrapper {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* ===============================
+   Inspection Table
+================================ */
+
+.inspection-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.inspection-table thead th {
+  background-color: #f1f5f9;
+  color: #1f2933;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.inspection-table thead th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.inspection-table thead th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.inspection-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+  color: #374151;
+}
+
+.inspection-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ===============================
+   Inputs inside table
+================================ */
+
+.table-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+}
+
+.table-input::placeholder {
+  color: #9ca3af;
+}
+
+.table-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* ===============================
+   Inspector Section
+================================ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.form-input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* ===============================
+   Action Buttons
+================================ */
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+/* ===== Status Pills ===== */
+
+.status-valid {
+  color: #15803d;
+  background-color: #dcfce7;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-invalid {
+  color: #b91c1c;
+  background-color: #fee2e2;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ===== Row Highlighting ===== */
+
+.inspection-row-valid {
+  background-color: #f0fdf4;
+}
+
+.inspection-row-invalid {
+  background-color: #fef2f2;
+}

@@ -55,6 +55,13 @@ class MaterialDispatchLineItem(Base):
     
     # Foreign Key
     dispatch_id = Column(Integer, ForeignKey("material_dispatches.id"), nullable=False)
+
+    inventory_item_id = Column(
+    Integer,
+    ForeignKey("inventory_items.id"),
+    nullable=False
+)
+
     
     # Line Item Fields
     item_id = Column(Integer, nullable=False)

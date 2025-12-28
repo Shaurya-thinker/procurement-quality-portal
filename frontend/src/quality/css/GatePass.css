@@ -1,0 +1,41 @@
+/* =========================================================
+   Gate Pass – Print Handling (ROBUST VERSION)
+   ========================================================= */
+
+@media print {
+  /* Hide EVERYTHING first */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show ONLY the gate pass */
+  .print-gate-pass,
+  .print-gate-pass * {
+    visibility: visible !important;
+  }
+
+  /* Position correctly */
+  .print-gate-pass {
+    position: absolute !important;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* 🔥 FORCE-HIDE buttons (even if wrapper fails) */
+  button,
+  .no-print,
+  .no-print *,
+  [role="button"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+/* Ensure print colors are preserved */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

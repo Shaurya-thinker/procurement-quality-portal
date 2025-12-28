@@ -3,10 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 from ..services import StoreService
 from ..schemas import (
-    InventoryCreate,
     InventoryRead,
-    DispatchCreate,
-    DispatchRead,
     StoreCreate,
     StoreRead,
     StoreUpdate,
@@ -19,35 +16,35 @@ from ...core.db import get_db
 
 router = APIRouter(prefix="/api/v1/store", tags=["Store"])
 
-
-@router.post("/inventory", response_model=InventoryRead)
-def add_inventory(
-    inventory: InventoryCreate,
-    db: Session = Depends(get_db),
+@router.post("/receive-gate-pass/{gate_pass_id}")
+def receive_gate_pass(
+    gate_pass_id: int,
+    db: Session = Depends(get_db)
 ):
-    """Add or receive inventory items."""
     try:
-        return StoreService.add_inventory(db, inventory)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return StoreService.receive_gate_pass(db, gate_pass_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/inventory", response_model=List[InventoryRead])
+@router.get("/inventory")
 def get_inventory(
+    store_id: Optional[int] = Query(None),
+    bin_id: Optional[int] = Query(None),
     item_id: Optional[int] = Query(None),
-    location: Optional[str] = Query(None),
-    page: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
-    """List inventory items with optional filtering and pagination."""
-    filters = {}
+    query = db.query(InventoryItem)
+
+    if store_id:
+        query = query.filter(InventoryItem.store_id == store_id)
+    if bin_id:
+        query = query.filter(InventoryItem.bin_id == bin_id)
     if item_id:
-        filters["item_id"] = item_id
-    if location:
-        filters["location"] = location
-    
-    return StoreService.get_inventory(db, filters, page * limit, limit)
+        query = query.filter(InventoryItem.item_id == item_id)
+
+    return query.all()
+
 
 
 @router.get("/inventory/{id}", response_model=InventoryRead)
@@ -60,53 +57,6 @@ def get_inventory_item(
     if not item:
         raise HTTPException(status_code=404, detail="Inventory item not found")
     return item
-
-
-@router.post("/material-dispatch")
-def create_material_dispatch(
-    request: dict,
-    db: Session = Depends(get_db),
-):
-    """Create material dispatch - simplified version."""
-    print(f"[MATERIAL DISPATCH] Received: {request}")
-    
-    try:
-        # Generate dispatch number
-        import time
-        dispatch_number = f"MD-{int(time.time())}"
-        
-        # Create response
-        response = {
-            "id": 1,
-            "dispatch_number": dispatch_number,
-            "status": "DRAFT" if request.get("action") == "DRAFT" else "ISSUED",
-            "message": "Dispatch created successfully"
-        }
-        
-        print(f"[MATERIAL DISPATCH] Success: {response}")
-        return response
-        
-    except Exception as e:
-        print(f"[MATERIAL DISPATCH] Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/dispatches")
-def get_dispatches(
-    db: Session = Depends(get_db),
-):
-    """List dispatch records."""
-    # Return mock data for now
-    return [
-        {
-            "id": 1,
-            "dispatch_number": "MD-1234567890",
-            "requested_by": "John Doe",
-            "quantity": 10,
-            "dispatched_at": "2024-01-01T10:00:00",
-            "reference": "Test dispatch"
-        }
-    ]
 
 
 # Store Management Endpoints
