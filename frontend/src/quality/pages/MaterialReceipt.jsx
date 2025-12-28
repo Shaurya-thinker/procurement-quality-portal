@@ -238,6 +238,17 @@ Each item:
     return;
   }
 
+  if (!mrData.store_id || !mrData.bin_id) {
+  alert('Store ID and Bin ID are required');
+  return;
+}
+
+  if (!selectedPO) {
+  alert('Please select a Purchase Order');
+  return;
+}
+
+
   if (lineItems.length === 0) {
     alert('No line items found');
     return;
@@ -280,8 +291,6 @@ Each item:
     const payload = {
       po_id: selectedPO.id,
       vendor_id: selectedPO.vendor_id,
-
-      vendor_name: mrData.vendor_name,       
       component_details: componentDetails,
 
       bill_no: mrData.bill_no,
@@ -299,7 +308,7 @@ Each item:
 
       lines: lineItems.map(item => ({
         po_line_id: item.po_line_id,
-        received_quantity: Number(item.received_quantity),
+        received_quantity: Number(item.received_quantity || 0),
       })),
     };
 
