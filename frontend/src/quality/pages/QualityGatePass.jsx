@@ -1,10 +1,12 @@
 import { useLocation, useParams } from "react-router-dom";
 import GatePassPreview from "../components/GatePassPreview";
+import { useNavigate } from "react-router-dom";
 import "../css/GatePass.css";
 
 export default function QualityGatePass() {
   const { inspectionId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const { mrData, inspectionData, poData } = location.state || {};
 
@@ -39,30 +41,51 @@ export default function QualityGatePass() {
   /* ================= RENDER ================= */
 
   return (
-    <div style={{ padding: 24 }}>
+  <div style={{ padding: 24 }}>
 
-      {/* Printable Gate Pass ONLY */}
-      <div className="print-gate-pass">
-        <GatePassPreview
-          gatePassData={{
-            gate_pass_number: "AUTO",
-            mr_number: mrData.mr_number,
-            po_number: mrData.po_id,
-            vendor_name:
-                poData?.vendor_name ||
-                poData?.vendor?.name ||
-                poData?.vendor?.company_name ||
-                "-",
-            items: acceptedItems,
-            issued_by: inspectionData.inspected_by,
-            issued_date: inspectionData.inspected_at,
-          }}
-          onDispatch={() =>
-            alert("Dispatch to Store (next phase)")
-          }
-        />
-      </div>
+    {/* Back button */}
+    <button
+      onClick={() => navigate(-1)}
+      style={{
+        width: "36px",
+        height: "36px",
+        borderRadius: "50%",
+        backgroundColor: "#2563eb",
+        color: "#ffffff",
+        border: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        marginBottom: "16px",
+      }}
+      aria-label="Go back"
+    >
+      ←
+    </button>
 
+    {/* Printable Gate Pass ONLY */}
+    <div className="print-gate-pass">
+      <GatePassPreview
+        gatePassData={{
+          gate_pass_number: "AUTO",
+          mr_number: mrData.mr_number,
+          po_number: mrData.po_id,
+          vendor_name:
+            poData?.vendor_name ||
+            poData?.vendor?.name ||
+            poData?.vendor?.company_name ||
+            "-",
+          items: acceptedItems,
+          issued_by: inspectionData.inspected_by,
+          issued_date: inspectionData.inspected_at,
+        }}
+        onDispatch={() =>
+          alert("Dispatch to Store (next phase)")
+        }
+      />
     </div>
-  );
+
+  </div>
+);
 }

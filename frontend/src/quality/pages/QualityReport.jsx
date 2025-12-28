@@ -260,135 +260,235 @@ export default function QualityReport() {
   const status = getInspectionStatus();
 
   return (
-    <div style={containerStyle}>
-      <h1 style={headingStyle}>Quality Inspection Report</h1>
+  <div style={containerStyle}>
 
-      {error && (
-        <div style={errorAlertStyle}>
-          <span>{error}</span>
-          <span style={closeErrorStyle} onClick={clearError}>✕</span>
+    {/* Back button */}
+    <button
+      onClick={() => navigate(-1)}
+      style={{
+        width: "36px",
+        height: "36px",
+        borderRadius: "50%",
+        backgroundColor: "#2563eb",
+        color: "#ffffff",
+        border: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        marginBottom: "16px",
+      }}
+      aria-label="Go back"
+    >
+      ←
+    </button>
+
+    <h1 style={headingStyle}>Quality Inspection Report</h1>
+
+    {error && (
+      <div style={errorAlertStyle}>
+        <span>{error}</span>
+        <span style={closeErrorStyle} onClick={clearError}>
+          ✕
+        </span>
+      </div>
+    )}
+
+    <div style={statusBadgeStyle}>
+      {statusText[status] || "UNKNOWN"}
+    </div>
+
+    <div style={sectionStyle}>
+      {validationError && (
+        <div
+          style={{
+            background: "#fee2e2",
+            color: "#7f1d1d",
+            padding: "12px",
+            borderRadius: "6px",
+            marginBottom: "16px",
+          }}
+        >
+          {validationError}
         </div>
       )}
 
-      <div style={statusBadgeStyle}>
-        {statusText[status] || 'UNKNOWN'}
-      </div>
+      <MRHeader mrData={mrData} isReadOnly={true} />
+    </div>
 
-      <div style={sectionStyle}>
-
-        {validationError && (
-          <div style={{
-            background: '#fee2e2',
-            color: '#7f1d1d',
-            padding: '12px',
-            borderRadius: '6px',
-            marginBottom: '16px',
-          }}>
-            {validationError}
-          </div>
-        )}
-
-        <MRHeader mrData={mrData} isReadOnly={true} />
-      </div>
-
-      <div style={sectionStyle}>
-        <div style={reportContainerStyle}>
-          <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
-            Inspection Details
-          </h2>
-          <div style={reportGridStyle}>
-            <div style={reportFieldStyle}>
-              <div style={labelStyle}>Inspector Name</div>
-              <div style={valueStyle}>{inspectionData.inspector_name || '-'}</div>
-            </div>
-            <div style={reportFieldStyle}>
-              <div style={labelStyle}>Inspection Date</div>
-              <div style={valueStyle}>
-                {inspectionData.inspection_date
-                  ? new Date(inspectionData.inspection_date).toLocaleDateString('en-IN')
-                  : new Date().toLocaleDateString('en-IN')}
-              </div>
-            </div>
-            <div style={reportFieldStyle}>
-              <div style={labelStyle}>Status</div>
-              <div style={{ ...valueStyle, color: getStatusColor(status) }}>
-                {statusText[status]}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={sectionStyle}>
-        <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
-          Inspection Items
+    <div style={sectionStyle}>
+      <div style={reportContainerStyle}>
+        <h2
+          style={{
+            fontSize: "16px",
+            fontWeight: "600",
+            marginBottom: "16px",
+            color: "#1f2937",
+          }}
+        >
+          Inspection Details
         </h2>
-        <div style={tableContainerStyle}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Item Code</th>
-                <th style={thStyle}>Description</th>
-                <th style={thStyle}>Unit</th>
-                <th style={thStyle}>Received</th>
-                <th style={thStyle}>Accepted</th>
-                <th style={thStyle}>Rejected</th>
-                <th style={thStyle}>Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inspectionData.items && inspectionData.items.length > 0 ? (
-                inspectionData.items.map((item, index) => (
-                  <tr key={index}>
-                    <td style={tdStyle}>{item.item_code || '-'}</td>
-                    <td style={tdStyle}>{item.description || '-'}</td>
-                    <td style={tdStyle}>{item.unit || '-'}</td>
-                    <td style={tdStyle}>{item.received_quantity || 0}</td>
-                    <td style={tdStyle}>
-                      <span style={{ color: '#10b981', fontWeight: '500' }}>
-                        {item.accepted_quantity || 0}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={{ color: '#ef4444', fontWeight: '500' }}>
-                        {item.rejected_quantity || 0}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>{item.remarks || '-'}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af' }}>
-                    No items found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      {status === 'FULLY_ACCEPTED' || status === 'PARTIALLY_ACCEPTED' ? (
-        <div style={sectionStyle}>
-          <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
-            Gate Pass
-          </h2>
-          {gatePassData && <GatePassPreview gatePassData={gatePassData} onDispatch={handleDispatchToStore} />}
-        </div>
-      ) : (
-        <div style={reportContainerStyle}>
-          <p style={{ color: '#6b7280', textAlign: 'center' }}>
-            No gate pass available. All items were rejected.
-          </p>
-        </div>
-      )}
+        <div style={reportGridStyle}>
+          <div style={reportFieldStyle}>
+            <div style={labelStyle}>Inspector Name</div>
+            <div style={valueStyle}>
+              {inspectionData.inspector_name || "-"}
+            </div>
+          </div>
 
-      <div style={actionButtonsStyle}>
-        <button onClick={() => navigate('/quality')} style={cancelButtonStyle}>
-          Back to Quality
-        </button>
+          <div style={reportFieldStyle}>
+            <div style={labelStyle}>Inspection Date</div>
+            <div style={valueStyle}>
+              {inspectionData.inspection_date
+                ? new Date(
+                    inspectionData.inspection_date
+                  ).toLocaleDateString("en-IN")
+                : new Date().toLocaleDateString("en-IN")}
+            </div>
+          </div>
+
+          <div style={reportFieldStyle}>
+            <div style={labelStyle}>Status</div>
+            <div
+              style={{
+                ...valueStyle,
+                color: getStatusColor(status),
+              }}
+            >
+              {statusText[status]}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  );
+
+    <div style={sectionStyle}>
+      <h2
+        style={{
+          fontSize: "16px",
+          fontWeight: "600",
+          marginBottom: "16px",
+          color: "#1f2937",
+        }}
+      >
+        Inspection Items
+      </h2>
+
+      <div style={tableContainerStyle}>
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thStyle}>Item Code</th>
+              <th style={thStyle}>Description</th>
+              <th style={thStyle}>Unit</th>
+              <th style={thStyle}>Received</th>
+              <th style={thStyle}>Accepted</th>
+              <th style={thStyle}>Rejected</th>
+              <th style={thStyle}>Remarks</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {inspectionData.items &&
+            inspectionData.items.length > 0 ? (
+              inspectionData.items.map((item, index) => (
+                <tr key={index}>
+                  <td style={tdStyle}>
+                    {item.item_code || "-"}
+                  </td>
+                  <td style={tdStyle}>
+                    {item.description || "-"}
+                  </td>
+                  <td style={tdStyle}>{item.unit || "-"}</td>
+                  <td style={tdStyle}>
+                    {item.received_quantity || 0}
+                  </td>
+                  <td style={tdStyle}>
+                    <span
+                      style={{
+                        color: "#10b981",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {item.accepted_quantity || 0}
+                    </span>
+                  </td>
+                  <td style={tdStyle}>
+                    <span
+                      style={{
+                        color: "#ef4444",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {item.rejected_quantity || 0}
+                    </span>
+                  </td>
+                  <td style={tdStyle}>
+                    {item.remarks || "-"}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="7"
+                  style={{
+                    ...tdStyle,
+                    textAlign: "center",
+                    color: "#9ca3af",
+                  }}
+                >
+                  No items found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {status === "FULLY_ACCEPTED" ||
+    status === "PARTIALLY_ACCEPTED" ? (
+      <div style={sectionStyle}>
+        <h2
+          style={{
+            fontSize: "16px",
+            fontWeight: "600",
+            marginBottom: "16px",
+            color: "#1f2937",
+          }}
+        >
+          Gate Pass
+        </h2>
+        {gatePassData && (
+          <GatePassPreview
+            gatePassData={gatePassData}
+            onDispatch={handleDispatchToStore}
+          />
+        )}
+      </div>
+    ) : (
+      <div style={reportContainerStyle}>
+        <p
+          style={{
+            color: "#6b7280",
+            textAlign: "center",
+          }}
+        >
+          No gate pass available. All items were rejected.
+        </p>
+      </div>
+    )}
+
+    <div style={actionButtonsStyle}>
+      <button
+        onClick={() => navigate("/quality")}
+        style={cancelButtonStyle}
+      >
+        Back to Quality
+      </button>
+    </div>
+  </div>
+);
 }

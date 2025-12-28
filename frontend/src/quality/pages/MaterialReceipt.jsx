@@ -323,100 +323,107 @@ Each item:
   }
 };
 
-
-
   return (
-    <div style={containerStyle}>
-      <div>
-        <h1 style={headingStyle}>Material Receipt</h1>
-        <p style={subtitleStyle}>Record incoming materials and prepare for quality inspection</p>
+  <div style={containerStyle}>
+    <div>
+      <h1 style={headingStyle}>Material Receipt</h1>
+      <p style={subtitleStyle}>
+        Record incoming materials and prepare for quality inspection
+      </p>
+    </div>
+
+    {error && (
+      <div style={errorAlertStyle}>
+        <span>{error}</span>
+        <span style={closeErrorStyle} onClick={clearError}>
+          ✕
+        </span>
       </div>
+    )}
 
-      {error && (
-        <div style={errorAlertStyle}>
-          <span>{error}</span>
-          <span style={closeErrorStyle} onClick={clearError}>✕</span>
-        </div>
-      )}
+    <MRHeader
+      mrData={mrData}
+      onChange={setMrData}
+      isReadOnly={false}
+    />
 
+    <div
+      style={{
+        background: "white",
+        borderRadius: "16px",
+        padding: "24px",
+        border: "1px solid #f1f5f9",
+      }}
+    >
+      <label
+        style={{
+          fontSize: "14px",
+          fontWeight: "600",
+          color: "#374151",
+          marginBottom: "8px",
+          display: "block",
+        }}
+      >
+        Purchase Order
+      </label>
 
-      <MRHeader mrData={mrData} onChange={setMrData} isReadOnly={false} />
+      <select
+        value={selectedPO?.id || ""}
+        onChange={(e) => {
+          const poId = Number(e.target.value);
+          if (poId) {
+            handlePOSelect(poId);
+          }
+        }}
+        style={{
+          padding: "12px 16px",
+          border: "1px solid #e2e8f0",
+          borderRadius: "8px",
+          width: "100%",
+        }}
+        required
+      >
+        <option value="">Select Purchase Order</option>
+        {purchaseOrders.map((po) => (
+          <option key={po.id} value={po.id}>
+            {po.po_number}
+          </option>
+        ))}
+      </select>
+    </div>
 
-      <div style={{
-        background: 'white',
-        borderRadius: '16px',
-        padding: '24px',
-        border: '1px solid #f1f5f9',
-      }}>
-        <label style={{
-          fontSize: '14px',
-          fontWeight: '600',
-          color: '#374151',
-          marginBottom: '8px',
-          display: 'block'
-        }}>
-          Purchase Order
-        </label>
+    <div style={lineItemsSectionStyle}>
+      <div style={sectionHeaderStyle}>
+        <h2 style={sectionTitleStyle}>Line Items</h2>
+      </div>
+      <MRLineItemTable
+        items={lineItems}
+        onChange={setLineItems}
+        isReadOnly={true}
+      />
+    </div>
 
-        <select
-          value={selectedPO?.id || ''}
-          onChange={(e) => {
-            const poId = Number(e.target.value);
-            if (poId) {
-              handlePOSelect(poId);
-            }
-          }}
-
-          style={{
-            padding: '12px 16px',
-            border: '1px solid #e2e8f0',
-            borderRadius: '8px',
-            width: '100%',
-          }}
-          required
+    <div style={footerStyle}>
+      <div style={actionButtonsStyle}>
+        <button
+          onClick={() => navigate("/procurement")}
+          className="btn-secondary"
         >
-          <option value="">Select Purchase Order</option>
-          {purchaseOrders.map(po => (
-            <option key={po.id} value={po.id}>
-              {po.po_number}
-            </option>
-          ))}
-        </select>
-      </div>
-
-
-      <div style={lineItemsSectionStyle}>
-        <div style={sectionHeaderStyle}>
-          <h2 style={sectionTitleStyle}>Line Items</h2>
-        </div>
-        <MRLineItemTable
-          items={lineItems}
-          onChange={setLineItems}
-          isReadOnly={true}
-        />
-      </div>
-
-      <div style={footerStyle}>
-        <div style={actionButtonsStyle}>
-          <button 
-            onClick={() => navigate('/procurement')} 
-            className="btn-secondary"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSaveReceipt}
-            className="btn-primary"
-            disabled={loading}
-            style={{
-              opacity: loading ? 0.6 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {loading ? 'Saving...' : 'Save & Proceed to Inspection'}
-          </button>
-        </div>
+          Cancel
+        </button>
+        <button
+          onClick={handleSaveReceipt}
+          className="btn-primary"
+          disabled={loading}
+          style={{
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
+        >
+          {loading ? "Saving..." : "Save & Proceed to Inspection"}
+        </button>
       </div>
     </div>
-  );
+  </div>
+);
 }

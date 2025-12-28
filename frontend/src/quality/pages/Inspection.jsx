@@ -155,141 +155,162 @@ const isInspectionCompleteAndValid = () => {
   /* ================= RENDER ================= */
 
   return (
-    <div style={{ padding: 24 }}>
-      {validationError && (
-        <div
-          style={{
-            background: "#fee2e2",
-            color: "#7f1d1d",
-            padding: "12px",
-            borderRadius: "6px",
-            marginBottom: "16px",
-          }}
-        >
-          {validationError}
-        </div>
-      )}
+  <div style={{ padding: 24 }}>
 
-      <MRHeader mrData={mrData} isReadOnly />
-      <div style={{ marginTop: "24px", marginBottom: "16px" }}>
-  <div className="form-group" style={{ maxWidth: "320px" }}>
-    <label className="form-label">Inspector Name</label>
-    <input
-      type="text"
-      className="form-input"
-      value={inspectorName}
-      onChange={(e) => setInspectorName(e.target.value)}
-      placeholder="Enter inspector name"
-    />
-  </div>
-</div>
+    {/* Back button */}
+    <button
+      onClick={() => navigate(-1)}
+      style={{
+        width: "36px",
+        height: "36px",
+        borderRadius: "50%",
+        backgroundColor: "#2563eb",
+        color: "#ffffff",
+        border: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        marginBottom: "16px",
+      }}
+      aria-label="Go back"
+    >
+      ←
+    </button>
 
-
-      {/* ================= INSPECTION TABLE ================= */}
-
-      <div className="inspection-table-wrapper">
-        <table className="inspection-table">
-          <thead>
-            <tr>
-              <th>Item Code</th>
-              <th>Description</th>
-              <th>Received Qty</th>
-              <th>Accepted Qty</th>
-              <th>Rejected Qty</th>
-              <th>Remarks</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {inspectionItems.map((item, index) => (
-             <tr
-                  key={index}
-                  className={
-                    item.accepted_qty || item.rejected_qty
-                      ? isRowValid(item)
-                        ? "inspection-row-valid"
-                        : "inspection-row-invalid"
-                      : ""
-                  }
-                >
-                <td>{item.item_code}</td>
-                <td>{item.description}</td>
-                <td>{item.received_qty}</td>
-
-                <td>
-                  <input
-                    type="number"
-                    className="table-input"
-                    value={item.accepted_qty}
-                    onChange={(e) =>
-                      handleItemChange(
-                        index,
-                        "accepted_qty",
-                        e.target.value
-                      )
-                    }
-                  />
-                </td>
-
-                <td>
-                  <input
-                    type="number"
-                    className="table-input"
-                    value={item.rejected_qty}
-                    onChange={(e) =>
-                      handleItemChange(
-                        index,
-                        "rejected_qty",
-                        e.target.value
-                      )
-                    }
-                  />
-                </td>
-
-                <td>
-                  <input
-                    type="text"
-                    className="table-input"
-                    value={item.remarks}
-                    onChange={(e) =>
-                      handleItemChange(index, "remarks", e.target.value)
-                    }
-                    placeholder="Add remarks..."
-                  />
-                </td>
-
-                <td>
-                  {item.accepted_qty || item.rejected_qty ? (
-                    isRowValid(item) ? (
-                      <span className="status-valid">Valid</span>
-                    ) : (
-                      <span className="status-invalid">Invalid</span>
-                    )
-                  ) : (
-                    "-"
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    {validationError && (
+      <div
+        style={{
+          background: "#fee2e2",
+          color: "#7f1d1d",
+          padding: "12px",
+          borderRadius: "6px",
+          marginBottom: "16px",
+        }}
+      >
+        {validationError}
       </div>
+    )}
 
-      {/* ================= INSPECTION FOOTER ================= */}
+    <MRHeader mrData={mrData} isReadOnly />
 
-      <div style={{ marginTop: "32px" }}>
-
-        <div className="form-actions">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSubmitInspection}
-          >
-            Submit Inspection
-          </button>
-        </div>
+    <div style={{ marginTop: "24px", marginBottom: "16px" }}>
+      <div className="form-group" style={{ maxWidth: "320px" }}>
+        <label className="form-label">Inspector Name</label>
+        <input
+          type="text"
+          className="form-input"
+          value={inspectorName}
+          onChange={(e) => setInspectorName(e.target.value)}
+          placeholder="Enter inspector name"
+        />
       </div>
     </div>
-  );
+
+    {/* ================= INSPECTION TABLE ================= */}
+
+    <div className="inspection-table-wrapper">
+      <table className="inspection-table">
+        <thead>
+          <tr>
+            <th>Item Code</th>
+            <th>Description</th>
+            <th>Received Qty</th>
+            <th>Accepted Qty</th>
+            <th>Rejected Qty</th>
+            <th>Remarks</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {inspectionItems.map((item, index) => (
+            <tr
+              key={index}
+              className={
+                item.accepted_qty || item.rejected_qty
+                  ? isRowValid(item)
+                    ? "inspection-row-valid"
+                    : "inspection-row-invalid"
+                  : ""
+              }
+            >
+              <td>{item.item_code}</td>
+              <td>{item.description}</td>
+              <td>{item.received_qty}</td>
+
+              <td>
+                <input
+                  type="number"
+                  className="table-input"
+                  value={item.accepted_qty}
+                  onChange={(e) =>
+                    handleItemChange(
+                      index,
+                      "accepted_qty",
+                      e.target.value
+                    )
+                  }
+                />
+              </td>
+
+              <td>
+                <input
+                  type="number"
+                  className="table-input"
+                  value={item.rejected_qty}
+                  onChange={(e) =>
+                    handleItemChange(
+                      index,
+                      "rejected_qty",
+                      e.target.value
+                    )
+                  }
+                />
+              </td>
+
+              <td>
+                <input
+                  type="text"
+                  className="table-input"
+                  value={item.remarks}
+                  onChange={(e) =>
+                    handleItemChange(index, "remarks", e.target.value)
+                  }
+                  placeholder="Add remarks..."
+                />
+              </td>
+
+              <td>
+                {item.accepted_qty || item.rejected_qty ? (
+                  isRowValid(item) ? (
+                    <span className="status-valid">Valid</span>
+                  ) : (
+                    <span className="status-invalid">Invalid</span>
+                  )
+                ) : (
+                  "-"
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    {/* ================= INSPECTION FOOTER ================= */}
+
+    <div style={{ marginTop: "32px" }}>
+      <div className="form-actions">
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handleSubmitInspection}
+        >
+          Submit Inspection
+        </button>
+      </div>
+    </div>
+  </div>
+);
 }

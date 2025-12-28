@@ -3,8 +3,10 @@ import UserIcon from '../layout/icons/UserIcon';
 import CheckIcon from '../layout/icons/CheckIcon';
 import ClipboardIcon from '../layout/icons/ClipboardIcon';
 import CalendarIcon from '../layout/icons/CalendarIcon';
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const dashboardStats = [
     { label: 'Present Today', value: '198', icon: <CheckIcon size={24} />, color: 'success' },
     { label: 'Total Employees', value: '245', icon: <UserIcon size={24} />, color: 'primary' },
@@ -60,12 +62,36 @@ export default function Dashboard() {
 
         <div className="section">
           <h2 className="section-title">Quick Links</h2>
-          <div className="quick-links">
-            <button className="quick-link-button">📝 Apply Leave</button>
-            <button className="quick-link-button">✓ Check Attendance</button>
-            <button className="quick-link-button">💼 View Salary</button>
-            <button className="quick-link-button">📊 View Reports</button>
+        <div className="quick-links">
+            <button
+              className="quick-link-button"
+              onClick={() => navigate("/apply-leave")}
+            >
+              Apply Leave
+            </button>
+
+            <button
+              className="quick-link-button"
+              onClick={() => navigate("/attendance")}
+            >
+              Check Attendance
+            </button>
+
+            <button
+              className="quick-link-button"
+              onClick={() => navigate("/profile")}
+            >
+              View Salary
+            </button>
+
+            <button
+              className="quick-link-button"
+              onClick={() => navigate("/reports")}
+            >
+              View Reports
+            </button>
           </div>
+
         </div>
       </div>
     </div>
