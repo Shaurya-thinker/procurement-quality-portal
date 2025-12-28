@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { getRole, logout } from "../auth/auth";
 
 export default function Sidebar() {
@@ -16,7 +16,8 @@ export default function Sidebar() {
 
       {role === "quality" && (
         <>
-          <Link to="/quality">Material Receipt</Link>
+          <NavLink to="/quality">Material Receipt</NavLink>
+          <NavLink to="/announcements">Announcements</NavLink>
         </>
       )}
 

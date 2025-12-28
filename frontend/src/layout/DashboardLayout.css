@@ -227,9 +227,9 @@
 .header-icon-button {
   background: none;
   border: none;
-  font-size: 20px;
-  padding: 12px;
-  border-radius: 12px;
+  font-size: 18px;
+  padding: 8px;
+  border-radius: 10px;
   cursor: pointer;
   color: #64748b;
   transition: all 0.2s ease;
@@ -389,8 +389,8 @@
 
 
 .sidebar-toggle {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background: #1e3a8a;
   border: none;
   border-radius: 12px;
@@ -434,16 +434,17 @@
 }
 
 .nav-link {
-  padding: 18px 20px;
-  margin: 0 16px;
-  border-radius: 14px;
+  padding: 8px 10px;
+  margin: 0 12px;
+  border-radius: 10px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.75);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   transition: all 0.2s ease;
+  font-size: 12px;
 }
 
 .nav-link:hover {
@@ -483,20 +484,20 @@
 /* Logout item – default state */
 .logout-nav {
   margin-top: auto;
-  margin-left: 16px;
-  margin-right: 16px;
+  margin-left: 12px;
+  margin-right: 12px;
   margin-bottom: 8px;
 
-  padding: 18px 20px;
-  border-radius: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
 
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.9);
 
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 
   cursor: pointer;
   border: none;
@@ -520,6 +521,23 @@
   line-height: 1;
   display: inline-block;
   transition: transform 0.25s ease;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 18px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 /* When sidebar is collapsed, arrow points right */
