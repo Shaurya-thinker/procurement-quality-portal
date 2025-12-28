@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Time, Text
-from app.core.database import Base
+from app.core.db import Base
 
 class Event(Base):
     __tablename__ = "events"

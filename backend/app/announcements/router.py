@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.core.database import get_db
+from app.core.db import get_db
 from .models import Event, Training, Meeting
 
 router = APIRouter(
