@@ -1,3 +1,28 @@
+/* Sidebar Compact Styles */
+.sidebar-compact {
+  width: 180px;
+  background: #f8fafc;
+  padding: 12px 8px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px solid #e2e8f0;
+}
+.sidebar-link {
+  display: block;
+  font-size: 13px;
+  padding: 7px 10px;
+  margin-bottom: 2px;
+  color: #334155;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.sidebar-link:hover {
+  background: #e0e7ef;
+  color: #1d4ed8;
+}
 /* Global UI Consistency Styles */
 
 /* Button Styles */
