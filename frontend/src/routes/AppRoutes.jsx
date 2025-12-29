@@ -14,7 +14,6 @@ import PODetails from "../procurement/pages/PODetails";
 import MaterialReceipt from "../quality/pages/MaterialReceipt";
 import Inspection from "../quality/pages/Inspection";
 import QualityReport from "../quality/pages/QualityReport";
-import Announcements from "../quality/pages/Announcements";
 import Stores from "../store/pages/Stores";
 import StoreDetail from "../store/pages/StoreDetail";
 import Inventory from "../store/pages/Inventory";
@@ -46,8 +45,6 @@ export default function AppRoutes() {
       <Route path="/quality/inspection/:mrNumber" element={<ProtectedRoute><Inspection /></ProtectedRoute>} />
       <Route path="/quality/gate-pass/:inspectionId" element={<ProtectedRoute><QualityGatePass /></ProtectedRoute>}/>
       <Route path="/quality/report/:inspectionId" element={<ProtectedRoute><QualityReport /></ProtectedRoute>} />
-      <Route path="/quality/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} />
-      <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} />
 
 
       {/* Store Routes */}

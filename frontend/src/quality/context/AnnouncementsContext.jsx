@@ -59,9 +59,9 @@ export function AnnouncementsProvider({ children }) {
   };
 
   const announcements = [
-    ...events.map((e) => ({ ...e, type: 'Event', date: e.event_date })),
-    ...trainings.map((t) => ({ ...t, type: 'Training', date: t.start_date })),
-    ...meetings.map((m) => ({ ...m, type: 'Meeting', date: m.meeting_date })),
+    ...events.map((e) => ({ ...e, type: 'Event', date: e.event_date, title: e.title, location: e.location, agenda: e.agenda, organizer: e.organizer })),
+    ...trainings.map((t) => ({ ...t, type: 'Training', date: t.start_date, training_name: t.training_name, location: t.location, agenda: t.agenda, trainer_name: t.trainer_name })),
+    ...meetings.map((m) => ({ ...m, type: 'Meeting', date: m.meeting_date, meeting_title: m.meeting_title, location: m.location, agenda: m.agenda, organizer: m.organizer })),
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (

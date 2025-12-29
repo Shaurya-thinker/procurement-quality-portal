@@ -2,7 +2,6 @@
 
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useState, useEffect } from "react"
-import { fetchEvents, fetchTrainings, fetchMeetings } from "../api/announcements.api"
 import { logout } from "../auth/Login"
 import "./DashboardLayout.css"
 import DashboardIcon from "./icons/DashboardIcon"
@@ -13,7 +12,6 @@ import BoxIcon from "./icons/BoxIcon"
 import UserIcon from "./icons/UserIcon"
 import BellIcon from "./icons/BellIcon"
 import MailIcon from "./icons/MailIcon"
-import { useAnnouncements } from "../quality/context/AnnouncementsContext";
 import LogoutIcon from "./icons/LogoutIcon"
 import Logo from "../assets/logo.png";
 
@@ -29,6 +27,11 @@ export default function DashboardLayout({ children }) {
   const [showEventsDropdown, setShowEventsDropdown] = useState(false)
   const userEmail = localStorage.getItem("userEmail") || "user@smg.com"
 
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
   const timezones = {
     'Asia/Kolkata': 'Indian Standard Time',
     'America/Sao_Paulo': 'Brazil',
@@ -37,11 +40,6 @@ export default function DashboardLayout({ children }) {
     'Europe/Amsterdam': 'Netherlands',
     'Australia/Melbourne': 'Australia(Melbourne)'
   }
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
-    return () => clearInterval(timer)
-  }, [])
 
   const formatTime = (date) => {
     return date.toLocaleTimeString("en-US", {
@@ -72,15 +70,11 @@ export default function DashboardLayout({ children }) {
     setShowUserDropdown(false)
   }
 
-  const { announcements = [], loading: announcementsLoading } = useAnnouncements() || {};
-  const announcementsCount = announcements.length;
-
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
     { path: "/attendance", label: "Attendance", icon: <CalendarIcon /> },
     { path: "/procurement", label: "Procurement", icon: <ClipboardIcon /> },
     { path: "/quality", label: "Quality", icon: <CheckIcon /> },
-    { path: "/announcements", label: "Announcements", icon: <BellIcon /> },
     { path: "/store", label: "Store", icon: <BoxIcon /> },
     { path: "/profile", label: "Profile", icon: <UserIcon /> },
   ]
@@ -149,14 +143,8 @@ export default function DashboardLayout({ children }) {
           <button 
             className="header-icon-button events-button"
             onClick={() => setShowEventsDropdown(!showEventsDropdown)}
-            aria-label="Events and announcements"
           >
-            <span style={{position: 'relative', display: 'inline-block'}}>
-              <MailIcon />
-              {announcementsCount > 0 && (
-                <span className="notification-badge">{announcementsCount}</span>
-              )}
-            </span>
+            <MailIcon />
           </button>
           {showEventsDropdown && (
             <div className="events-dropdown">

@@ -9,14 +9,13 @@ import uvicorn
 import time
 
 # Import database
-from app.core.db import create_tables
+from backend.app.core.db import create_tables
 
 # 🔹 FORCE model imports (VERY IMPORTANT)
 import backend.app.procurement.models
 import backend.app.quality.models
 import backend.app.store.models
 import backend.app.attendance.models
-import backend.app.announcements.models
 
 # Import routers
 from backend.app.procurement.routers.procurement import router as procurement_router
@@ -44,7 +43,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -166,6 +165,6 @@ if __name__ == "__main__":
     print("\n" + "=" * 80 + "\n")
     
     uvicorn.run(app, host="0.0.0.0", port=8000)
-from backend.app.announcements.router import router as announcements_router
+from app.announcements.router import router as announcements_router
 
 app.include_router(announcements_router)

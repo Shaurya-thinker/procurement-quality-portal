@@ -29,18 +29,3 @@ export const createMeeting = async (payload) => {
   const res = await api.post('/api/v1/announcements/meetings', payload);
   return res.data;
 };
-
-export const createEvent = async (payload) => {
-  const res = await api.post('/api/v1/announcements/events', payload);
-  return res.data;
-};
-
-export const createTraining = async (payload) => {
-  const res = await api.post('/api/v1/announcements/trainings', payload);
-  return res.data;
-};
-
-export const createMeeting = async (payload) => {
-  const res = await api.post('/api/v1/announcements/meetings', payload);
-  return res.data;
-};
