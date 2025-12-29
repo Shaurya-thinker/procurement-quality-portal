@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../hooks/useStore';
 
-export default function MaterialDispatchForm() {
+export default function MaterialDispatchForm({ initialData = null, mode = 'CREATE' }) {
   const navigate = useNavigate();
   const { getInventory } = useStore();
   const [inventory, setInventory] = useState([]);
@@ -16,8 +16,10 @@ export default function MaterialDispatchForm() {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const submitDraft = () => handleSubmit(true);
+  const submitIssue = () => handleSubmit(false);
   const [formData, setFormData] = useState({
+  
     // Dispatch Header
     dispatch_date: new Date().toISOString().split('T')[0],
     reference_type: 'PO',
@@ -47,6 +49,8 @@ export default function MaterialDispatchForm() {
       remarks: ''
     }]
   });
+
+  const isReadOnly = initialData?.dispatch_status === 'CANCELLED';
 
   const validateForm = () => {
     const newErrors = {};
@@ -80,18 +84,27 @@ export default function MaterialDispatchForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (isDraft) => {
+    if (isReadOnly) {
+  alert('This dispatch is cancelled and cannot be modified.');
+  return;
+}
     
     // Build a payload with proper types for validation and sending
     const payload = {
       ...formData,
+      is_draft: isDraft,
       dispatch_date: new Date(formData.dispatch_date).toISOString(),
       warehouse_id: formData.warehouse_id === '' ? null : Number(formData.warehouse_id),
       line_items: formData.line_items.map(item => ({
-        ...item,
-        item_id: item.item_id === '' ? null : Number(item.item_id),
-        quantity_dispatched: item.quantity_dispatched === '' ? null : Number(item.quantity_dispatched)
+        inventory_item_id: item.inventory_item_id, 
+        item_id: item.item_id,
+        item_code: item.item_code,
+        item_name: item.item_name,
+        quantity_dispatched: Number(item.quantity_dispatched),
+        uom: item.uom,
+        batch_number: item.batch_number || null,
+        remarks: item.remarks || null
       }))
     };
 
@@ -104,8 +117,15 @@ export default function MaterialDispatchForm() {
     
     try {
       console.log('[DEBUG] Sending payload to backend:', payload);
-      const response = await fetch('http://localhost:8000/api/v1/store/material-dispatch/', {
-        method: 'POST',
+      const url =
+        mode === 'EDIT'
+          ? `http://localhost:8000/api/v1/store/material-dispatch/${initialData.id}`
+          : 'http://localhost:8000/api/v1/store/material-dispatch/';
+      const method = mode === 'EDIT' ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -146,10 +166,12 @@ export default function MaterialDispatchForm() {
     }
   };
 
+
   const addLineItem = () => {
     setFormData({
       ...formData,
       line_items: [...formData.line_items, {
+        inventory_item_id: '',
         item_id: '',
         item_code: '',
         item_name: '',
@@ -168,6 +190,16 @@ export default function MaterialDispatchForm() {
       setFormData({ ...formData, line_items: newLineItems });
     }
   };
+
+  useEffect(() => {
+  if (initialData) {
+    setFormData({
+      ...initialData,
+      dispatch_date: initialData.dispatch_date.split('T')[0]
+    });
+  }
+}, [initialData]);
+
 
   const updateLineItem = (index, field, value) => {
     const newLineItems = [...formData.line_items];
@@ -200,13 +232,17 @@ export default function MaterialDispatchForm() {
     ←
   </button>
 
-  <h1 style={{ fontSize: '28px', fontWeight: '700', margin: 0 }}>
-    Create Material Dispatch
-  </h1>
+  <h1>
+  {mode === 'EDIT'
+    ? isReadOnly
+      ? 'View Cancelled Dispatch'
+      : 'Edit Material Dispatch'
+    : 'Create Material Dispatch'}
+</h1>
 </div>
 
       
-      <form onSubmit={handleSubmit}>
+      <form>
         {/* Dispatch Header */}
         <div style={{ background: 'white', padding: '24px', borderRadius: '12px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>Dispatch Header</h2>
@@ -215,6 +251,7 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Dispatch Date *</label>
               <input
+                disabled={isReadOnly}
                 type="date"
                 value={formData.dispatch_date}
                 onChange={(e) => setFormData({ ...formData, dispatch_date: e.target.value })}
@@ -226,6 +263,7 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Reference Type *</label>
               <select
+                disabled={isReadOnly}
                 value={formData.reference_type}
                 onChange={(e) => setFormData({ ...formData, reference_type: e.target.value })}
                 style={inputStyle}
@@ -240,6 +278,7 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Reference ID *</label>
               <input
+                disabled={isReadOnly}
                 type="text"
                 value={formData.reference_id}
                 onChange={(e) => setFormData({ ...formData, reference_id: e.target.value })}
@@ -252,18 +291,23 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Warehouse ID *</label>
               <input
+                disabled={isReadOnly}
                 type="number"
                 value={formData.warehouse_id}
                 onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
                 style={inputStyle}
                 required
               />
+              <small style={{ color: '#6b7280' }}>
+                Enter Store / Warehouse ID
+              </small>
               {errors.warehouse_id && <div style={errorStyle}>{errors.warehouse_id}</div>}
             </div>
             
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Created By *</label>
               <input
+                disabled={isReadOnly}
                 type="text"
                 value={formData.created_by}
                 onChange={(e) => setFormData({ ...formData, created_by: e.target.value })}
@@ -276,10 +320,11 @@ export default function MaterialDispatchForm() {
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Remarks</label>
               <textarea
+                disabled={isReadOnly}
                 value={formData.remarks}
                 onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                 style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
-                rows={3}
+                rows={3} 
               />
             </div>
           </div>
@@ -293,6 +338,7 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Receiver Name *</label>
               <input
+                disabled={isReadOnly}
                 type="text"
                 value={formData.receiver_name}
                 onChange={(e) => setFormData({ ...formData, receiver_name: e.target.value })}
@@ -305,6 +351,7 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Receiver Contact *</label>
               <input
+                disabled={isReadOnly}
                 type="text"
                 value={formData.receiver_contact}
                 onChange={(e) => setFormData({ ...formData, receiver_contact: e.target.value })}
@@ -317,6 +364,7 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Vehicle Number *</label>
               <input
+                disabled={isReadOnly}
                 type="text"
                 value={formData.vehicle_number}
                 onChange={(e) => setFormData({ ...formData, vehicle_number: e.target.value })}
@@ -329,6 +377,7 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Driver Name *</label>
               <input
+                disabled={isReadOnly}
                 type="text"
                 value={formData.driver_name}
                 onChange={(e) => setFormData({ ...formData, driver_name: e.target.value })}
@@ -341,6 +390,7 @@ export default function MaterialDispatchForm() {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Driver Contact *</label>
               <input
+                disabled={isReadOnly}
                 type="text"
                 value={formData.driver_contact}
                 onChange={(e) => setFormData({ ...formData, driver_contact: e.target.value })}
@@ -352,7 +402,8 @@ export default function MaterialDispatchForm() {
             
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>E-way Bill Number</label>
-              <input
+              <input 
+                disabled={isReadOnly}
                 type="text"
                 value={formData.eway_bill_number}
                 onChange={(e) => setFormData({ ...formData, eway_bill_number: e.target.value })}
@@ -363,6 +414,7 @@ export default function MaterialDispatchForm() {
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Delivery Address *</label>
               <textarea
+                disabled={isReadOnly}
                 value={formData.delivery_address}
                 onChange={(e) => setFormData({ ...formData, delivery_address: e.target.value })}
                 style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
@@ -381,15 +433,13 @@ export default function MaterialDispatchForm() {
             <button
               type="button"
               onClick={addLineItem}
+              disabled={isReadOnly}
               style={{
                 padding: '8px 16px',
                 background: '#10b981',
                 color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500'
+                opacity: isReadOnly ? 0.6 : 1,
+                cursor: isReadOnly ? 'not-allowed' : 'pointer'
               }}
             >
               + Add Item
@@ -404,14 +454,10 @@ export default function MaterialDispatchForm() {
                   <button
                     type="button"
                     onClick={() => removeLineItem(index)}
+                    disabled={isReadOnly}
                     style={{
-                      padding: '4px 8px',
-                      background: '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px'
+                      opacity: isReadOnly ? 0.6 : 1,
+                      cursor: isReadOnly ? 'not-allowed' : 'pointer'
                     }}
                   >
                     Remove
@@ -423,11 +469,13 @@ export default function MaterialDispatchForm() {
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Inventory Item *</label>
                   <select
+                    disabled={isReadOnly}
                     value={item.item_id}
                     onChange={(e) => {
                       const inv = inventory.find(i => i.id === Number(e.target.value));
                       if (!inv) return;
 
+                      updateLineItem(index, 'inventory_item_id', inv.id); 
                       updateLineItem(index, 'item_id', inv.id);
                       updateLineItem(index, 'item_code', inv.item_code);
                       updateLineItem(index, 'item_name', inv.item_name);
@@ -451,6 +499,7 @@ export default function MaterialDispatchForm() {
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Code *</label>
                   <input
+                    disabled={isReadOnly}
                     type="text"
                     value={item.item_code}
                     readOnly
@@ -462,6 +511,7 @@ export default function MaterialDispatchForm() {
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Name *</label>
                   <input
+                    disabled={isReadOnly}
                     type="text"
                     value={item.item_name}
                     readOnly
@@ -473,6 +523,7 @@ export default function MaterialDispatchForm() {
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Quantity *</label>
                   <input
+                    disabled={isReadOnly}
                     type="number"
                     step="0.001"
                     value={item.quantity_dispatched}
@@ -493,6 +544,7 @@ export default function MaterialDispatchForm() {
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>UOM *</label>
                   <input
+                    disabled={isReadOnly}
                     type="text"
                     value={item.uom}
                     readOnly
@@ -504,6 +556,7 @@ export default function MaterialDispatchForm() {
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Batch Number</label>
                   <input
+                    disabled={isReadOnly}
                     type="text"
                     value={item.batch_number}
                     onChange={(e) => updateLineItem(index, 'batch_number', e.target.value)}
@@ -514,6 +567,7 @@ export default function MaterialDispatchForm() {
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Remarks</label>
                   <input
+                    disabled={isReadOnly}
                     type="text"
                     value={item.remarks}
                     onChange={(e) => updateLineItem(index, 'remarks', e.target.value)}
@@ -526,41 +580,56 @@ export default function MaterialDispatchForm() {
         </div>
 
         {/* Submit Buttons */}
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-          <button
-            type="button"
-            onClick={() => navigate('/store')}
-            style={{
-              padding: '12px 24px',
-              background: '#6b7280',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            Cancel
-          </button>
-          
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '12px 24px',
-              background: loading ? '#9ca3af' : '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            {loading ? 'Creating...' : 'Create Dispatch'}
-          </button>
-        </div>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => navigate('/store')}
+              style={{
+                padding: '12px 24px',
+                background: '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer'
+              }}
+            >
+              Cancel
+            </button>
+
+            {/* 🔒 Draft disabled safely */}
+           <button
+              type="button"
+              onClick={() => handleSubmit(true)}
+              disabled={loading || isReadOnly}
+              style={{
+                padding: '12px 24px',
+                background: loading ? '#9ca3af' : '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {loading ? 'Saving...' : 'Save as Draft'}
+            </button>
+
+            {/* ✅ Actual backend-supported action */}
+            <button
+              type="button"
+              onClick={() => handleSubmit(false)}
+              disabled={loading || isReadOnly}
+              style={{
+                padding: '12px 24px',
+                background: loading ? '#9ca3af' : '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {loading ? 'Issuing...' : 'Issue Dispatch'}
+            </button>
+          </div>
       </form>
     </div>
   );

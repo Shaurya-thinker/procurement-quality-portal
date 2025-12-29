@@ -101,6 +101,30 @@ export default function DispatchList() {
     marginBottom: '16px',
   };
 
+  const handleCancel = async (dispatchId) => {
+    const confirmCancel = window.confirm(
+      'Are you sure you want to cancel this dispatch?\nThis action cannot be undone.'
+    );
+
+    if (!confirmCancel) return;
+
+    try {
+      await fetch(
+        `http://localhost:8000/api/v1/store/material-dispatch/${dispatchId}/cancel`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      loadDispatches(); // refresh list
+    } catch (err) {
+      alert('Failed to cancel dispatch');
+    }
+  };
+
   return (
     <div style={containerStyle}>
       <div
@@ -149,6 +173,7 @@ export default function DispatchList() {
             <thead>
               <tr>
                 <th style={thStyle}>Dispatch #</th>
+                <th style={thStyle}>Status</th>
                 <th style={thStyle}>Requested By</th>
                 <th style={thStyle}>Quantity</th>
                 <th style={thStyle}>Date</th>
@@ -156,21 +181,81 @@ export default function DispatchList() {
               </tr>
             </thead>
             <tbody>
-              {dispatches.map((dispatch) => (
-                <tr key={dispatch.id}>
-                  <td style={tdStyle}>
-                    <span style={{ fontWeight: '600' }}>
-                      {dispatch.dispatch_number || `#${dispatch.id}`}
-                    </span>
-                  </td>
-                  <td style={tdStyle}>{dispatch.requested_by}</td>
-                  <td style={tdStyle}>{dispatch.quantity}</td>
-                  <td style={tdStyle}>
-                    {new Date(dispatch.dispatched_at).toLocaleDateString()}
-                  </td>
-                  <td style={tdStyle}>{dispatch.reference || '-'}</td>
-                </tr>
-              ))}
+              {dispatches.map((dispatch) => {
+                const isCancelled = dispatch.dispatch_status === 'CANCELLED';
+
+                return (
+                  <tr
+                    key={dispatch.id}
+                    style={{
+                      opacity: isCancelled ? 0.6 : 1,
+                      cursor: dispatch.dispatch_status === 'DRAFT' ? 'pointer' : 'default'
+                    }}
+                    onClick={() => {
+                      if (dispatch.dispatch_status === 'DRAFT') {
+                        navigate(`/store/dispatch/edit/${dispatch.id}`);
+                      }
+                    }}
+                  >
+                    <td style={tdStyle}>{dispatch.dispatch_number}</td>
+
+                    <td style={tdStyle}>
+                      <span
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          backgroundColor:
+                            dispatch.dispatch_status === 'DRAFT'
+                              ? '#fef3c7'
+                              : dispatch.dispatch_status === 'DISPATCHED'
+                              ? '#dcfce7'
+                              : '#fee2e2',
+                          color:
+                            dispatch.dispatch_status === 'DRAFT'
+                              ? '#92400e'
+                              : dispatch.dispatch_status === 'DISPATCHED'
+                              ? '#166534'
+                              : '#7f1d1d'
+                        }}
+                      >
+                        {dispatch.dispatch_status}
+                      </span>
+                    </td>
+
+                    <td style={tdStyle}>{dispatch.created_by}</td>
+
+                    <td style={tdStyle}>
+                      {new Date(dispatch.dispatch_date).toLocaleDateString()}
+                    </td>
+
+                    <td style={tdStyle}>{dispatch.reference_id}</td>
+
+                    <td style={tdStyle}>
+                      {dispatch.dispatch_status === 'DISPATCHED' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancel(dispatch.id);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
