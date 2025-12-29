@@ -6,54 +6,56 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar-compact">
-      <h3 style={{ fontSize: 18, marginBottom: 16 }}>Portal</h3>
-      {/* Always-visible Announcements link */}
-      <Link className="sidebar-link" to="/announcements">Announcements</Link>
+  <h3 style={{ fontSize: 18, marginBottom: 16 }}>Portal</h3>
+
+      {/* Always visible */}
+      <Link className="sidebar-link" to="/dashboard">
+        Dashboard
+      </Link>
+
+      <Link className="sidebar-link" to="/apply-leave">
+        Apply Leave
+      </Link>
+
+      <Link className="sidebar-link" to="/announcements">
+        Announcements
+      </Link>
+
+      {/* Role based */}
       {role === "procurement" && (
         <>
-<<<<<<< HEAD
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/apply-leave">Apply Leave</Link>
-          <Link to="/procurement">Purchase Orders</Link>
-=======
-          <Link className="sidebar-link" to="/dashboard">Dashboard</Link>
-          <Link className="sidebar-link" to="/apply-leave">Apply Leave</Link>
-          <Link className="sidebar-link" to="/procurement">Purchase Orders</Link>
-          <Link className="sidebar-link" to="/announcements">Announcements</Link>
->>>>>>> 308545638b080213daaf91faec07e10dd3f2ba32
+          <Link className="sidebar-link" to="/procurement">
+            Purchase Orders
+          </Link>
         </>
       )}
+
       {role === "quality" && (
         <>
-<<<<<<< HEAD
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/apply-leave">Apply Leave</Link>
-          <Link to="/quality">Material Receipt</Link>
-=======
-          <Link className="sidebar-link" to="/dashboard">Dashboard</Link>
-          <Link className="sidebar-link" to="/apply-leave">Apply Leave</Link>
-          <Link className="sidebar-link" to="/quality">Material Receipt</Link>
-          <Link className="sidebar-link" to="/announcements">Announcements</Link>
->>>>>>> 308545638b080213daaf91faec07e10dd3f2ba32
+          <Link className="sidebar-link" to="/quality">
+            Material Receipt
+          </Link>
         </>
       )}
+
       {role === "store" && (
         <>
-<<<<<<< HEAD
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/apply-leave">Apply Leave</Link>
-          <Link to="/store">Stores</Link>
-          <Link to="/store/dispatches">Material Dispatches</Link>
-=======
-          <Link className="sidebar-link" to="/dashboard">Dashboard</Link>
-          <Link className="sidebar-link" to="/apply-leave">Apply Leave</Link>
-          <Link className="sidebar-link" to="/store">Stores</Link>
-          <Link className="sidebar-link" to="/store/dispatches">Material Dispatches</Link>
-          <Link className="sidebar-link" to="/announcements">Announcements</Link>
->>>>>>> 308545638b080213daaf91faec07e10dd3f2ba32
+          <Link className="sidebar-link" to="/store">
+            Stores
+          </Link>
+          <Link className="sidebar-link" to="/store/dispatches">
+            Material Dispatches
+          </Link>
         </>
       )}
-      <button className="sidebar-link" style={{ marginTop: 16 }} onClick={logout}>Logout</button>
+
+      <button
+        className="sidebar-link"
+        style={{ marginTop: 16 }}
+        onClick={logout}
+      >
+        Logout
+      </button>
     </aside>
   );
 }
