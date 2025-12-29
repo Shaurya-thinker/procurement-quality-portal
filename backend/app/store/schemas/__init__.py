@@ -1,5 +1,5 @@
-from .inventory import InventoryRead
-from .material_dispatch import (
+from app.store.schemas.inventory import InventoryRead
+from app.store.schemas.material_dispatch import (
     MaterialDispatchCreate,
     MaterialDispatchRead,
     MaterialDispatchUpdate

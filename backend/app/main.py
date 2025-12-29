@@ -27,7 +27,6 @@ from backend.app.quality.routers import (
 from backend.app.store.routers.store import router as store_router
 from backend.app.attendance.routers.attendance import router as attendance_router 
 from backend.app.store.services.store_service import StoreService
-from backend.app.store.models.inventory import InventoryItem
 from backend.app.store.routers.material_dispatch import router as material_dispatch_router
 
 # Create all tables

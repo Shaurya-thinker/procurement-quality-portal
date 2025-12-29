@@ -3,10 +3,12 @@ import string
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from ..models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem, DispatchStatus
-from ..schemas.material_dispatch import MaterialDispatchCreate, MaterialDispatchRead, MaterialDispatchUpdate
+from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem, DispatchStatus
+from app.store.schemas.material_dispatch import MaterialDispatchCreate, MaterialDispatchRead, MaterialDispatchUpdate
 from sqlalchemy.exc import IntegrityError
-from ..models.inventory import InventoryItem
+from app.store.models.inventory import InventoryItem
+from app.store.models.inventory_transaction import InventoryTransaction
+
 
 class MaterialDispatchService:
     
@@ -65,6 +67,18 @@ class MaterialDispatchService:
 
                 inventory.quantity -= dispatch_qty
 
+                txn = InventoryTransaction(
+                    inventory_item_id=inventory.id,
+                    transaction_type="OUT",
+                    quantity=dispatch_qty,
+                    reference_type="DISPATCH",
+                    reference_id=dispatch.id,
+                    remarks="Material dispatched",
+                    created_by=dispatch.created_by
+                )
+
+                db.add(txn)
+
                 dispatch_line = MaterialDispatchLineItem(
                     dispatch_id=dispatch.id,
                     inventory_item_id=inventory.id,
@@ -89,6 +103,62 @@ class MaterialDispatchService:
         except Exception as e:
             db.rollback()
             raise e
+        
+    @staticmethod
+    def cancel_material_dispatch(db: Session, dispatch_id: int, cancelled_by: str):
+        dispatch = (
+            db.query(MaterialDispatch)
+            .filter(MaterialDispatch.id == dispatch_id)
+            .with_for_update()
+            .first()
+        )
+
+        if not dispatch:
+            raise ValueError("Dispatch not found")
+
+        if dispatch.dispatch_status != DispatchStatus.DISPATCHED:
+            raise ValueError("Only DISPATCHED dispatches can be cancelled")
+
+        try:
+            for line in dispatch.line_items:
+                inventory = (
+                    db.query(InventoryItem)
+                    .filter(InventoryItem.id == line.inventory_item_id)
+                    .with_for_update()
+                    .first()
+                )
+
+                if not inventory:
+                    raise ValueError("Inventory item not found during reversal")
+
+                reversal_qty = int(line.quantity_dispatched)
+
+                # 🔁 Restore inventory
+                inventory.quantity += reversal_qty
+
+                # 🔁 Log REVERSAL transaction
+                txn = InventoryTransaction(
+                    inventory_item_id=inventory.id,
+                    transaction_type="REVERSAL",
+                    quantity=reversal_qty,
+                    reference_type="DISPATCH_CANCEL",
+                    reference_id=dispatch.id,
+                    remarks="Dispatch cancelled – inventory restored",
+                    created_by=cancelled_by
+                )
+
+                db.add(txn)
+
+            dispatch.dispatch_status = DispatchStatus.CANCELLED
+
+            db.commit()
+            db.refresh(dispatch)
+            return dispatch
+
+        except Exception:
+            db.rollback()
+            raise
+
     
     @staticmethod
     def get_material_dispatches(db: Session, skip: int = 0, limit: int = 100) -> List[MaterialDispatchRead]:

@@ -11,7 +11,9 @@ import {
   deleteStore,
   addBin,
   getStoreBins,
+  getInventoryByStore,
 } from '../../api/store.api';
+
 
 export const useStore = () => {
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,23 @@ export const useStore = () => {
       setLoading(false);
     }
   }, []);
+
+
+  const getInventoryByStoreAsync = useCallback(async (storeId) => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await getInventoryByStore(storeId);
+    return response.data;
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Failed to fetch inventory';
+    setError(msg);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   const addInventoryAsync = useCallback(async (data) => {
     setLoading(true);
@@ -201,6 +220,7 @@ export const useStore = () => {
     deleteStore: deleteStoreAsync,
     addBin: addBinAsync,
     getStoreBins: getStoreBinsAsync,
+    getInventoryByStore: getInventoryByStoreAsync,
     clearError,
   };
 };
