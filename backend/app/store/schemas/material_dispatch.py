@@ -40,6 +40,8 @@ class MaterialDispatchCreate(BaseModel):
     created_by: str = Field(..., min_length=1, max_length=100)
     remarks: Optional[str] = None
     
+    is_draft: bool = False
+
     # Receiver & Transport
     receiver_name: str = Field(..., min_length=1, max_length=200)
     receiver_contact: str = Field(..., min_length=1, max_length=20)

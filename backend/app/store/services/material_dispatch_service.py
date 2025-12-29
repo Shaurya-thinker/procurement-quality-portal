@@ -27,7 +27,11 @@ class MaterialDispatchService:
             dispatch = MaterialDispatch(
                 dispatch_number=MaterialDispatchService._generate_dispatch_number(),
                 dispatch_date=dispatch_create.dispatch_date,
-                dispatch_status=DispatchStatus.DRAFT,
+                dispatch_status=(
+                    DispatchStatus.DRAFT
+                    if dispatch_create.is_draft
+                    else DispatchStatus.DISPATCHED
+                ),
                 reference_type=dispatch_create.reference_type,
                 reference_id=dispatch_create.reference_id,
                 warehouse_id=dispatch_create.warehouse_id,
