@@ -75,6 +75,7 @@ export default function DashboardLayout({ children }) {
     { path: "/attendance", label: "Attendance", icon: <CalendarIcon /> },
     { path: "/procurement", label: "Procurement", icon: <ClipboardIcon /> },
     { path: "/quality", label: "Quality", icon: <CheckIcon /> },
+    { path: "/announcements", label: "Announcements", icon: <BellIcon /> },
     { path: "/store", label: "Store", icon: <BoxIcon /> },
     { path: "/profile", label: "Profile", icon: <UserIcon /> },
   ]

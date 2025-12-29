@@ -8,27 +8,29 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import time
 
-# Import database
-from backend.app.core.db import create_tables
+# Import database (use the app.* package path consistently)
+from app.core.db import create_tables
 
-# 🔹 FORCE model imports (VERY IMPORTANT)
-import backend.app.procurement.models
-import backend.app.quality.models
-import backend.app.store.models
-import backend.app.attendance.models
+# 🔹 FORCE model imports (VERY IMPORTANT) - use `app.*` imports only
+import app.procurement.models
+import app.quality.models
+import app.store.models
+import app.attendance.models
+import app.announcements.models
 
-# Import routers
-from backend.app.procurement.routers.procurement import router as procurement_router
-from backend.app.quality.routers import (
+# Import routers (consistent app.* paths)
+from app.procurement.routers.procurement import router as procurement_router
+from app.quality.routers import (
     material_receipt_router,
     inspection_router,
     gate_pass_router,
 )
-from backend.app.store.routers.store import router as store_router
-from backend.app.attendance.routers.attendance import router as attendance_router 
-from backend.app.store.services.store_service import StoreService
-from backend.app.store.models.inventory import InventoryItem
-from backend.app.store.routers.material_dispatch import router as material_dispatch_router
+from app.store.routers.store import router as store_router
+from app.attendance.routers.attendance import router as attendance_router
+from app.store.services.store_service import StoreService
+from app.store.models.inventory import InventoryItem
+from app.store.routers.material_dispatch import router as material_dispatch_router
+from app.announcements.router import router as announcements_router
 
 # Create all tables
 create_tables()
@@ -74,6 +76,7 @@ app.include_router(gate_pass_router, prefix="/api/v1/quality")
 app.include_router(store_router)
 app.include_router(material_dispatch_router)
 app.include_router(attendance_router, prefix="/api/v1/attendance", tags=["Attendance"])
+app.include_router(announcements_router)
 
 # Root endpoint
 @app.get("/")
@@ -165,6 +168,4 @@ if __name__ == "__main__":
     print("\n" + "=" * 80 + "\n")
     
     uvicorn.run(app, host="0.0.0.0", port=8000)
-from app.announcements.router import router as announcements_router
-
-app.include_router(announcements_router)
+    

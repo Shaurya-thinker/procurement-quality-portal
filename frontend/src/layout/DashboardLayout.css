@@ -350,7 +350,7 @@
    SIDEBAR
 ========================= */
 .dashboard-sidebar {
-  width: 240px;
+  width: 200px;
   background: linear-gradient(
     180deg,
     var(--color-blue-900) 0%,
@@ -365,8 +365,63 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative; /* 🔑 REQUIRED for toggle positioning */
-
 }
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-link {
+  padding: 10px 12px;
+  margin: 0 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  font-size: 13px;
+}
+
+.nav-link .nav-icon {
+  font-size: 18px;
+}
+
+.nav-link .nav-label {
+  font-size: 12px;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  transform: translateX(3px);
+}
+
+.nav-link.active {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-hover) 100%
+  );
+  color: white;
+  font-weight: 600;
+}
+
+.logout-nav {
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+/* Keep the rest of original styles intact */
 
 .dashboard-sidebar.collapsed {
   width: 88px;
