@@ -1,8 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useStore } from '../hooks/useStore';
 
 export default function MaterialDispatchForm() {
   const navigate = useNavigate();
+  const { getInventory } = useStore();
+  const [inventory, setInventory] = useState([]);
+
+  useEffect(() => {
+    getInventory()
+      .then(data => setInventory(data))
+      .catch(err => console.error('Failed to load inventory', err));
+  }, []);
+
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -31,6 +42,7 @@ export default function MaterialDispatchForm() {
       item_name: '',
       quantity_dispatched: '',
       uom: '',
+      available_qty: 0,
       batch_number: '',
       remarks: ''
     }]
@@ -143,6 +155,7 @@ export default function MaterialDispatchForm() {
         item_name: '',
         quantity_dispatched: '',
         uom: '',
+        available_qty: 0,
         batch_number: '',
         remarks: ''
       }]
@@ -405,17 +418,33 @@ export default function MaterialDispatchForm() {
                   </button>
                 )}
               </div>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item ID *</label>
-                  <input
-                    type="number"
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Inventory Item *</label>
+                  <select
                     value={item.item_id}
-                    onChange={(e) => updateLineItem(index, 'item_id', e.target.value)}
+                    onChange={(e) => {
+                      const inv = inventory.find(i => i.id === Number(e.target.value));
+                      if (!inv) return;
+
+                      updateLineItem(index, 'item_id', inv.id);
+                      updateLineItem(index, 'item_code', inv.item_code);
+                      updateLineItem(index, 'item_name', inv.item_name);
+                      updateLineItem(index, 'uom', inv.unit);
+                      updateLineItem(index, 'available_qty', inv.quantity);
+                    }}
                     style={inputStyle}
                     required
-                  />
+                  >
+                    <option value="">Select inventory item</option>
+                    {inventory.map(inv => (
+                      <option key={inv.id} value={inv.id}>
+                        {inv.item_code} — {inv.item_name} (Stock: {inv.quantity})
+                      </option>
+                    ))}
+                  </select>
+
                   {errors[`line_items.${index}.item_id`] && <div style={errorStyle}>{errors[`line_items.${index}.item_id`]}</div>}
                 </div>
                 
@@ -424,9 +453,8 @@ export default function MaterialDispatchForm() {
                   <input
                     type="text"
                     value={item.item_code}
-                    onChange={(e) => updateLineItem(index, 'item_code', e.target.value)}
-                    style={inputStyle}
-                    required
+                    readOnly
+                    style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />
                   {errors[`line_items.${index}.item_code`] && <div style={errorStyle}>{errors[`line_items.${index}.item_code`]}</div>}
                 </div>
@@ -436,9 +464,8 @@ export default function MaterialDispatchForm() {
                   <input
                     type="text"
                     value={item.item_name}
-                    onChange={(e) => updateLineItem(index, 'item_name', e.target.value)}
-                    style={inputStyle}
-                    required
+                    readOnly
+                    style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />
                   {errors[`line_items.${index}.item_name`] && <div style={errorStyle}>{errors[`line_items.${index}.item_name`]}</div>}
                 </div>
@@ -449,7 +476,14 @@ export default function MaterialDispatchForm() {
                     type="number"
                     step="0.001"
                     value={item.quantity_dispatched}
-                    onChange={(e) => updateLineItem(index, 'quantity_dispatched', e.target.value)}
+                    onChange={(e) => {
+                      const qty = Number(e.target.value);
+                      if (qty > item.available_qty) {
+                        alert(`Available stock: ${item.available_qty}`);
+                        return;
+                      }
+                      updateLineItem(index, 'quantity_dispatched', qty);
+                    }}
                     style={inputStyle}
                     required
                   />
@@ -461,9 +495,8 @@ export default function MaterialDispatchForm() {
                   <input
                     type="text"
                     value={item.uom}
-                    onChange={(e) => updateLineItem(index, 'uom', e.target.value)}
-                    style={inputStyle}
-                    required
+                    readOnly
+                    style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />
                   {errors[`line_items.${index}.uom`] && <div style={errorStyle}>{errors[`line_items.${index}.uom`]}</div>}
                 </div>

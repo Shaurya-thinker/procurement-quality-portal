@@ -28,6 +28,7 @@ from app.attendance.models.attendance import Attendance
 from app.store.models.inventory import InventoryItem
 from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem
 from app.store.models.store import Store, Bin
+from app.store.models.inventory_transaction import InventoryTransaction
 
 
 # this is the Alembic Config object, which provides

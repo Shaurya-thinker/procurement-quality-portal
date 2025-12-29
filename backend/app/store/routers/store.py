@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import Optional, List
-from ..services import StoreService
-from ..schemas import (
+from app.store.services import StoreService
+from app.store.schemas import (
     InventoryRead,
     StoreCreate,
     StoreRead,
@@ -11,7 +11,8 @@ from ..schemas import (
     BinCreate,
     BinRead,
 )
-from ..models import InventoryItem, Store, Bin
+from app.store.models.inventory import InventoryItem
+from app.store.models.store import Store, Bin
 from ...core.db import get_db
 
 router = APIRouter(prefix="/api/v1/store", tags=["Store"])

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
-from ...core.dependencies import require_store_role
-from ...core.db import get_db
-from ..schemas.material_dispatch import MaterialDispatchCreate, MaterialDispatchRead, MaterialDispatchUpdate
-from ..services.material_dispatch_service import MaterialDispatchService
+from app.core.dependencies import require_store_role
+from app.core.db import get_db
+from app.store.schemas.material_dispatch import MaterialDispatchCreate, MaterialDispatchRead, MaterialDispatchUpdate
+from app.store.services.material_dispatch_service import MaterialDispatchService
 
 router = APIRouter(prefix="/api/v1/store/material-dispatch", tags=["Material Dispatch"])
 

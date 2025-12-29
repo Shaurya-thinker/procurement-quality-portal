@@ -1,8 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import Optional, Dict, Any, List
-from ..models import InventoryItem, Store, Bin
-from ..schemas import InventoryRead, StoreCreate, StoreUpdate, BinCreate
+from app.store.models.inventory import InventoryItem
+from app.store.models.store import Store
+from app.store.models.inventory import InventoryItem
+from app.store.models.store import Store, Bin
+from app.store.schemas import InventoryRead, StoreCreate, StoreUpdate, BinCreate
+from app.store.models.inventory_transaction import InventoryTransaction
 from datetime import datetime
 import uuid
 
@@ -36,16 +40,47 @@ class StoreService:
         if not mr.store_id or not mr.bin_id:
             raise ValueError("Store or Bin not assigned in MR")
 
-        # 3️⃣ Receive inventory
+        # 3️⃣ Receive inventory (IN)
         for item in gate_pass.items:
-            inventory = InventoryItem(
-                item_id=item.item_id,
-                quantity=item.accepted_quantity,
-                store_id=mr.store_id,
-                bin_id=mr.bin_id,
-                gate_pass_id=gate_pass.id
+            received_qty = int(item.accepted_quantity)
+
+            inventory = (
+                db.query(InventoryItem)
+                .filter(
+                    InventoryItem.item_id == item.item_id,
+                    InventoryItem.store_id == mr.store_id,
+                    InventoryItem.bin_id == mr.bin_id,
+                    InventoryItem.gate_pass_id == gate_pass.id
+                )
+                .with_for_update()
+                .first()
             )
-            db.add(inventory)
+
+            if not inventory:
+                inventory = InventoryItem(
+                    item_id=item.item_id,
+                    quantity=received_qty,
+                    store_id=mr.store_id,
+                    bin_id=mr.bin_id,
+                    gate_pass_id=gate_pass.id
+                )
+                db.add(inventory)
+                db.flush()  # 👈 REQUIRED to get inventory.id
+            else:
+                inventory.quantity += received_qty
+
+            # 🔹 INVENTORY TRANSACTION (IN)
+            txn = InventoryTransaction(
+                inventory_item_id=inventory.id,
+                transaction_type="IN",
+                quantity=received_qty,
+                reference_type="GATE_PASS",
+                reference_id=gate_pass.id,
+                remarks="Material received into store",
+                created_by="system"
+            )
+            db.add(txn)
+
 
         # 4️⃣ Lock gate pass
         gate_pass.store_status = "RECEIVED"
@@ -56,7 +91,6 @@ class StoreService:
             "message": "Inventory received successfully",
             "gate_pass_id": gate_pass.id
         }
-
     
     @staticmethod
     def get_inventory(db: Session, filters: Optional[Dict[str, Any]] = None, 

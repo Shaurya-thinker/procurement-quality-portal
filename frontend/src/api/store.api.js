@@ -41,3 +41,9 @@ export const getDispatches = (params = {}) =>
 
 export const getInventoryItemDetails = (id) =>
   api.get(`/api/v1/store/inventory/${id}`);
+
+export const getInventoryByStore = (storeId) =>
+  api.get("/api/v1/store/inventory", {
+    params: { store_id: storeId }
+  });
+

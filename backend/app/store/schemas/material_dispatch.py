@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import List, Optional
 from decimal import Decimal
-from ..models.material_dispatch import DispatchStatus, ReferenceType
+from app.store.models.material_dispatch import DispatchStatus, ReferenceType    
 
 class MaterialDispatchLineItemCreate(BaseModel):
     inventory_item_id: int = Field(..., gt=0)
