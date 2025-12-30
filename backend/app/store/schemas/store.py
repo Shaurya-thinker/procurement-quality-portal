@@ -6,7 +6,6 @@ from datetime import datetime
 class BinBase(BaseModel):
     bin_no: str
     component_details: Optional[str] = None
-    quantity: int = 0
 
 
 class BinCreate(BinBase):

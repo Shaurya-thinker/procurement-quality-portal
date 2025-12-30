@@ -6,7 +6,7 @@ import Attendance from "../pages/Attendance";
 import Profile from "../pages/Profile";
 import ApplyLeave from "../pages/ApplyLeave";
 import LeaveHistory from "../pages/LeaveHistory";;
-import QualityGatePass from "../quality/pages/QualityGatePass";
+import QualityGatePass from "../quality/pages/QualityMaterialGatePass";
 import Resignation from "../pages/Resignation";
 import POList from "../procurement/pages/POList";
 import CreatePO from "../procurement/pages/CreatePO";
@@ -20,6 +20,7 @@ import StoreDetail from "../store/pages/StoreDetail";
 import Inventory from "../store/pages/Inventory";
 import DispatchList from "../store/pages/DispatchList";
 import CreateDispatch from "../store/pages/CreateDispatch";
+import DispatchDetail from "../store/pages/DispatchDetail";
 
 export default function AppRoutes() {
   return (
@@ -54,8 +55,13 @@ export default function AppRoutes() {
       {/* Store Routes */}
       <Route path="/store" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
       <Route path="/store/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+
       <Route path="/store/dispatches" element={<ProtectedRoute><DispatchList /></ProtectedRoute>} />
       <Route path="/store/dispatch/create" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
+      <Route path="/store/dispatch/edit/:dispatchId" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
+      <Route path="/store/dispatch/:dispatchId" element={<ProtectedRoute><DispatchDetail /></ProtectedRoute>} />
+
+
       <Route path="/store/:storeId" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
     </Routes>
   );

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuality } from '../hooks/useQuality';
 import MRHeader from '../components/MRHeader';
-import GatePassPreview from '../components/GatePassPreview';
+import GatePassPreview from '../components/MaterialGatePassPreview';
 
 export default function QualityReport() {
   const navigate = useNavigate();

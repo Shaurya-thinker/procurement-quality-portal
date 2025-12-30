@@ -108,3 +108,46 @@ class GatePassService:
         db.refresh(gate_pass)
 
         return gate_pass
+
+    @staticmethod
+    def get_gate_pass(db: Session, gate_pass_id: int):
+        gate_pass = db.query(GatePass).filter(
+            GatePass.id == gate_pass_id
+        ).first()
+
+        if not gate_pass:
+            raise ValueError("Gate Pass not found")
+
+        return gate_pass
+
+    @staticmethod
+    def list_gate_passes(
+        db: Session,
+        store_status: str | None = None
+    ):
+        query = db.query(GatePass)
+
+        if store_status:
+            query = query.filter(GatePass.store_status == store_status)
+
+        return query.order_by(GatePass.issued_at.desc()).all()
+
+    @staticmethod
+    def dispatch_to_store(db: Session, gate_pass_id: int):
+        gate_pass = db.query(GatePass).filter(
+            GatePass.id == gate_pass_id
+        ).first()
+
+        if not gate_pass:
+            raise ValueError("Gate Pass not found")
+
+        if gate_pass.store_status != "PENDING":
+            raise ValueError(
+                f"Gate Pass already {gate_pass.store_status}"
+            )
+
+        gate_pass.store_status = "SENT_TO_STORE"
+        db.commit()
+        db.refresh(gate_pass)
+
+        return gate_pass

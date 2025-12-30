@@ -4,6 +4,8 @@ import { useQuality } from "../hooks/useQuality";
 import MRHeader from "../components/MRHeader";
 import "../css/Inspection.css";
 import { getPODetails } from "../../api/procurement.api";
+import { generateGatePass } from "../../api/quality.api";
+
 
 export default function Inspection() {
   const navigate = useNavigate();
@@ -110,22 +112,26 @@ export default function Inspection() {
         mr_id: mrData.id,
         inspected_by: inspectorName,
         remarks: "Inspection completed",
-        lines: inspectionItems.map((item) => ({
+        lines: inspectionItems
+        .filter(item => item.mr_line_id) // 🔑 IMPORTANT
+        .map(item => ({
           mr_line_id: item.mr_line_id,
-          accepted_quantity: item.accepted_qty,
-          rejected_quantity: item.rejected_qty,
+          accepted_quantity: Number(item.accepted_qty || 0),
+          rejected_quantity: Number(item.rejected_qty || 0),
         })),
       };
 
-      const result = await submitInspection(payload);
+     const inspection = await submitInspection(payload);
 
-      navigate(`/quality/gate-pass/${result.id}`, {
-        state: {
-          mrData,
-          inspectionData: result,
-          poData,
-        },
+      // 🔑 STEP 1: generate gate pass
+      await generateGatePass({
+        inspection_id: inspection.id,
+        issued_by: inspectorName,
       });
+
+      // 🔑 STEP 2: now navigate
+      navigate(`/quality/gate-pass/${inspection.id}`);
+
     } catch (err) {
       console.error(err);
     }
@@ -306,6 +312,7 @@ const isInspectionCompleteAndValid = () => {
           type="button"
           className="btn btn-primary"
           onClick={handleSubmitInspection}
+          disabled={!isInspectionCompleteAndValid()}
         >
           Submit Inspection
         </button>

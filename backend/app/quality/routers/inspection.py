@@ -30,9 +30,3 @@ def get_inspection(inspection_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Inspection not found")
     return inspection
 
-
-@staticmethod
-def get_inspection(db: Session, inspection_id: int):
-    return db.query(QualityInspection).filter(
-        QualityInspection.id == inspection_id
-    ).first()

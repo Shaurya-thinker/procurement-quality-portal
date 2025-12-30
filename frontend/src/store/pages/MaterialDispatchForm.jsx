@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../hooks/useStore';
 
+
 export default function MaterialDispatchForm({ initialData = null, mode = 'CREATE' }) {
+  const isReadOnly =
+  mode === "VIEW" ||
+  initialData?.dispatch_status === "CANCELLED" ||
+  initialData?.dispatch_status === "DISPATCHED";
   const navigate = useNavigate();
   const { getInventory } = useStore();
   const [inventory, setInventory] = useState([]);
@@ -50,8 +55,6 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     }]
   });
 
-  const isReadOnly = initialData?.dispatch_status === 'CANCELLED';
-
   const validateForm = () => {
     const newErrors = {};
     
@@ -86,7 +89,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
 
   const handleSubmit = async (isDraft) => {
     if (isReadOnly) {
-  alert('This dispatch is cancelled and cannot be modified.');
+  alert('This dispatch is finalized and cannot be modified.');
   return;
 }
     
@@ -233,14 +236,27 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
   </button>
 
   <h1>
-  {mode === 'EDIT'
-    ? isReadOnly
-      ? 'View Cancelled Dispatch'
-      : 'Edit Material Dispatch'
-    : 'Create Material Dispatch'}
+  {mode === "CREATE" && "Create Material Dispatch"}
+  {mode === "EDIT" && "Edit Material Dispatch"}
+  {mode === "VIEW" && "Material Dispatch Details"}
 </h1>
 </div>
 
+{mode === "VIEW" && initialData?.dispatch_status === "DRAFT" && (
+  <button
+    onClick={() => navigate(`/store/dispatch/edit/${initialData.id}`)}
+    style={{
+      marginLeft: 12,
+      padding: "6px 12px",
+      background: "#2563eb",
+      color: "white",
+      border: "none",
+      borderRadius: 6
+    }}
+  >
+    ✏️ Edit
+  </button>
+)}
       
       <form>
         {/* Dispatch Header */}
@@ -580,56 +596,53 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
         </div>
 
         {/* Submit Buttons */}
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              onClick={() => navigate('/store')}
-              style={{
-                padding: '12px 24px',
-                background: '#6b7280',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}
-            >
-              Cancel
-            </button>
+          {!isReadOnly && (
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/store')}
+                style={{
+                  padding: '12px 24px',
+                  background: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px'
+                }}
+              >
+                Cancel
+              </button>
 
-            {/* 🔒 Draft disabled safely */}
-           <button
-              type="button"
-              onClick={() => handleSubmit(true)}
-              disabled={loading || isReadOnly}
-              style={{
-                padding: '12px 24px',
-                background: loading ? '#9ca3af' : '#6b7280',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: loading ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {loading ? 'Saving...' : 'Save as Draft'}
-            </button>
+              <button
+                type="button"
+                onClick={() => handleSubmit(true)}
+                disabled={loading}
+                style={{
+                  padding: '12px 24px',
+                  background: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px'
+                }}
+              >
+                Save as Draft
+              </button>
 
-            {/* ✅ Actual backend-supported action */}
-            <button
-              type="button"
-              onClick={() => handleSubmit(false)}
-              disabled={loading || isReadOnly}
-              style={{
-                padding: '12px 24px',
-                background: loading ? '#9ca3af' : '#2563eb',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: loading ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {loading ? 'Issuing...' : 'Issue Dispatch'}
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => handleSubmit(false)}
+                disabled={loading}
+                style={{
+                  padding: '12px 24px',
+                  background: '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px'
+                }}
+              >
+                Issue Dispatch
+              </button>
+            </div>
+          )}
       </form>
     </div>
   );

@@ -196,9 +196,11 @@ export default function DispatchList() {
                       opacity: isCancelled ? 0.6 : 1,
                       cursor: dispatch.dispatch_status === 'DRAFT' ? 'pointer' : 'default'
                     }}
-                    onClick={() => {
-                      if (dispatch.dispatch_status === 'DRAFT') {
+                   onClick={() => {
+                      if (dispatch.dispatch_status === "DRAFT") {
                         navigate(`/store/dispatch/edit/${dispatch.id}`);
+                      } else {
+                        navigate(`/store/dispatch/${dispatch.id}`);
                       }
                     }}
                   >

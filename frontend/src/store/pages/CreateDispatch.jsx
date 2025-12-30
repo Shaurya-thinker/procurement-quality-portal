@@ -1,134 +1,52 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useStore } from '../hooks/useStore';
-import MaterialDispatchForm from '../components/MaterialDispatchForm';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useStore } from "../hooks/useStore";
+import MaterialDispatchForm from "./MaterialDispatchForm";
+
 
 export default function CreateDispatch() {
+  const { dispatchId } = useParams();
   const navigate = useNavigate();
   const { loading } = useStore();
-  const [submitting, setSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = async (payload) => {
-    setErrorMessage('');
-    setSuccessMessage('');
-    setSubmitting(true);
-    
-    console.log('[CREATE DISPATCH] Submitting material dispatch:', payload);
-    
-    try {
-      // Add 10 second timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
-      );
-      
-      const apiCall = axios.post('http://localhost:8000/api/v1/store/material-dispatch', payload, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 10000
-      });
-      
-      const response = await Promise.race([apiCall, timeoutPromise]);
-      console.log('[CREATE DISPATCH] Success:', response.data);
-      
-      const action = payload.action === 'DRAFT' ? 'saved as draft' : 'issued successfully';
-      setSuccessMessage(`Material dispatch ${action}! Dispatch #${response.data.dispatch_number}`);
-      
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        navigate('/store/dispatches');
-      }, 2000);
-      
-    } catch (err) {
-      console.error('[CREATE DISPATCH] Failed:', err);
-      
-      let errorMsg = 'Failed to create material dispatch';
-      
-      if (err.message === 'Request timeout') {
-        errorMsg = 'Request timed out. Please try again.';
-      } else if (err.response?.data?.detail) {
-        errorMsg = Array.isArray(err.response.data.detail) 
-          ? err.response.data.detail.map(e => e.msg || e).join(', ')
-          : err.response.data.detail;
-      } else if (err.response?.data?.detail || err.message) {
-        errorMsg = err.response.data.message;
-      } else if (err.message) {
-        errorMsg = err.message;
-      }
-      
-      setErrorMessage(errorMsg);
-    } finally {
-      setSubmitting(false);
+  useEffect(() => {
+  if (!dispatchId) return;
+
+  fetch(`http://localhost:8000/api/v1/store/material-dispatch/${dispatchId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`
     }
-  };
+  })
+    .then(res => res.json())
+    .then(data => setInitialData(data));
+}, [dispatchId]);
 
-  const containerStyle = {
-    padding: '24px',
-    backgroundColor: '#f9fafb',
-    minHeight: '100vh',
-  };
+  const [initialData, setInitialData] = useState(null);
 
-  const headerStyle = {
-    marginBottom: '24px',
-  };
+  if (dispatchId && !initialData) {
+  return <p style={{ padding: 24 }}>Loading dispatch…</p>;
+}
 
-  const titleStyle = {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: '8px',
-  };
 
-  const subtitleStyle = {
-    fontSize: '14px',
-    color: '#6b7280',
-  };
-
-  const successStyle = {
-    padding: '16px',
-    backgroundColor: '#d1fae5',
-    color: '#065f46',
-    borderRadius: '6px',
-    marginBottom: '16px',
-    fontWeight: '500',
-  };
-
-  const errorStyle = {
-    padding: '16px',
-    backgroundColor: '#fee2e2',
-    color: '#7f1d1d',
-    borderRadius: '6px',
-    marginBottom: '16px',
-    fontWeight: '500',
-  };
 
   return (
-    <div style={containerStyle}>
-      <div style={{ ...headerStyle, display: 'flex', alignItems: 'center', gap: '12px' }}>
-  <button
-    onClick={() => navigate(-1)}
-    className="back-arrow-btn"
-    aria-label="Go back"
-  >
-    ←
-  </button>
-
-  <div>
-    <h1 style={titleStyle}>Create Material Dispatch</h1>
-    <p style={subtitleStyle}>
-      Issue materials from inventory with comprehensive tracking
-    </p>
-  </div>
-</div>
-
-
-      {successMessage && <div style={successStyle}>{successMessage}</div>}
-      {errorMessage && <div style={errorStyle}>{errorMessage}</div>}
+    <div style={{ padding: '24px', backgroundColor: '#f9fafb', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+        <button onClick={() => navigate(-1)} className="back-arrow-btn">←</button>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 700 }}>
+            {dispatchId ? "Edit Material Dispatch" : "Create Material Dispatch"}
+          </h1>
+          <p style={{ color: '#6b7280' }}>
+            Issue materials from inventory with comprehensive tracking
+          </p>
+        </div>
+      </div>
 
       <MaterialDispatchForm
-        onSubmit={handleSubmit}
-        loading={submitting || loading}
+        initialData={initialData}
+        mode={dispatchId ? "EDIT" : "CREATE"}
+        loading={loading}
       />
     </div>
   );

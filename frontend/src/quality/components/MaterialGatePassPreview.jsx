@@ -1,4 +1,4 @@
-export default function GatePassPreview({ gatePassData, onDispatch }) {
+export default function GatePassPreview({ gatePassData, onDispatch, dispatchDisabled = false }) {
   const containerStyle = {
     backgroundColor: "#ffffff",
     borderRadius: "6px",
@@ -247,8 +247,16 @@ export default function GatePassPreview({ gatePassData, onDispatch }) {
         <button onClick={handlePrint} style={printButtonStyle}>
           🖨️ Print Gate Pass
         </button>
-        <button onClick={onDispatch} style={dispatchButtonStyle}>
-          ✓ Dispatch to Store
+        <button
+          onClick={onDispatch}
+          disabled={dispatchDisabled}
+          style={{
+            ...dispatchButtonStyle,
+            opacity: dispatchDisabled ? 0.6 : 1,
+            cursor: dispatchDisabled ? "not-allowed" : "pointer",
+          }}
+        >
+          {dispatchDisabled ? "✓ Dispatched" : "✓ Dispatch to Store"}
         </button>
       </div>
     </div>

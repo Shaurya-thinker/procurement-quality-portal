@@ -58,7 +58,10 @@ class InspectionService:
             if not mr_line:
                 raise ValueError(f"MR line {line.mr_line_id} not found")
 
-            if line.accepted_quantity + line.rejected_quantity != mr_line.received_quantity:
+            accepted = int(line.accepted_quantity or 0)
+            rejected = int(line.rejected_quantity or 0)
+
+            if accepted + rejected != mr_line.received_quantity:
                 raise ValueError(
                     f"Accepted + Rejected must equal received quantity for MR line {line.mr_line_id}"
                 )

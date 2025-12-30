@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.core.db import Base
+from sqlalchemy import Index
 
 
 
@@ -25,6 +26,9 @@ class GatePass(Base):
     back_populates="gate_pass",
     cascade="all, delete-orphan"
     )
+
+Index("idx_gate_pass_store_status", GatePass.store_status)
+Index("idx_gate_pass_inspection", GatePass.inspection_id)
 
 
 class GatePassItem(Base):

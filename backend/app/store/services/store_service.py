@@ -9,7 +9,7 @@ from app.store.schemas import InventoryRead, StoreCreate, StoreUpdate, BinCreate
 from app.store.models.inventory_transaction import InventoryTransaction
 from datetime import datetime
 import uuid
-
+from app.store.models.store import Store, Bin
 
 class StoreService:
     
@@ -39,6 +39,21 @@ class StoreService:
 
         if not mr.store_id or not mr.bin_id:
             raise ValueError("Store or Bin not assigned in MR")
+        
+        # 2️⃣ Validate Store exists
+        store = db.query(Store).filter(Store.id == mr.store_id).first()
+        if not store:
+            raise ValueError("Invalid Store assigned in Material Receipt")
+
+        # 3️⃣ Validate Bin exists and belongs to Store
+        bin = db.query(Bin).filter(
+            Bin.id == mr.bin_id,
+            Bin.store_id == mr.store_id
+        ).first()
+
+        if not bin:
+            raise ValueError("Invalid Bin assigned in Material Receipt")
+
 
         # 3️⃣ Receive inventory (IN)
         for item in gate_pass.items:

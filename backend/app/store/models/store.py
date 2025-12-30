@@ -28,7 +28,7 @@ class Bin(Base):
     bin_no = Column(String(50), nullable=False, index=True)
     store_id = Column(Integer, ForeignKey("stores.id"), nullable=False)
     component_details = Column(String(255), nullable=True)
-    quantity = Column(Integer, default=0)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

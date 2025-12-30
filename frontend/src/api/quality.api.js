@@ -28,3 +28,28 @@ export const createQualityChecklist = (data) =>
 
 export const createQualitySheet = (data) =>
   api.post("/api/v1/quality/quality-sheet", data);
+
+/* Gate Pass */
+
+export const generateGatePass = (data) =>
+  api.post("/api/v1/quality/gate-pass", data);
+
+export const getGatePassById = (id) =>
+  api.get(`/api/v1/quality/gate-pass/${id}`);
+
+export const getGatePassByInspection = (inspectionId) =>
+  api.get(`/api/v1/quality/gate-pass/by-inspection/${inspectionId}`);
+
+export const dispatchGatePassToStore = (gatePassId) => {
+  if (!gatePassId) {
+    return Promise.reject(
+      new Error("Gate Pass ID missing")
+    );
+  }
+
+  return api.post(
+    `/api/v1/quality/gate-pass/${gatePassId}/dispatch`
+  );
+};
+
+
