@@ -102,11 +102,14 @@ export default function DispatchList() {
   };
 
   const handleCancel = async (dispatchId) => {
-    const confirmCancel = window.confirm(
-      'Are you sure you want to cancel this dispatch?\nThis action cannot be undone.'
+    const reason = prompt(
+      'Enter reason for cancellation (required):'
     );
 
-    if (!confirmCancel) return;
+    if (!reason || reason.trim().length < 5) {
+      alert('Cancellation reason must be at least 5 characters.');
+      return;
+    }
 
     try {
       await fetch(
@@ -114,13 +117,15 @@ export default function DispatchList() {
         {
           method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+          },
+          body: JSON.stringify({ cancel_reason: reason })
         }
       );
 
-      loadDispatches(); // refresh list
-    } catch (err) {
+      loadDispatches();
+    } catch {
       alert('Failed to cancel dispatch');
     }
   };

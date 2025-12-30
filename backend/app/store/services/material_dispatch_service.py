@@ -109,7 +109,7 @@ class MaterialDispatchService:
             raise e
         
     @staticmethod
-    def cancel_material_dispatch(db: Session, dispatch_id: int, cancelled_by: str):
+    def cancel_material_dispatch(db: Session, dispatch_id: int, cancelled_by: str, cancel_reason: str):
         dispatch = (
             db.query(MaterialDispatch)
             .filter(MaterialDispatch.id == dispatch_id)
@@ -147,13 +147,17 @@ class MaterialDispatchService:
                     quantity=reversal_qty,
                     reference_type="DISPATCH_CANCEL",
                     reference_id=dispatch.id,
-                    remarks="Dispatch cancelled – inventory restored",
+                    remarks=f"Dispatch cancelled: {cancel_reason}",
                     created_by=cancelled_by
                 )
 
                 db.add(txn)
 
             dispatch.dispatch_status = DispatchStatus.CANCELLED
+            dispatch.remarks = (
+                f"❌ Cancelled by {cancelled_by}\n"
+                f"Reason: {cancel_reason}"
+            )
 
             db.commit()
             db.refresh(dispatch)

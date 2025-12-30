@@ -94,3 +94,7 @@ class MaterialDispatchRead(BaseModel):
 class MaterialDispatchUpdate(BaseModel):
     dispatch_status: Optional[DispatchStatus] = None
     remarks: Optional[str] = None
+
+class MaterialDispatchCancel(BaseModel):
+    cancel_reason: str = Field(..., min_length=5, max_length=500)
+

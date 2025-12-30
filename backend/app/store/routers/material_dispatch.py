@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.dependencies import require_store_role
 from app.core.db import get_db
 from app.store.schemas.material_dispatch import MaterialDispatchCreate, MaterialDispatchRead, MaterialDispatchUpdate
 from app.store.services.material_dispatch_service import MaterialDispatchService
+from app.store.schemas.material_dispatch import MaterialDispatchCancel
 
 router = APIRouter(prefix="/api/v1/store/material-dispatch", tags=["Material Dispatch"])
 
@@ -69,3 +70,28 @@ def update_material_dispatch(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to update material dispatch")
+    
+
+@router.post("/{dispatch_id}/cancel", response_model=MaterialDispatchRead)
+def cancel_material_dispatch(
+    dispatch_id: int,
+    payload: MaterialDispatchCancel,
+    authorization: str = Header(None),
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    cancelled_by = "store_user"
+    if authorization and authorization.startswith("Bearer "):
+        cancelled_by = "authenticated_user"
+
+    try:
+        dispatch = MaterialDispatchService.cancel_material_dispatch(
+            db=db,
+            dispatch_id=dispatch_id,
+            cancelled_by=cancelled_by,
+            cancel_reason=payload.cancel_reason
+        )
+        return MaterialDispatchRead.from_orm(dispatch)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
