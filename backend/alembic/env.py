@@ -1,10 +1,11 @@
 import sys
 import os
 
-BASE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "backend")
-)
-sys.path.insert(0, BASE_DIR)
+from pathlib import Path
+import sys
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BASE_DIR))
 
 from logging.config import fileConfig
 

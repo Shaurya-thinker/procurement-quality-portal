@@ -32,36 +32,36 @@ def upgrade() -> None:
     """Upgrade schema."""
 
     # 1️⃣ Create inventory_transactions table (this is REQUIRED)
-    op.create_table(
-        'inventory_transactions',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('inventory_item_id', sa.Integer(), nullable=False),
-        sa.Column(
-            'transaction_type',
-            sa.Enum('IN', 'OUT', name='inventory_transaction_type'),
-            nullable=False
-        ),
-        sa.Column('quantity', sa.Integer(), nullable=False),
-        sa.Column('reference_type', sa.String(), nullable=False),
-        sa.Column('reference_id', sa.Integer(), nullable=False),
-        sa.Column('remarks', sa.String(), nullable=True),
-        sa.Column('created_by', sa.String(), nullable=True),
-        sa.Column(
-            'created_at',
-            sa.DateTime(timezone=True),
-            server_default=sa.text('(CURRENT_TIMESTAMP)'),
-            nullable=True
-        ),
-        sa.ForeignKeyConstraint(['inventory_item_id'], ['inventory_items.id']),
-        sa.PrimaryKeyConstraint('id')
-    )
+    # op.create_table(
+    #     'inventory_transactions',
+    #     sa.Column('id', sa.Integer(), nullable=False),
+    #     sa.Column('inventory_item_id', sa.Integer(), nullable=False),
+    #     sa.Column(
+    #         'transaction_type',
+    #         sa.Enum('IN', 'OUT', name='inventory_transaction_type'),
+    #         nullable=False
+    #     ),
+    #     sa.Column('quantity', sa.Integer(), nullable=False),
+    #     sa.Column('reference_type', sa.String(), nullable=False),
+    #     sa.Column('reference_id', sa.Integer(), nullable=False),
+    #     sa.Column('remarks', sa.String(), nullable=True),
+    #     sa.Column('created_by', sa.String(), nullable=True),
+    #     sa.Column(
+    #         'created_at',
+    #         sa.DateTime(timezone=True),
+    #         server_default=sa.text('(CURRENT_TIMESTAMP)'),
+    #         nullable=True
+    #     ),
+    #     sa.ForeignKeyConstraint(['inventory_item_id'], ['inventory_items.id']),
+    #     sa.PrimaryKeyConstraint('id')
+    # )
 
-    op.create_index(
-        'ix_inventory_transactions_id',
-        'inventory_transactions',
-        ['id'],
-        unique=False
-    )
+    # op.create_index(
+    #     'ix_inventory_transactions_id',
+    #     'inventory_transactions',
+    #     ['id'],
+    #     unique=False
+    # )
 
     # 2️⃣ Drop legacy dispatch tables ONLY if they exist
     if table_exists('dispatch_items'):

@@ -80,6 +80,8 @@ export default function DashboardLayout({ children }) {
   { path: "/procurement", label: "Procurement", icon: <ClipboardIcon /> },
   { path: "/quality", label: "Quality", icon: <CheckIcon /> },
   { path: "/store", label: "Store", icon: <BoxIcon /> },
+  {
+  path: "/contractors", label: "Contractors", icon: <ClipboardIcon /> },
   { path: "/profile", label: "Profile", icon: <UserIcon /> },
 ]
 

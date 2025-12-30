@@ -7,6 +7,7 @@ Create Date: 2025-12-30 15:10:47.720260
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import inspect
 
 
 revision = '7cc45bc44079'
@@ -21,6 +22,13 @@ def upgrade() -> None:
     SQLite does not support DROP COLUMN,
     so we recreate the bins table without `quantity`.
     """
+
+    bind = op.get_bind()
+    inspector = inspect(bind)
+
+    # ✅ Fresh DB safety
+    if 'bins' not in inspector.get_table_names():
+        return
 
     # 1. Rename old table
     op.rename_table('bins', 'bins_old')
@@ -54,6 +62,12 @@ def downgrade() -> None:
 
     Re-add quantity column by recreating table.
     """
+
+    bind = op.get_bind()
+    inspector = inspect(bind)
+
+    if 'bins' not in inspector.get_table_names():
+        return
 
     op.rename_table('bins', 'bins_new')
 
