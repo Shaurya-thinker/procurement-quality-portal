@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.db import get_db
@@ -6,7 +5,6 @@ from app.announcements.models import Event, Training, Meeting
 from . import schemas
 
 router = APIRouter(
-    prefix="/api/v1/announcements",
     tags=["Announcements"]
 )
 
