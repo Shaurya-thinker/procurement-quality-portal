@@ -1,54 +1,65 @@
-<button
-  className="primary-btn"
-  onClick={() => navigate("/contractors/create")}
->
-  + Add Contractor
-</button>
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchContractors } from "../../api/contractors.api";
-import ContractorTable from "../components/ContractorTable";
+import { mockContractors } from "../mockContractors";
 import "../css/contractors.css";
 
 export default function ContractorsList() {
-  const [contractors, setContractors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [contractors, setContractors] = useState([]);
 
   useEffect(() => {
-    loadContractors();
+    setContractors(mockContractors);
   }, []);
-
-  const loadContractors = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchContractors();
-      setContractors(data);
-    } catch (err) {
-      setError("Failed to load contractors");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) return <p>Loading contractors...</p>;
-  if (error) return <p className="error-text">{error}</p>;
 
   return (
     <div className="contractors-page">
-      <div className="contractors-header">
-        <h1>Contractors</h1>
-        <button
-          className="primary-btn"
-          onClick={() => navigate("/contractors/create")}
-        >
-          + Add Contractor
-        </button>
-      </div>
+      <div className="contractors-card">
+        <div className="contractors-header">
+          <h1>Contractors</h1>
+          <button
+            className="btn-primary"
+            onClick={() => navigate("/contractors/create")}
+          >
+            + Add Contractor
+          </button>
+        </div>
 
-      <ContractorTable contractors={contractors} />
+        <table className="contractors-table">
+          <thead>
+            <tr>
+              <th>Contractor Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Address</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contractors.map((c) => (
+              <tr
+                key={c.id}
+                onClick={() => navigate(`/contractors/${c.id}`)}
+              >
+                <td>{c.name}</td>
+                <td>{c.phone}</td>
+                <td>{c.email}</td>
+                <td>{c.address}</td>
+                <td>
+                  <span
+                    className={`status-pill ${
+                      c.status === "ACTIVE"
+                        ? "status-active"
+                        : "status-inactive"
+                    }`}
+                  >
+                    {c.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

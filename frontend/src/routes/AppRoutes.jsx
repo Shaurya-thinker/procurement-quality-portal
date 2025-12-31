@@ -21,11 +21,15 @@ import Inventory from "../store/pages/Inventory";
 import DispatchList from "../store/pages/DispatchList";
 import CreateDispatch from "../store/pages/CreateDispatch";
 import DispatchDetail from "../store/pages/DispatchDetail";
+import ContractorsList from "../contractors/pages/ContractorsList";
+import CreateContractor from "../contractors/pages/CreateContractor";
+import ContractorDetails from "../contractors/pages/ContractorDetails";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
 
       {/* Main Routes */}
@@ -63,6 +67,12 @@ export default function AppRoutes() {
 
 
       <Route path="/store/:storeId" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />
+
+      {/* Contractors Routes */}
+      <Route path="/contractors" element={<ProtectedRoute><ContractorsList /></ProtectedRoute>} />
+      <Route path="/contractors/create" element={<ProtectedRoute><CreateContractor /></ProtectedRoute>} />
+      <Route path="/contractors/:contractorId" element={<ProtectedRoute><ContractorDetails /></ProtectedRoute>} />
+      <Route path="/contractors/:contractorId/edit" element={<ProtectedRoute><CreateContractor /></ProtectedRoute>} />
     </Routes>
   );
 }
