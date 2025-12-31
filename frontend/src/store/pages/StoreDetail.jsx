@@ -298,6 +298,13 @@ export default function StoreDetail() {
     </button>
 
     <button
+      onClick={() => navigate(`/store/${store.id}/gate-passes`)}
+      className="action-button inventory-button"
+    >
+      Receive Gate Pass
+    </button> 
+
+    <button
       onClick={() => setIsEditing(true)}
       className="action-button inventory-button"
     >

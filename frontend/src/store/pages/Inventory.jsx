@@ -19,6 +19,13 @@ export default function Inventory() {
     loadInventory();
   }, []);
 
+  const handleDispatch = (inventoryItem) => {
+    navigate('/store/dispatch/create', {
+      state: { inventory: inventoryItem },
+    });
+  };
+
+
   const loadInventory = async () => {
     try {
       const data = await getInventory();
@@ -235,13 +242,8 @@ export default function Inventory() {
           <InventoryTable
             items={inventory}
             searchTerm={searchTerm}
+            onDispatch={handleDispatch}
           />
-
-          <div style={actionsStyle}>
-            <button onClick={() => navigate('/store/dispatch')} style={dispatchButtonStyle}>
-              + Create Dispatch
-            </button>
-          </div>
         </>
       )}
 

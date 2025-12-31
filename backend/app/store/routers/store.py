@@ -44,7 +44,6 @@ def get_inventory(
             Store.name.label("store_name"),
             InventoryItem.bin_id,
             Bin.bin_no.label("bin_no"),
-            InventoryItem.gate_pass_id,
             InventoryItem.created_at,
         )
         .join(Store, Store.id == InventoryItem.store_id)
@@ -58,7 +57,22 @@ def get_inventory(
     if item_id:
         query = query.filter(InventoryItem.item_id == item_id)
 
-    return query.all()
+    results = query.all()
+
+    return [
+        {
+            "id": r.id,
+            "item_id": r.item_id,
+            "quantity": r.quantity,
+            "store_id": r.store_id,
+            "store_name": r.store_name,
+            "bin_id": r.bin_id,
+            "bin_no": r.bin_no,
+            "created_at": r.created_at,
+        }
+        for r in results
+    ]
+
 
 
 

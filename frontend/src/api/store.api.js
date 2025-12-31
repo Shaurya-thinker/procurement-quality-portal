@@ -2,6 +2,14 @@ import api from "./axios";
 
 /* Stores Management */
 
+export const getPendingGatePasses = (storeId) =>
+  api.get(`/quality/gate-passes`, {
+    params: { store_id: storeId, status: 'PENDING' },
+  });
+
+export const receiveGatePass = (gatePassId) =>
+  api.post(`/store/receive-gate-pass/${gatePassId}`);
+
 export const createStore = (data) =>
   api.post("/api/v1/store/stores", data);
 

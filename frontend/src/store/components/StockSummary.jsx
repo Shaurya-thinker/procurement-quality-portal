@@ -1,4 +1,21 @@
 export default function StockSummary({ items = [] }) {
+  const LOW_STOCK_THRESHOLD = 5;
+
+  const totalItems = new Set(items.map(i => i.item_id)).size;
+
+  const totalQuantity = items.reduce(
+    (sum, i) => sum + Number(i.quantity || 0),
+    0
+  );
+
+  const storageLocations = new Set(
+    items.map(i => `${i.store_id}-${i.bin_id}`)
+  ).size;
+
+  const lowStockItems = items.filter(
+    i => Number(i.quantity || 0) <= LOW_STOCK_THRESHOLD
+  ).length;
+
   const containerStyle = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -35,18 +52,12 @@ export default function StockSummary({ items = [] }) {
     color: '#6b7280',
   };
 
-  const totalItems = items.length;
-  const totalQuantity = items.reduce((sum, item) => sum + (item.quantity_available || 0), 0);
-  const locations = new Set(items.map(item => item.location).filter(Boolean)).size;
-
-  const lowStockItems = items.filter(item => (item.quantity_available || 0) <= 5).length;
-
   return (
     <div style={containerStyle}>
       <div style={cardStyle}>
         <div style={labelStyle}>Total Items</div>
         <div style={valueStyle}>{totalItems}</div>
-        <div style={descriptionStyle}>In inventory</div>
+        <div style={descriptionStyle}>Distinct items</div>
       </div>
 
       <div style={cardStyle}>
@@ -57,16 +68,25 @@ export default function StockSummary({ items = [] }) {
 
       <div style={cardStyle}>
         <div style={labelStyle}>Storage Locations</div>
-        <div style={valueStyle}>{locations}</div>
-        <div style={descriptionStyle}>Active locations</div>
+        <div style={valueStyle}>{storageLocations}</div>
+        <div style={descriptionStyle}>Store + Bin pairs</div>
       </div>
 
       <div style={cardStyle}>
-        <div style={labelStyle}>Low Stock Items</div>
-        <div style={{ ...valueStyle, color: lowStockItems > 0 ? '#ef4444' : '#10b981' }}>
+        <div style={{ ...labelStyle, color: '#ef4444' }}>
+          Low Stock Items
+        </div>
+        <div
+          style={{
+            ...valueStyle,
+            color: lowStockItems > 0 ? '#ef4444' : '#10b981',
+          }}
+        >
           {lowStockItems}
         </div>
-        <div style={descriptionStyle}>≤ 5 units</div>
+        <div style={descriptionStyle}>
+          ≤ {LOW_STOCK_THRESHOLD} units
+        </div>
       </div>
     </div>
   );

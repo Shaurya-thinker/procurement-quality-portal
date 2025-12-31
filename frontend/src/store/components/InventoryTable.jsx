@@ -1,4 +1,9 @@
-export default function InventoryTable({ items = [], searchTerm = '', hideStore = false }) {
+export default function InventoryTable({
+  items = [],
+  searchTerm = '',
+  hideStore = false,
+  onDispatch,
+}) {
   const containerStyle = {
     backgroundColor: '#ffffff',
     borderRadius: '6px',
@@ -40,15 +45,6 @@ export default function InventoryTable({ items = [], searchTerm = '', hideStore 
     fontWeight: '500',
   };
 
-  const locationBadgeStyle = {
-    display: 'inline-block',
-    padding: '4px 8px',
-    backgroundColor: '#e0e7ff',
-    color: '#3730a3',
-    borderRadius: '3px',
-    fontSize: '12px',
-  };
-
   const emptyStateStyle = {
     padding: '32px 16px',
     textAlign: 'center',
@@ -56,8 +52,15 @@ export default function InventoryTable({ items = [], searchTerm = '', hideStore 
     fontSize: '14px',
   };
 
-  // Filter items based on search term and location filter
-  const filteredItems = items.filter(item => {
+  const highlightRowStyle = {
+    backgroundColor: '#f1c3f5ff', // soft yellow
+  };
+
+  const isSearchActive = searchTerm && searchTerm.trim() !== '';
+
+
+  /* 🔎 Search filtering (valid fields only) */
+  const filteredItems = items.filter((item) => {
     if (!searchTerm) return true;
 
     const term = searchTerm.toLowerCase();
@@ -65,8 +68,7 @@ export default function InventoryTable({ items = [], searchTerm = '', hideStore 
     return (
       item.item_id?.toString().includes(term) ||
       item.store_id?.toString().includes(term) ||
-      item.bin_id?.toString().includes(term) ||
-      item.gate_pass_id?.toString().includes(term)
+      item.bin_id?.toString().includes(term)
     );
   });
 
@@ -84,7 +86,7 @@ export default function InventoryTable({ items = [], searchTerm = '', hideStore 
     return (
       <div style={containerStyle}>
         <div style={emptyStateStyle}>
-          No inventory items found. Start by receiving items from quality.
+          No inventory items found. Receive items via Gate Pass.
         </div>
       </div>
     );
@@ -94,7 +96,7 @@ export default function InventoryTable({ items = [], searchTerm = '', hideStore 
     return (
       <div style={containerStyle}>
         <div style={emptyStateStyle}>
-          No items match your search or filter criteria.
+          No items match your search.
         </div>
       </div>
     );
@@ -110,13 +112,16 @@ export default function InventoryTable({ items = [], searchTerm = '', hideStore 
             <th style={thStyle}>Quantity</th>
             {!hideStore && <th style={thStyle}>Store ID</th>}
             <th style={thStyle}>Bin ID</th>
-            <th style={thStyle}>Gate Pass</th>
             <th style={thStyle}>Received On</th>
+            {!hideStore && onDispatch && <th style={thStyle}>Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {filteredItems.map((item, index) => (
-            <tr key={index}>
+          {filteredItems.map((item) => (
+            <tr
+              key={item.id}
+              style={isSearchActive ? highlightRowStyle : {}}
+            >
               <td style={tdStyle}>{item.id}</td>
               <td style={tdStyle}>{item.item_id}</td>
               <td style={tdStyle}>
@@ -124,10 +129,32 @@ export default function InventoryTable({ items = [], searchTerm = '', hideStore 
                   {item.quantity}
                 </span>
               </td>
-              {!hideStore && <td style={tdStyle}>{item.store_id}</td>}
+              {!hideStore && (
+                <td style={tdStyle}>{item.store_id}</td>
+              )}
               <td style={tdStyle}>{item.bin_id}</td>
-              <td style={tdStyle}>{item.gate_pass_id}</td>
-              <td style={tdStyle}>{formatDate(item.created_at)}</td>
+              <td style={tdStyle}>
+                {formatDate(item.created_at)}
+              </td>
+              {!hideStore && onDispatch && (
+                <td style={tdStyle}>
+                  <button
+                    onClick={() => onDispatch(item)}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                    }}
+                  >
+                    Dispatch
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

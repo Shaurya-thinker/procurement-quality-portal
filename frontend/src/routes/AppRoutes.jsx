@@ -22,7 +22,7 @@ import DispatchList from "../store/pages/DispatchList";
 import CreateDispatch from "../store/pages/CreateDispatch";
 import DispatchDetail from "../store/pages/DispatchDetail";
 import InventoryByStore from "../store/pages/InventoryByStore";
-
+import StoreGatePasses from "../store/pages/StoreGatePasses";
 
 
 export default function AppRoutes() {
@@ -56,6 +56,7 @@ export default function AppRoutes() {
       <Route path="/announcements" element={<ProtectedRoute><Announcement /></ProtectedRoute>} />
 
       {/* Store Routes */}
+      <Route path="/store/:storeId/gate-passes" element={<ProtectedRoute><StoreGatePasses /></ProtectedRoute>}/>
       <Route path="/store" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
       <Route path="/store/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
 

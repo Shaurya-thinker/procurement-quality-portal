@@ -13,11 +13,35 @@ import {
   getStoreBins,
   getInventoryByStore,
 } from '../../api/store.api';
+import { getPendingGatePasses, receiveGatePass } from '../../api/store.api';
 
 
 export const useStore = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const getPendingGatePassesAsync = useCallback(async (storeId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getPendingGatePasses(storeId);
+      return res.data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const receiveGatePassAsync = useCallback(async (gatePassId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await receiveGatePass(gatePassId);
+      return res.data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
 
   const getInventoryAsync = useCallback(async (params = {}) => {
     setLoading(true);
@@ -189,6 +213,8 @@ export const useStore = () => {
     addBin: addBinAsync,
     getStoreBins: getStoreBinsAsync,
     getInventoryByStore: getInventoryByStoreAsync,
+    getPendingGatePasses: getPendingGatePassesAsync,
+    receiveGatePass: receiveGatePassAsync,
     clearError,
   };
 };

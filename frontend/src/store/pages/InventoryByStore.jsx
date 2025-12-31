@@ -7,7 +7,9 @@ export default function InventoryByStore() {
   const { storeId } = useParams();
   const navigate = useNavigate();
   const { getInventoryByStore } = useStore();
+
   const [inventory, setInventory] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     load();
@@ -15,11 +17,11 @@ export default function InventoryByStore() {
 
   const load = async () => {
     const data = await getInventoryByStore(storeId);
-    setInventory(data);
+    setInventory(Array.isArray(data) ? data : []);
   };
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
       {/* Back Arrow + Title */}
       <div
         style={{
@@ -40,8 +42,46 @@ export default function InventoryByStore() {
         <h2 style={{ margin: 0 }}>Store Inventory</h2>
       </div>
 
+      {/* Search */}
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          marginBottom: "16px",
+          alignItems: "center",
+        }}
+      >
+        <label
+          style={{
+            fontSize: "13px",
+            fontWeight: "600",
+            color: "#374151",
+            textTransform: "uppercase",
+          }}
+        >
+          Search
+        </label>
+
+        <input
+          type="text"
+          placeholder="Search by item ID or bin ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: "8px 12px",
+            border: "1px solid #d1d5db",
+            borderRadius: "4px",
+            fontSize: "13px",
+          }}
+        />
+      </div>
+
       {/* Inventory Table */}
-      <InventoryTable items={inventory} hideStore />
+      <InventoryTable
+        items={inventory}
+        searchTerm={searchTerm}
+        hideStore
+      />
     </div>
   );
 }
