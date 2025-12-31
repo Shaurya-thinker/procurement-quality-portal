@@ -9,26 +9,21 @@ import uvicorn
 import time
 
 # Import database
-from backend.app.core.db import create_tables
+from app.core.db import create_tables
 
-# 🔹 FORCE model imports (VERY IMPORTANT)
-import backend.app.procurement.models
-import backend.app.quality.models
-import backend.app.store.models
-import backend.app.attendance.models
 
 # Import routers
-from backend.app.procurement.routers.procurement import router as procurement_router
-from backend.app.quality.routers import (
+from app.procurement.routers.procurement import router as procurement_router
+from app.quality.routers import (
     material_receipt_router,
     inspection_router,
     gate_pass_router,
 )
-from backend.app.store.routers.store import router as store_router
-from backend.app.attendance.routers.attendance import router as attendance_router
-from backend.app.store.services.store_service import StoreService
-from backend.app.store.routers.material_dispatch import router as material_dispatch_router
-from backend.app.announcements.router import router as announcements_router
+from app.store.routers.store import router as store_router
+from app.attendance.routers.attendance import router as attendance_router
+from app.store.services.store_service import StoreService
+from app.store.routers.material_dispatch import router as material_dispatch_router
+from app.announcements.router import router as announcements_router
 
 
 # Create all tables

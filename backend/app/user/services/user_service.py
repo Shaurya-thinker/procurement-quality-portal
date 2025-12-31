@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from backend.app.user.models.user import User
-from backend.app.user.schemas.user import UserCreate, UserUpdate
+from app.user.models.user import User
+from app.user.schemas.user import UserCreate, UserUpdate
 
 
 class UserService:

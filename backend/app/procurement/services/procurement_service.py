@@ -9,17 +9,17 @@ import requests
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
-from backend.app.procurement.models import PurchaseOrder, Item
-from backend.app.procurement.schemas.purchase_order import (PurchaseOrderDetailRead, PurchaseOrderLineDetailRead,)
-from backend.app.procurement.schemas.item import ItemCreate, ItemRead
+from app.procurement.models import PurchaseOrder, Item
+from app.procurement.schemas.purchase_order import (PurchaseOrderDetailRead, PurchaseOrderLineDetailRead,)
+from app.procurement.schemas.item import ItemCreate, ItemRead
 
-from backend.app.procurement.models import (
+from app.procurement.models import (
     PurchaseOrder,
     PurchaseOrderLine,
     Item,
     POStatus,
 )
-from backend.app.procurement.schemas import (
+from app.procurement.schemas import (
     PurchaseOrderCreate,
     PurchaseOrderRead,
     PurchaseOrderLineRead,
@@ -487,7 +487,7 @@ class ProcurementService:
         Return a consolidated tracking summary for a purchase order.
 
         Tries to read material receipt and QC inspection information from the
-        `backend.app.quality` module if available. This function is read-only
+        `app.quality` module if available. This function is read-only
         with respect to quality module data.
         """
         # Get basic PO info
@@ -501,7 +501,7 @@ class ProcurementService:
 
         # Defensive: try to import quality models/services if the quality module exists
         try:
-            from backend.app.quality import models as quality_models
+            from app.quality import models as quality_models
             # Commonly, material receipt and qc tables may reference po_id
             MaterialReceipt = getattr(quality_models, "MaterialReceipt", None)
             QCInspection = getattr(quality_models, "QCInspection", None)

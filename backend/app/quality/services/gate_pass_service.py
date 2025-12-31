@@ -1,19 +1,19 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from backend.app.quality.models.inspection import (
+from app.quality.models.inspection import (
     QualityInspection,
     QualityInspectionLine
 )
-from backend.app.quality.models.material_receipt import (
+from app.quality.models.material_receipt import (
     MaterialReceipt,
     MaterialReceiptLine
 )
-from backend.app.quality.models.gate_pass import (
+from app.quality.models.gate_pass import (
     GatePass,
     GatePassItem
 )
-from backend.app.procurement.models.purchase_order_line import PurchaseOrderLine
+from app.procurement.models.purchase_order_line import PurchaseOrderLine
 
 
 class GatePassService:

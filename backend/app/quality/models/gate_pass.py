@@ -25,9 +25,9 @@ class GatePass(Base):
     store_status = Column(String(20), default="PENDING")
 
     items = relationship(
-    "backend.app.quality.models.gate_pass.GatePassItem",
-    back_populates="gate_pass",
-    cascade="all, delete-orphan"
+        "GatePassItem",
+        back_populates="gate_pass",
+        cascade="all, delete-orphan"
     )
 
 Index("idx_gate_pass_store_status", GatePass.store_status)

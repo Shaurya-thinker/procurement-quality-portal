@@ -15,8 +15,8 @@ class StoreService:
     
     @staticmethod
     def receive_gate_pass(db: Session, gate_pass_id: int):
-        from backend.app.quality.models.gate_pass import GatePass
-        from backend.app.quality.models.material_receipt import MaterialReceipt
+        from app.quality.models.gate_pass import GatePass
+        from app.quality.models.material_receipt import MaterialReceipt
 
         # 1️⃣ Fetch Gate Pass
         gate_pass = db.query(GatePass).filter(

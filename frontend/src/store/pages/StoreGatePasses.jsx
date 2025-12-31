@@ -79,9 +79,12 @@ export default function StoreGatePasses() {
                 <td style={td}>{gp.mr_number}</td>
                 <td style={td}>{gp.vendor_name}</td>
                 <td style={td}>
-                  <button onClick={() => setSelectedGatePass(gp)}>
+                <button
+                    onClick={() => setSelectedGatePass(gp)}
+                    className="btn-secondary btn-small"
+                >
                     Receive
-                  </button>
+                </button>
                 </td>
               </tr>
             ))}

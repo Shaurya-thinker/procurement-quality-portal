@@ -26,6 +26,35 @@ def receive_gate_pass(
         return StoreService.receive_gate_pass(db, gate_pass_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/stores/{store_id}/pending-gate-passes")
+def get_pending_gate_passes(store_id: int, db: Session = Depends(get_db)):
+    from app.quality.models.gate_pass import GatePass
+    from app.quality.models.material_receipt import MaterialReceipt
+
+    results = (
+        db.query(
+            GatePass.id,
+            GatePass.gate_pass_number,
+            MaterialReceipt.mr_number,
+            MaterialReceipt.vendor_name,   # ✅ USE THIS
+        )
+        .join(MaterialReceipt, GatePass.mr_id == MaterialReceipt.id)
+        .filter(MaterialReceipt.store_id == store_id)
+        .filter(GatePass.store_status == "DISPATCHED")
+        .all()
+    )
+
+    return [
+        {
+            "id": r.id,
+            "gate_pass_number": r.gate_pass_number,
+            "mr_number": r.mr_number,
+            "vendor_name": r.vendor_name,
+        }
+        for r in results
+    ]
+
 
 
 @router.get("/inventory")

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.app.core.db import get_db
-from backend.app.quality.schemas.gate_pass import GatePassRead
-from backend.app.quality.services.gate_pass_service import GatePassService
-from backend.app.quality.schemas.gate_pass import GatePassCreate
-from backend.app.quality.models.gate_pass import GatePass
+from app.core.db import get_db
+from app.quality.schemas.gate_pass import GatePassRead
+from app.quality.services.gate_pass_service import GatePassService
+from app.quality.schemas.gate_pass import GatePassCreate
+from app.quality.models.gate_pass import GatePass
 
 router = APIRouter(prefix="/gate-pass", tags=["Quality - Gate Pass"])
 
