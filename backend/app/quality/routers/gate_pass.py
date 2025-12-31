@@ -19,7 +19,7 @@ def generate_gate_pass(
         return GatePassService.generate_gate_pass(
             db=db,
             inspection_id=payload.inspection_id,
-            issued_by=payload.issued_by
+            issued_by=payload.issued_by,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

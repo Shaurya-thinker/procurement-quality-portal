@@ -127,8 +127,9 @@ export default function Inspection() {
       await generateGatePass({
         inspection_id: inspection.id,
         issued_by: inspectorName,
+        vendor_name: mrData.vendor_name, 
+        component_details: mrData.component_details,
       });
-
       // 🔑 STEP 2: now navigate
       navigate(`/quality/gate-pass/${inspection.id}`);
 

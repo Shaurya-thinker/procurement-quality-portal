@@ -21,6 +21,9 @@ import Inventory from "../store/pages/Inventory";
 import DispatchList from "../store/pages/DispatchList";
 import CreateDispatch from "../store/pages/CreateDispatch";
 import DispatchDetail from "../store/pages/DispatchDetail";
+import InventoryByStore from "../store/pages/InventoryByStore";
+
+
 
 export default function AppRoutes() {
   return (
@@ -60,6 +63,7 @@ export default function AppRoutes() {
       <Route path="/store/dispatch/create" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
       <Route path="/store/dispatch/edit/:dispatchId" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
       <Route path="/store/dispatch/:dispatchId" element={<ProtectedRoute><DispatchDetail /></ProtectedRoute>} />
+      <Route path="/store/:storeId/inventory" element={<InventoryByStore />} />
 
 
       <Route path="/store/:storeId" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />

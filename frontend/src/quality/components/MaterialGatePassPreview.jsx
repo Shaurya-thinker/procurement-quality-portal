@@ -168,6 +168,12 @@ export default function GatePassPreview({ gatePassData, onDispatch, dispatchDisa
           <div style={valueStyle}>{gatePassData.vendor_name}</div>
         </div>
         <div style={infoFieldStyle}>
+          <div style={labelStyle}>Component Details</div>
+          <div style={valueStyle}>
+            {gatePassData.component_details || "-"}
+          </div>
+        </div>
+        <div style={infoFieldStyle}>
           <div style={labelStyle}>Destination</div>
           <div style={valueStyle}>Store</div>
         </div>

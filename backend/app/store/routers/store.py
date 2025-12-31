@@ -35,7 +35,21 @@ def get_inventory(
     item_id: Optional[int] = Query(None),
     db: Session = Depends(get_db)
 ):
-    query = db.query(InventoryItem)
+    query = (
+        db.query(
+            InventoryItem.id,
+            InventoryItem.item_id,
+            InventoryItem.quantity,
+            InventoryItem.store_id,
+            Store.name.label("store_name"),
+            InventoryItem.bin_id,
+            Bin.bin_no.label("bin_no"),
+            InventoryItem.gate_pass_id,
+            InventoryItem.created_at,
+        )
+        .join(Store, Store.id == InventoryItem.store_id)
+        .join(Bin, Bin.id == InventoryItem.bin_id)
+    )
 
     if store_id:
         query = query.filter(InventoryItem.store_id == store_id)

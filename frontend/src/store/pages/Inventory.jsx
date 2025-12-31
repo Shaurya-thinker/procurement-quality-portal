@@ -1,25 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../hooks/useStore';
 import InventoryTable from '../components/InventoryTable';
 import StockSummary from '../components/StockSummary';
-import GatePassReceiveCard from '../components/GatePassReceiveCard';
 
 export default function Inventory() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { getInventory, addInventory, loading, error, clearError } = useStore();
+  const { getInventory, loading, error, clearError } = useStore();
+
 
   const [inventory, setInventory] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [locationFilter, setLocationFilter] = useState('');
-  const [locations, setLocations] = useState([]);
   const [localError, setLocalError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const gatePassData = location.state?.gatePassData;
-  const inspectionData = location.state?.inspectionData;
-  const mrData = location.state?.mrData;
 
   useEffect(() => {
     loadInventory();
@@ -30,45 +24,11 @@ export default function Inventory() {
       const data = await getInventory();
       const itemsArray = Array.isArray(data) ? data : data.data || [];
       setInventory(itemsArray);
-      
-      // Extract unique locations
-      const uniqueLocations = Array.from(
-        new Set(itemsArray.map(item => item.location).filter(Boolean))
-      ).sort();
-      setLocations(uniqueLocations);
     } catch (err) {
       console.error('Error loading inventory:', err);
     }
   };
 
-  const handleReceiveGatePass = async (itemsToReceive) => {
-    setLocalError('');
-    setSuccessMessage('');
-
-    try {
-      for (const item of itemsToReceive) {
-        await addInventory({
-          item_code: item.item_code,
-          item_name: item.item_name,
-          quantity: item.quantity,
-          location: item.location,
-          gate_pass_number: item.gate_pass_number,
-          mr_number: item.mr_number,
-        });
-      }
-
-      setSuccessMessage(`${itemsToReceive.length} items received successfully`);
-      
-      // Reload inventory
-      setTimeout(() => {
-        loadInventory();
-        setSuccessMessage('');
-      }, 2000);
-    } catch (err) {
-      setLocalError(err.response?.data?.message || 'Failed to receive items');
-      console.error('Error receiving items:', err);
-    }
-  };
 
   const containerStyle = {
     padding: '24px',
@@ -191,7 +151,6 @@ export default function Inventory() {
 
   const handleClearFilters = () => {
     setSearchTerm('');
-    setLocationFilter('');
   };
 
   return (
@@ -249,13 +208,6 @@ export default function Inventory() {
         </div>
       )}
 
-      {gatePassData && (
-        <GatePassReceiveCard
-          gatePassData={gatePassData}
-          onReceive={handleReceiveGatePass}
-          loading={loading}
-        />
-      )}
 
       {inventory.length > 0 && (
         <>
@@ -266,28 +218,14 @@ export default function Inventory() {
               <label style={labelStyle}>Search</label>
               <input
                 type="text"
-                placeholder="Item code or name..."
+               placeholder="Search by item ID, store ID, or bin ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={inputStyle}
               />
             </div>
 
-            <div style={filterGroupStyle}>
-              <label style={labelStyle}>Location</label>
-              <select
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
-                style={selectStyle}
-              >
-                <option value="">All Locations</option>
-                {locations.map(loc => (
-                  <option key={loc} value={loc}>{loc}</option>
-                ))}
-              </select>
-            </div>
-
-            {(searchTerm || locationFilter) && (
+            {(searchTerm) && (
               <button onClick={handleClearFilters} style={clearButtonStyle}>
                 Clear Filters
               </button>
@@ -297,7 +235,6 @@ export default function Inventory() {
           <InventoryTable
             items={inventory}
             searchTerm={searchTerm}
-            locationFilter={locationFilter}
           />
 
           <div style={actionsStyle}>
@@ -308,7 +245,7 @@ export default function Inventory() {
         </>
       )}
 
-      {inventory.length === 0 && !gatePassData && (
+      {inventory.length === 0 && (
         <div style={{
           backgroundColor: '#ffffff',
           borderRadius: '6px',

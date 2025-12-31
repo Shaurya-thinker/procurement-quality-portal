@@ -39,6 +39,13 @@ export default function QualityMaterialGatePass() {
   }, [inspectionId]);
 
   useEffect(() => {
+  if (gatePass) {
+    console.log("GatePass API response:", gatePass);
+  }
+}, [gatePass]);
+
+
+  useEffect(() => {
   if (!gatePass) return;
 
   async function fetchPO() {
@@ -73,27 +80,49 @@ export default function QualityMaterialGatePass() {
   if (!gatePass) return <div style={{ padding: 24 }}>No Gate Pass found</div>;
 
   return (
-    <div style={{ padding: 24 }}>
-      <button onClick={() => navigate(-1)}>←</button>
+    <div style={{ padding: "24px" }}>
+      {/* Back Arrow + Title */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          marginBottom: "16px",
+        }}
+      ></div>
+      <button
+          onClick={() => navigate(-1)}
+          className="back-arrow-btn"
+          aria-label="Go back"
+        >
+          ←
+        </button>
 
       <GatePassPreview
         gatePassData={{
           gate_pass_number: gatePass.gate_pass_number,
           mr_number: gatePass.mr_id,
           po_number: gatePass.po_id,
-          vendor_name:
-            poData?.vendor?.name ||
-            poData?.vendor_name ||
-            "-",
+          vendor_name: gatePass.vendor_name || "-",
+          component_details: gatePass.component_details || "-",
           items: gatePass.items.map((gpItem) => {
-            const poLine = poData?.line_items?.find(
+            if (!poData) {
+              return {
+                item_code: "—",
+                description: "—",
+                unit: "—",
+                accepted_quantity: gpItem.accepted_quantity,
+              };
+            }
+
+            const poLine = poData.line_items.find(
               (l) => l.item_id === gpItem.item_id
             );
 
             return {
-              item_code: poLine?.item_code || "-",
-              description: poLine?.item_description || "-",
-              unit: poLine?.unit || "-",
+              item_code: poLine?.item_code ?? "—",
+              description: poLine?.item_description ?? "—",
+              unit: poLine?.unit ?? "—",
               accepted_quantity: gpItem.accepted_quantity,
             };
           }),

@@ -51,21 +51,6 @@ export const useStore = () => {
 }, []);
 
 
-  const addInventoryAsync = useCallback(async (data) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await addInventory(data);
-      return response.data;
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to add inventory';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
 
   const getDispatchesAsync = useCallback(async (params = {}) => {
     setLoading(true);
@@ -75,21 +60,6 @@ export const useStore = () => {
       return response.data;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch dispatches';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const getInventoryItemDetailsAsync = useCallback(async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await getInventoryItemDetails(id);
-      return response.data;
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch inventory item details';
       setError(errorMessage);
       throw err;
     } finally {
@@ -210,8 +180,6 @@ export const useStore = () => {
     loading,
     error,
     getInventory: getInventoryAsync,
-    getInventoryItemDetails: getInventoryItemDetailsAsync,
-    addInventory: addInventoryAsync,
     getDispatches: getDispatchesAsync,
     createStore: createStoreAsync,
     getAllStores: getAllStoresAsync,

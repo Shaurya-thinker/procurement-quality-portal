@@ -14,7 +14,6 @@ export default function StoreDetail() {
   const [binForm, setBinForm] = useState({
     bin_no: '',
     component_details: '',
-    quantity: 0,
   });
   const [localError, setLocalError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -46,11 +45,10 @@ export default function StoreDetail() {
       await addBin(parseInt(storeId), {
         bin_no: binForm.bin_no,
         component_details: binForm.component_details,
-        quantity: parseInt(binForm.quantity) || 0,
       });
 
       setSuccessMessage('Bin added successfully');
-      setBinForm({ bin_no: '', component_details: '', quantity: 0 });
+      setBinForm({ bin_no: '', component_details: ''});
       setShowAddBinForm(false);
 
       setTimeout(() => {
@@ -162,11 +160,11 @@ export default function StoreDetail() {
       onCancel={() => setIsEditing(false)}
       onSubmit={async (formData) => {
         try {
-          await updateStore(store.id, formData);
-          setIsEditing(false);
-          await getStoreDetails(store.id);
+          const updated = await updateStore(store.id, formData);
+          setStore(updated);        // ✅ update local state
+          setIsEditing(false);      // exit edit mode
         } catch (err) {
-          console.error('Failed to update store', err);
+          console.error("Failed to update store", err);
         }
       }}
     />
@@ -252,26 +250,6 @@ export default function StoreDetail() {
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="quantity" className="form-label">
-                  Quantity
-                </label>
-                <input
-                  id="quantity"
-                  type="number"
-                  min="0"
-                  value={binForm.quantity}
-                  onChange={(e) =>
-                    setBinForm({
-                      ...binForm,
-                      quantity: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  className="form-input"
-                  placeholder="0"
-                />
-              </div>
-
               <button type="submit" className="submit-button">
                 Add Bin
               </button>
@@ -285,7 +263,6 @@ export default function StoreDetail() {
                   <tr>
                     <th>Bin No</th>
                     <th>Component Details</th>
-                    <th>Quantity</th>
                     <th>Created</th>
                   </tr>
                 </thead>
@@ -296,7 +273,6 @@ export default function StoreDetail() {
                       <td className="component-details">
                         {bin.component_details || '-'}
                       </td>
-                      <td className="quantity">{bin.quantity}</td>
                       <td className="created-date">
                         {new Date(bin.created_at).toLocaleDateString()}
                       </td>
@@ -313,28 +289,28 @@ export default function StoreDetail() {
         </div>
       </div>
 
-      <div className="detail-actions">
-  <button
-    onClick={() => navigate('/store/inventory')}
-    className="action-button inventory-button"
-  >
-    View Inventory
-  </button>
+     <div className="detail-actions">
+    <button
+      onClick={() => navigate(`/store/${store.id}/inventory`)}
+      className="action-button inventory-button"
+    >
+      View Store Inventory
+    </button>
 
-  <button
-    onClick={() => setIsEditing(true)}
-    className="action-button inventory-button"
-  >
-    Edit Store
-  </button>
+    <button
+      onClick={() => setIsEditing(true)}
+      className="action-button inventory-button"
+    >
+      Edit Store
+    </button>
 
-  <button
-    onClick={handleDeleteStore}
-    className="action-button delete-button"
-  >
-    Delete Store
-  </button>
-</div>
+    <button
+      onClick={handleDeleteStore}
+      className="action-button delete-button"
+    >
+      Delete Store
+    </button>
+  </div>
 </div>
 );
 }

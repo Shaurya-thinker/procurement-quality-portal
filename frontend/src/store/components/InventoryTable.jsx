@@ -1,4 +1,4 @@
-export default function InventoryTable({ items = [], searchTerm = '', locationFilter = '' }) {
+export default function InventoryTable({ items = [], searchTerm = '', hideStore = false }) {
   const containerStyle = {
     backgroundColor: '#ffffff',
     borderRadius: '6px',
@@ -58,13 +58,16 @@ export default function InventoryTable({ items = [], searchTerm = '', locationFi
 
   // Filter items based on search term and location filter
   const filteredItems = items.filter(item => {
-    const matchesSearch = !searchTerm || 
-      item.item_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.item_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesLocation = !locationFilter || item.location === locationFilter;
-    
-    return matchesSearch && matchesLocation;
+    if (!searchTerm) return true;
+
+    const term = searchTerm.toLowerCase();
+
+    return (
+      item.item_id?.toString().includes(term) ||
+      item.store_id?.toString().includes(term) ||
+      item.bin_id?.toString().includes(term) ||
+      item.gate_pass_id?.toString().includes(term)
+    );
   });
 
   const formatDate = (dateString) => {
@@ -102,31 +105,29 @@ export default function InventoryTable({ items = [], searchTerm = '', locationFi
       <table style={tableStyle}>
         <thead>
           <tr>
-            <th style={thStyle}>Item Code</th>
-            <th style={thStyle}>Item Name</th>
-            <th style={thStyle}>Quantity Available</th>
-            <th style={thStyle}>Location</th>
-            <th style={thStyle}>Last Updated</th>
+            <th style={thStyle}>Inventory ID</th>
+            <th style={thStyle}>Item ID</th>
+            <th style={thStyle}>Quantity</th>
+            {!hideStore && <th style={thStyle}>Store ID</th>}
+            <th style={thStyle}>Bin ID</th>
+            <th style={thStyle}>Gate Pass</th>
+            <th style={thStyle}>Received On</th>
           </tr>
         </thead>
         <tbody>
           {filteredItems.map((item, index) => (
             <tr key={index}>
-              <td style={tdStyle}>
-                <span style={{ fontWeight: '500' }}>{item.item_code || '-'}</span>
-              </td>
-              <td style={tdStyle}>{item.item_name || '-'}</td>
+              <td style={tdStyle}>{item.id}</td>
+              <td style={tdStyle}>{item.item_id}</td>
               <td style={tdStyle}>
                 <span style={quantityBadgeStyle}>
-                  {item.quantity_available || 0}
+                  {item.quantity}
                 </span>
               </td>
-              <td style={tdStyle}>
-                <span style={locationBadgeStyle}>
-                  {item.location || '-'}
-                </span>
-              </td>
-              <td style={tdStyle}>{formatDate(item.last_updated)}</td>
+              {!hideStore && <td style={tdStyle}>{item.store_id}</td>}
+              <td style={tdStyle}>{item.bin_id}</td>
+              <td style={tdStyle}>{item.gate_pass_id}</td>
+              <td style={tdStyle}>{formatDate(item.created_at)}</td>
             </tr>
           ))}
         </tbody>
