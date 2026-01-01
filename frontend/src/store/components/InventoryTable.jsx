@@ -140,6 +140,7 @@ export default function InventoryTable({
                 <td style={tdStyle}>
                   <button
                     onClick={() => onDispatch(item)}
+                    disabled={item.quantity <= 0}
                     style={{
                       padding: '6px 12px',
                       backgroundColor: '#10b981',

@@ -253,19 +253,24 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-  <button
-    onClick={() => navigate(-1)}
-    className="back-arrow-btn"
-    aria-label="Go back"
-  >
-    ←
-  </button>
 
-  <h1>
-  {mode === "CREATE" && "Create Material Dispatch"}
-  {mode === "EDIT" && "Edit Material Dispatch"}
-  {mode === "VIEW" && "Material Dispatch Details"}
-</h1>
+  {selectedInventory && (
+    <div
+      style={{
+        marginTop: 8,
+        marginBottom: 16,
+        padding: "8px 12px",
+        background: "#eff6ff",
+        borderLeft: "4px solid #2563eb",
+        color: "#1e40af",
+        fontSize: 13,
+      }}
+    >
+      Dispatching from Inventory ID #{selectedInventory.id} —{" "}
+      {selectedInventory.item_code} ({selectedInventory.quantity} available)
+    </div>
+  )}
+
 </div>
 
 {mode === "VIEW" && initialData?.dispatch_status === "DRAFT" && (
@@ -523,7 +528,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                       if (!inv) return;
 
                       updateLineItem(index, 'inventory_item_id', inv.id); 
-                     updateLineItem(index, 'item_id', inv.item_id);
+                      updateLineItem(index, 'item_id', inv.item_id);
                       updateLineItem(index, 'item_code', inv.item_code);
                       updateLineItem(index, 'item_name', inv.item_name);
                       updateLineItem(index, 'uom', inv.unit);
@@ -576,9 +581,9 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                     value={item.quantity_dispatched}
                     onChange={(e) => {
                       const qty = Number(e.target.value);
-                      if (qty > (invRow?.quantity || 0)) {
-                        alert(`Available stock: ${item.available_qty}`);
-                        return;
+                      if (qty > item.available_qty) {
+                        updateLineItem(index, 'quantity_dispatched', item.available_qty);
+                        alert(`Max available: ${item.available_qty}`);
                       }
                       updateLineItem(index, 'quantity_dispatched', qty);
                     }}

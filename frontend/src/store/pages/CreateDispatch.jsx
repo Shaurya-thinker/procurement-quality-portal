@@ -37,9 +37,6 @@ export default function CreateDispatch() {
           <h1 style={{ fontSize: 24, fontWeight: 700 }}>
             {dispatchId ? "Edit Material Dispatch" : "Create Material Dispatch"}
           </h1>
-          <p style={{ color: '#6b7280' }}>
-            Issue materials from inventory with comprehensive tracking
-          </p>
         </div>
       </div>
 

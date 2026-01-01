@@ -20,10 +20,14 @@ export default function Inventory() {
   }, []);
 
   const handleDispatch = (inventoryItem) => {
-    navigate('/store/dispatch/create', {
-      state: { inventory: inventoryItem },
-    });
-  };
+  navigate("/store/dispatch/create", {
+    state: {
+      inventory: inventoryItem,
+      source: "INVENTORY",
+    },
+  });
+};
+
 
 
   const loadInventory = async () => {
