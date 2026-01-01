@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+import os
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -24,10 +26,15 @@ from app.attendance.routers.attendance import router as attendance_router
 from app.store.services.store_service import StoreService
 from app.store.routers.material_dispatch import router as material_dispatch_router
 from app.announcements.router import router as announcements_router
+from app.contractors import models as contractor_models
+from app.contractors.router import router as contractor_router
+from app.contractors import models as contractor_models
 
 
 # Create all tables
-create_tables()
+if os.getenv("AUTO_CREATE_DB", "false").lower() == "true":
+    print("⚠️ AUTO_CREATE_DB enabled → creating tables")
+    create_tables()
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -67,6 +74,7 @@ app.include_router(gate_pass_router, prefix="/api/v1/quality")
 app.include_router(store_router)
 app.include_router(material_dispatch_router)
 app.include_router(attendance_router, prefix="/api/v1/attendance", tags=["Attendance"])
+app.include_router(contractor_router)
 
 # Root endpoint
 @app.get("/")
