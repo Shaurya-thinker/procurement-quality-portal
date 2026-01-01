@@ -23,6 +23,7 @@ import CreateDispatch from "../store/pages/CreateDispatch";
 import DispatchDetail from "../store/pages/DispatchDetail";
 import InventoryByStore from "../store/pages/InventoryByStore";
 import StoreGatePasses from "../store/pages/StoreGatePasses";
+import ReceivedGatePasses from "../store/pages/ReceivedGatePasses";
 
 
 export default function AppRoutes() {
@@ -57,6 +58,7 @@ export default function AppRoutes() {
 
       {/* Store Routes */}
       <Route path="/store/:storeId/gate-passes" element={<ProtectedRoute><StoreGatePasses /></ProtectedRoute>}/>
+      <Route path="/store/:storeId/received-gate-passes" element={<ReceivedGatePasses />}/>
       <Route path="/store" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
       <Route path="/store/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
 

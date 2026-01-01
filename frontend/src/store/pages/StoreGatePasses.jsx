@@ -6,7 +6,13 @@ import GatePassReceiveCard from "../components/GatePassReceiveCard";
 export default function StoreGatePasses() {
   const { storeId } = useParams();
   const navigate = useNavigate();
-  const { getPendingGatePasses, receiveGatePass, loading } = useStore();
+  const {
+    getPendingGatePasses,
+    receiveGatePass,
+    getGatePassDetails,
+    loading
+  } = useStore();
+
 
   const [gatePasses, setGatePasses] = useState([]);
   const [selectedGatePass, setSelectedGatePass] = useState(null);
@@ -79,11 +85,13 @@ export default function StoreGatePasses() {
                 <td style={td}>{gp.mr_number}</td>
                 <td style={td}>{gp.vendor_name}</td>
                 <td style={td}>
-                <button
-                    onClick={() => setSelectedGatePass(gp)}
+                <button onClick={async () => {
+                    const full = await getGatePassDetails(gp.id);
+                    setSelectedGatePass(full);
+                    }}
                     className="btn-secondary btn-small"
                 >
-                    Receive
+                Receive
                 </button>
                 </td>
               </tr>

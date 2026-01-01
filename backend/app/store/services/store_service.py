@@ -37,22 +37,11 @@ class StoreService:
         if not mr:
             raise ValueError("Material Receipt not found")
 
-        if not mr.store_id or not mr.bin_id:
-            raise ValueError("Store or Bin not assigned in MR")
         
         # 2️⃣ Validate Store exists
         store = db.query(Store).filter(Store.id == mr.store_id).first()
         if not store:
             raise ValueError("Invalid Store assigned in Material Receipt")
-
-        # 3️⃣ Validate Bin exists and belongs to Store
-        bin = db.query(Bin).filter(
-            Bin.id == mr.bin_id,
-            Bin.store_id == mr.store_id
-        ).first()
-
-        if not bin:
-            raise ValueError("Invalid Bin assigned in Material Receipt")
 
 
         # 3️⃣ Receive inventory (IN)
@@ -64,25 +53,24 @@ class StoreService:
                 .filter(
                     InventoryItem.item_id == item.item_id,
                     InventoryItem.store_id == mr.store_id,
-                    InventoryItem.bin_id == mr.bin_id,
-                    InventoryItem.gate_pass_id == gate_pass.id
+                    InventoryItem.bin_id == mr.bin_id, 
                 )
                 .with_for_update()
                 .first()
             )
 
-            if not inventory:
+            if inventory:
+                inventory.quantity += received_qty
+            else:
                 inventory = InventoryItem(
                     item_id=item.item_id,
-                    quantity=received_qty,
                     store_id=mr.store_id,
                     bin_id=mr.bin_id,
+                    quantity=received_qty,
                     gate_pass_id=gate_pass.id
                 )
                 db.add(inventory)
-                db.flush()  # 👈 REQUIRED to get inventory.id
-            else:
-                inventory.quantity += received_qty
+                db.flush()
 
             # 🔹 INVENTORY TRANSACTION (IN)
             txn = InventoryTransaction(

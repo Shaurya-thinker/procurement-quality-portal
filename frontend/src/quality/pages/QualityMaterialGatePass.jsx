@@ -105,6 +105,7 @@ export default function QualityMaterialGatePass() {
           po_number: gatePass.po_id,
           vendor_name: gatePass.vendor_name || "-",
           component_details: gatePass.component_details || "-",
+          store_status: gatePass.store_status, // ✅ IMPORTANT
           items: gatePass.items.map((gpItem) => {
             if (!poData) {
               return {
@@ -130,7 +131,7 @@ export default function QualityMaterialGatePass() {
           issued_date: gatePass.issued_at,
         }}
         onDispatch={handleDispatch}
-        dispatchDisabled={dispatching || gatePass.store_status === "DISPATCHED"}
+        dispatching={dispatching}
       />
     </div>
   );

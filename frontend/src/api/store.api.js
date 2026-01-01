@@ -6,7 +6,10 @@ export const getPendingGatePasses = (storeId) =>
   api.get(`/api/v1/store/stores/${storeId}/pending-gate-passes`);
 
 export const receiveGatePass = (gatePassId) =>
-  api.post(`/store/receive-gate-pass/${gatePassId}`);
+  api.post(`/api/v1/store/receive-gate-pass/${gatePassId}`);
+
+export const getGatePassDetails = (gatePassId) =>
+  api.get(`/api/v1/store/gate-passes/${gatePassId}`);
 
 export const createStore = (data) =>
   api.post("/api/v1/store/stores", data);

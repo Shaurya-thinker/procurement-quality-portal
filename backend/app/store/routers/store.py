@@ -41,7 +41,7 @@ def get_pending_gate_passes(store_id: int, db: Session = Depends(get_db)):
         )
         .join(MaterialReceipt, GatePass.mr_id == MaterialReceipt.id)
         .filter(MaterialReceipt.store_id == store_id)
-        .filter(GatePass.store_status == "DISPATCHED")
+        .filter(GatePass.store_status == "SENT_TO_STORE")
         .all()
     )
 
@@ -55,6 +55,94 @@ def get_pending_gate_passes(store_id: int, db: Session = Depends(get_db)):
         for r in results
     ]
 
+
+@router.get("/stores/{store_id}/received-gate-passes")
+def get_received_gate_passes(store_id: int, db: Session = Depends(get_db)):
+    from app.quality.models.gate_pass import GatePass
+    from app.quality.models.material_receipt import MaterialReceipt
+
+    results = (
+        db.query(
+            GatePass.id,
+            GatePass.gate_pass_number,
+            MaterialReceipt.mr_number,
+            MaterialReceipt.vendor_name,
+            GatePass.issued_at.label("received_at"),  # ✅ CORRECT
+        )
+        .join(MaterialReceipt, GatePass.mr_id == MaterialReceipt.id)
+        .filter(MaterialReceipt.store_id == store_id)
+        .filter(GatePass.store_status == "RECEIVED")
+        .order_by(GatePass.issued_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": r.id,
+            "gate_pass_number": r.gate_pass_number,
+            "mr_number": r.mr_number,
+            "vendor_name": r.vendor_name,
+            "received_at": r.received_at,
+        }
+        for r in results
+    ]
+
+
+@router.get("/gate-passes/{gate_pass_id}")
+def get_gate_pass_detail(gate_pass_id: int, db: Session = Depends(get_db)):
+    from app.quality.models.gate_pass import GatePass, GatePassItem
+    from app.quality.models.material_receipt import MaterialReceipt
+    from app.procurement.models.purchase_order import PurchaseOrder
+    from app.procurement.models.item import Item
+
+    # 1️⃣ Fetch Gate Pass
+    gp = (
+        db.query(GatePass)
+        .filter(GatePass.id == gate_pass_id)
+        .first()
+    )
+
+    if not gp:
+        raise HTTPException(status_code=404, detail="Gate pass not found")
+
+    # 2️⃣ Fetch MR
+    mr = (
+        db.query(MaterialReceipt)
+        .filter(MaterialReceipt.id == gp.mr_id)
+        .first()
+    )
+
+    # 3️⃣ Fetch PO via MR
+    po = (
+        db.query(PurchaseOrder)
+        .filter(PurchaseOrder.id == mr.po_id)
+        .first()
+        if mr else None
+    )
+
+    # 4️⃣ Fetch items
+    items = (
+        db.query(GatePassItem, Item)
+        .join(Item, Item.id == GatePassItem.item_id)
+        .filter(GatePassItem.gate_pass_id == gate_pass_id)
+        .all()
+    )
+
+    return {
+        "id": gp.id,
+        "gate_pass_number": gp.gate_pass_number,
+        "mr_number": mr.mr_number if mr else None,
+        "po_number": po.po_number if po else None,   # ✅ FIX
+        "vendor_name": mr.vendor_name if mr else None,
+        "items": [
+            {
+                "item_code": item.code,
+                "description": item.description,
+                "accepted_quantity": gpi.accepted_quantity,
+            }
+            for gpi, item in items
+        ],
+    }
 
 
 @router.get("/inventory")

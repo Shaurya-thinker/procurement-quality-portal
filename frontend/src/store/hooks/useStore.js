@@ -13,7 +13,8 @@ import {
   getStoreBins,
   getInventoryByStore,
 } from '../../api/store.api';
-import { getPendingGatePasses, receiveGatePass } from '../../api/store.api';
+import { getPendingGatePasses, receiveGatePass, getGatePassDetails } from '../../api/store.api';
+
 
 
 export const useStore = () => {
@@ -25,6 +26,16 @@ export const useStore = () => {
     setError(null);
     try {
       const res = await getPendingGatePasses(storeId);
+      return res.data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getGatePassDetailsAsync = useCallback(async (id) => {
+    setLoading(true);
+    try {
+      const res = await getGatePassDetails(id);
       return res.data;
     } finally {
       setLoading(false);
@@ -215,6 +226,7 @@ export const useStore = () => {
     getInventoryByStore: getInventoryByStoreAsync,
     getPendingGatePasses: getPendingGatePassesAsync,
     receiveGatePass: receiveGatePassAsync,
+    getGatePassDetails: getGatePassDetailsAsync,
     clearError,
   };
 };
