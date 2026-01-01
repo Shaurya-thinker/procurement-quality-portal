@@ -8,17 +8,18 @@ export default function ContractorsList() {
   const [contractors, setContractors] = useState([]);
 
   useEffect(() => {
-  const loadContractors = async () => {
-    try {
-      const data = await fetchContractors();
-      setContractors(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    const loadContractors = async () => {
+      try {
+        const data = await fetchContractors();
+        console.log("Fetched contractors:", data);
+        setContractors(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-  loadContractors();
-}, []);
+    loadContractors();
+  }, []);
 
   return (
     <div className="contractors-page">
@@ -45,10 +46,15 @@ export default function ContractorsList() {
           </thead>
           <tbody>
             {contractors.map((c) => (
-              <tr
-                key={c.id}
-                onClick={() => navigate(`/contractors/${c.id}`)}
-              >
+  <tr
+    key={c.id}
+    onClick={() => {
+      console.log("CLICKED CONTRACTOR OBJECT:", c);
+      console.log("CLICKED CONTRACTOR ID:", c.id);
+      navigate(`/contractors/${c.id}`);
+    }}
+  >
+
                 <td>{c.name}</td>
                 <td>{c.phone}</td>
                 <td>{c.email}</td>

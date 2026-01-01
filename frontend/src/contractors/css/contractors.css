@@ -69,3 +69,43 @@
   background: #fee2e2;
   color: #7f1d1d;
 }
+.contractor-details-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.contractor-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.contractor-details-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.detail-label {
+  width: 140px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.detail-value {
+  color: #1e293b;
+}
+
+.contractor-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+}

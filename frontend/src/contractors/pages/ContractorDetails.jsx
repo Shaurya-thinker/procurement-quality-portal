@@ -1,52 +1,83 @@
-import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { fetchContractorById, deleteContractor } from "../../api/contractors.api";
+import { useParams, useNavigate } from "react-router-dom";
+import { fetchContractorById } from "../../api/contractors.api";
 
 export default function ContractorDetails() {
-  const { id } = useParams();
+  const { contractorId } = useParams();   // ✅ FIXED
   const navigate = useNavigate();
+
   const [contractor, setContractor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const load = async () => {
+    if (!contractorId) {
+      setError("Invalid contractor id");
+      setLoading(false);
+      return;
+    }
+
+    const loadContractor = async () => {
       try {
-        const data = await fetchContractorById(id);
+        const data = await fetchContractorById(contractorId); // ✅ FIXED
         setContractor(data);
       } catch (err) {
         console.error(err);
+        setError("Failed to load contractor details");
+      } finally {
+        setLoading(false);
       }
     };
-    load();
-  }, [id]);
 
-  if (!contractor) return <p>Loading...</p>;
+    loadContractor();
+  }, [contractorId]);
+
+  if (loading) {
+    return <div style={{ padding: 24 }}>Loading contractor...</div>;
+  }
+
+  if (error) {
+    return <div style={{ padding: 24, color: "red" }}>{error}</div>;
+  }
+
+  if (!contractor) {
+    return <div style={{ padding: 24 }}>Contractor not found</div>;
+  }
 
   return (
-    <div style={{ padding: "24px" }}>
-      <h1>{contractor.name}</h1>
+    <div style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
+      <button
+        onClick={() => navigate("/contractors")}
+        className="btn-secondary"
+        style={{ marginBottom: 16 }}
+      >
+        ← Back to Contractors
+      </button>
 
-      <p><b>Phone:</b> {contractor.phone}</p>
-      <p><b>Email:</b> {contractor.email || "-"}</p>
-      <p><b>Address:</b> {contractor.address || "-"}</p>
-      <p><b>Status:</b> {contractor.status}</p>
+      <h1 style={{ fontSize: 24, fontWeight: 600 }}>
+        {contractor.name}
+      </h1>
 
-      <div style={{ marginTop: "24px", display: "flex", gap: "12px" }}>
-        <button className="btn-secondary" onClick={() => navigate(`/contractors/${id}/edit`)}>
-          Edit
-        </button>
-
-        <button
-          className="btn-danger"
-          onClick={async () => {
-            if (window.confirm("Delete contractor?")) {
-              await deleteContractor(id);
-              navigate("/contractors");
-            }
-          }}
-        >
-          Delete
-        </button>
+      <div className="details-card">
+        <DetailRow label="Phone" value={contractor.phone} />
+        <DetailRow label="Email" value={contractor.email} />
+        <DetailRow label="Address" value={contractor.address} />
+        <DetailRow
+          label="Status"
+          value={contractor.status}
+        />
       </div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }) {
+  return (
+    <div style={{ display: "flex", marginBottom: 12 }}>
+      <div style={{ width: 140, fontWeight: 600 }}>
+        {label}
+      </div>
+      <div>{value || "-"}</div>
     </div>
   );
 }
