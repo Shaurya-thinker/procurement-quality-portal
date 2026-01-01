@@ -18,6 +18,7 @@ from app.core.db import Base
 # 👇 IMPORT ALL MODELS HERE (NOT in db.py)
 from app.procurement.models.purchase_order import PurchaseOrder
 from app.procurement.models.purchase_order_line import PurchaseOrderLine
+from app.contractors import models as contractor_models
 from app.procurement.models.item import Item
 
 from app.quality.models.material_receipt import MaterialReceipt, MaterialReceiptLine
