@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { mockContractors } from "../mockContractors";
+import { fetchContractors } from "../../api/contractors.api";
 import "../css/contractors.css";
 
 export default function ContractorsList() {
@@ -8,8 +8,17 @@ export default function ContractorsList() {
   const [contractors, setContractors] = useState([]);
 
   useEffect(() => {
-    setContractors(mockContractors);
-  }, []);
+  const loadContractors = async () => {
+    try {
+      const data = await fetchContractors();
+      setContractors(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  loadContractors();
+}, []);
 
   return (
     <div className="contractors-page">

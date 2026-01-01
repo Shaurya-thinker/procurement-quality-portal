@@ -27,6 +27,7 @@ import ContractorDetails from "../contractors/pages/ContractorDetails";
 import InventoryByStore from "../store/pages/InventoryByStore";
 import StoreGatePasses from "../store/pages/StoreGatePasses";
 import ReceivedGatePasses from "../store/pages/ReceivedGatePasses";
+import EditContractor from "../contractors/pages/EditContractor";
 
 
 export default function AppRoutes() {
@@ -79,7 +80,7 @@ export default function AppRoutes() {
       <Route path="/contractors" element={<ProtectedRoute><ContractorsList /></ProtectedRoute>} />
       <Route path="/contractors/create" element={<ProtectedRoute><CreateContractor /></ProtectedRoute>} />
       <Route path="/contractors/:contractorId" element={<ProtectedRoute><ContractorDetails /></ProtectedRoute>} />
-      <Route path="/contractors/:contractorId/edit" element={<ProtectedRoute><CreateContractor /></ProtectedRoute>} />
+      <Route path="/contractors/:id/edit" element={<ProtectedRoute><EditContractor /></ProtectedRoute>} />
     </Routes>
   );
 }
