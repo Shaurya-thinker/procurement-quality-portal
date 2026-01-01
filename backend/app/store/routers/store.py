@@ -14,6 +14,7 @@ from app.store.schemas import (
 from app.store.models.inventory import InventoryItem
 from app.store.models.store import Store, Bin
 from ...core.db import get_db
+from app.procurement.models.item import Item
 
 router = APIRouter(prefix="/api/v1/store", tags=["Store"])
 
@@ -156,6 +157,11 @@ def get_inventory(
         db.query(
             InventoryItem.id,
             InventoryItem.item_id,
+
+            Item.code.label("item_code"),
+            Item.description.label("item_name"),
+            Item.unit.label("unit"),
+
             InventoryItem.quantity,
             InventoryItem.store_id,
             Store.name.label("store_name"),
@@ -163,6 +169,7 @@ def get_inventory(
             Bin.bin_no.label("bin_no"),
             InventoryItem.created_at,
         )
+        .join(Item, Item.id == InventoryItem.item_id)
         .join(Store, Store.id == InventoryItem.store_id)
         .join(Bin, Bin.id == InventoryItem.bin_id)
     )
@@ -180,6 +187,9 @@ def get_inventory(
         {
             "id": r.id,
             "item_id": r.item_id,
+            "item_code": r.item_code,
+            "item_name": r.item_name,
+            "unit": r.unit,
             "quantity": r.quantity,
             "store_id": r.store_id,
             "store_name": r.store_name,
@@ -189,6 +199,7 @@ def get_inventory(
         }
         for r in results
     ]
+
 
 
 

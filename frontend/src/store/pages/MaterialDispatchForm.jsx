@@ -494,10 +494,6 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
           </div>
           
           {formData.line_items.map((item, index) => {
-            const invRow = inventory.find(
-              inv => inv.id === item.inventory_item_id
-            );
-
             return (
             <div key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -540,7 +536,10 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                     <option value="">Select inventory item</option>
                     {inventory.map(inv => (
                       <option key={inv.id} value={inv.id}>
-                        {inv.item_code} — {inv.item_name} (Stock: {inv.quantity})
+                        {inv.item_code} — {inv.item_name}
+                        {" | Store "}{inv.store_id}
+                        {" | Bin "}{inv.bin_no}
+                        {" | Stock: "}{inv.quantity}
                       </option>
                     ))}
                   </select>
@@ -551,9 +550,9 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Code *</label>
                   <input
-                    disabled={isReadOnly}
+                    disabled
                     type="text"
-                    value={invRow?.item_code || ''}
+                    value={item.item_code || ""}
                     readOnly
                     style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />
@@ -563,10 +562,10 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Name *</label>
                   <input
-                    disabled={isReadOnly}
-                    type="text"
-                    value={invRow?.item_name || ''}
-                    readOnly
+                     disabled
+                      type="text"
+                      value={item.item_name || ""}
+                      readOnly
                     style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />
                   {errors[`line_items.${index}.item_name`] && <div style={errorStyle}>{errors[`line_items.${index}.item_name`]}</div>}
@@ -592,13 +591,15 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                   />
                   {errors[`line_items.${index}.quantity_dispatched`] && <div style={errorStyle}>{errors[`line_items.${index}.quantity_dispatched`]}</div>}
                 </div>
-                
+                <small style={{ color: "#6b7280" }}>
+                  Available: {item.available_qty}
+                </small>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>UOM *</label>
                   <input
-                    disabled={isReadOnly}
+                    disabled
                     type="text"
-                    value={invRow?.unit || ''}
+                    value={item.uom || ""}
                     readOnly
                     style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />

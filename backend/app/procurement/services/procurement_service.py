@@ -8,10 +8,12 @@ import requests
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from app.procurement.models import PurchaseOrder, Item
 from app.procurement.schemas.purchase_order import (PurchaseOrderDetailRead, PurchaseOrderLineDetailRead,)
 from app.procurement.schemas.item import ItemCreate, ItemRead
+from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem
 
 from app.procurement.models import (
     PurchaseOrder,
