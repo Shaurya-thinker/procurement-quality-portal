@@ -32,6 +32,10 @@ export const addBin = (storeId, data) =>
 export const getStoreBins = (storeId) =>
   api.get(`/api/v1/store/stores/${storeId}/bins`);
 
+export const getPOPendings = (poId) =>
+  api.get(`/api/v1/store/po/${poId}/pending-items`);
+
+
 /* Inventory */
 
 export const addInventory = (data) =>

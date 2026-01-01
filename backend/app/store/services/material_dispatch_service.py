@@ -8,6 +8,7 @@ from app.store.schemas.material_dispatch import MaterialDispatchCreate, Material
 from sqlalchemy.exc import IntegrityError
 from app.store.models.inventory import InventoryItem
 from app.store.models.inventory_transaction import InventoryTransaction
+from app.procurement.services.procurement_service import ProcurementService
 
 
 class MaterialDispatchService:
@@ -56,6 +57,30 @@ class MaterialDispatchService:
                     .first()
                 )
 
+                # 🔐 PO PENDING QTY VALIDATION
+                if dispatch.reference_type == "PO" and not dispatch_create.is_draft:
+                    pending_items = ProcurementService.get_po_items_with_pending_qty(
+                        db, int(dispatch.reference_id)
+                    )
+
+                    po_item = next(
+                        (p for p in pending_items if p["item_id"] == line.item_id),
+                        None
+                    )
+
+                    if not po_item:
+                        raise ValueError(
+                            f"Item {line.item_code} is not part of PO {dispatch.reference_id}"
+                        )
+
+                    dispatch_qty = int(line.quantity_dispatched)
+
+                    if dispatch_qty > po_item["pending_qty"]:
+                        raise ValueError(
+                            f"Dispatch qty exceeds PO pending qty for item {line.item_code}. "
+                            f"Pending: {po_item['pending_qty']}, Requested: {dispatch_qty}"
+                        )
+
                 if not inventory:
                     raise ValueError(
                         f"Inventory item not found (ID: {line.inventory_item_id})"
@@ -97,7 +122,9 @@ class MaterialDispatchService:
 
                 db.add(dispatch_line)
 
-            dispatch.dispatch_status = DispatchStatus.DISPATCHED
+            if not dispatch_create.is_draft:
+                dispatch.dispatch_status = DispatchStatus.DISPATCHED
+
 
             db.commit()
             db.refresh(dispatch)

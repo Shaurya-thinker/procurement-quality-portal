@@ -190,4 +190,14 @@ def get_po_tracking(
         return tracking
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
 
+@router.get("/{po_id}/pending-items")
+def get_po_pending_items(
+    po_id: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        return ProcurementService.get_po_items_with_pending_qty(db, po_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

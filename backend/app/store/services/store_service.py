@@ -10,6 +10,9 @@ from app.store.models.inventory_transaction import InventoryTransaction
 from datetime import datetime
 import uuid
 from app.store.models.store import Store, Bin
+from sqlalchemy import func
+from app.procurement.models.purchase_order_line import PurchaseOrderLine
+from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem, DispatchStatus
 
 class StoreService:
     
@@ -177,3 +180,58 @@ class StoreService:
     def get_store_bins(db: Session, store_id: int) -> List[Bin]:
         """Get all bins for a store."""
         return db.query(Bin).filter(Bin.store_id == store_id).all()
+
+    @staticmethod
+    def get_po_pending_items(db: Session, po_id: int):
+        """
+        Returns PO items with pending quantity.
+        pending = ordered - dispatched
+        """
+
+        # 1️⃣ Get PO lines
+        po_lines = (
+            db.query(
+                PurchaseOrderLine.item_id,
+                PurchaseOrderLine.quantity.label("ordered_qty"),
+            )
+            .filter(PurchaseOrderLine.po_id == po_id)
+            .all()
+        )
+
+        if not po_lines:
+            return []
+
+        # 2️⃣ Get already dispatched qty per item
+        dispatched = (
+            db.query(
+                MaterialDispatchLineItem.item_id,
+                func.coalesce(func.sum(MaterialDispatchLineItem.quantity_dispatched), 0)
+                .label("dispatched_qty")
+            )
+            .join(MaterialDispatch)
+            .filter(
+                MaterialDispatch.reference_type == "PO",
+                MaterialDispatch.reference_id == str(po_id),
+                MaterialDispatch.dispatch_status == DispatchStatus.DISPATCHED
+            )
+            .group_by(MaterialDispatchLineItem.item_id)
+            .all()
+        )
+
+        dispatched_map = {
+            d.item_id: float(d.dispatched_qty) for d in dispatched
+        }
+
+        # 3️⃣ Build response
+        result = []
+        for line in po_lines:
+            pending = float(line.ordered_qty) - dispatched_map.get(line.item_id, 0)
+            if pending > 0:
+                result.append({
+                    "item_id": line.item_id,
+                    "ordered_qty": float(line.ordered_qty),
+                    "dispatched_qty": dispatched_map.get(line.item_id, 0),
+                    "pending_qty": pending
+                })
+
+        return result

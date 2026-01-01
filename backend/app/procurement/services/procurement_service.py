@@ -585,3 +585,51 @@ class ProcurementService:
             ],
             "total": len(purchase_orders)
         }
+
+    @staticmethod
+    def get_po_items_with_pending_qty(db: Session, po_id: int):
+        """
+        Return PO items with ordered, dispatched and pending quantity
+        """
+
+        # Subquery: dispatched quantity per item for this PO
+        dispatched_subq = (
+            db.query(
+                MaterialDispatchLineItem.item_id,
+                func.coalesce(func.sum(MaterialDispatchLineItem.quantity_dispatched), 0)
+                .label("dispatched_qty")
+            )
+            .join(MaterialDispatch, MaterialDispatch.id == MaterialDispatchLineItem.dispatch_id)
+            .filter(
+                MaterialDispatch.reference_type == "PO",
+                MaterialDispatch.reference_id == str(po_id),
+                MaterialDispatch.dispatch_status != "CANCELLED"
+            )
+            .group_by(MaterialDispatchLineItem.item_id)
+            .subquery()
+        )
+
+        # Main query
+        results = (
+            db.query(
+                PurchaseOrderLine.item_id,
+                PurchaseOrderLine.quantity.label("ordered_qty"),
+                func.coalesce(dispatched_subq.c.dispatched_qty, 0).label("dispatched_qty")
+            )
+            .outerjoin(
+                dispatched_subq,
+                dispatched_subq.c.item_id == PurchaseOrderLine.item_id
+            )
+            .filter(PurchaseOrderLine.po_id == po_id)
+            .all()
+        )
+
+        return [
+            {
+                "item_id": r.item_id,
+                "ordered_qty": r.ordered_qty,
+                "already_dispatched": float(r.dispatched_qty),
+                "pending_qty": max(r.ordered_qty - float(r.dispatched_qty), 0)
+            }
+            for r in results
+        ]

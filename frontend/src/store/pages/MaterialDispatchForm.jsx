@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../hooks/useStore';
 import { useLocation } from 'react-router-dom';
+import { getPOs } from '../../api/procurement.api';
+import { getPOPendings } from '../../api/store.api';
+
 
 export default function MaterialDispatchForm({ initialData = null, mode = 'CREATE' }) {
   const isReadOnly =
@@ -11,6 +14,55 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
   const navigate = useNavigate();
   const { getInventory } = useStore();
   const [inventory, setInventory] = useState([]);
+  const [poList, setPoList] = useState([]);
+  const [poItems, setPoItems] = useState([]);
+  const [formData, setFormData] = useState({
+  
+    // Dispatch Header
+    dispatch_date: new Date().toISOString().split('T')[0],
+    reference_type: 'PO',
+    reference_id: '',
+    warehouse_id: '',
+    created_by: '',
+    remarks: '',
+    
+    // Receiver & Transport
+    receiver_name: '',
+    receiver_contact: '',
+    delivery_address: '',
+    vehicle_number: '',
+    driver_name: '',
+    driver_contact: '',
+    eway_bill_number: '',
+    
+    // Line Items
+    line_items: [{
+      item_id: '',
+      item_code: '',
+      item_name: '',
+      quantity_dispatched: '',
+      uom: '',
+      available_qty: 0,
+      batch_number: '',
+      remarks: ''
+    }]
+  });
+
+  useEffect(() => {
+    getPOs()
+      .then(res => setPoList(res.data))
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (formData.reference_type === "PO" && formData.reference_id) {
+      getPOPendings(formData.reference_id)
+        .then(res => setPoItems(res.data))
+        .catch(console.error);
+    } else {
+      setPoItems([]);
+    }
+  }, [formData.reference_type, formData.reference_id]);
 
 
   const location = useLocation();
@@ -49,37 +101,6 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
   const [errors, setErrors] = useState({});
   const submitDraft = () => handleSubmit(true);
   const submitIssue = () => handleSubmit(false);
-  const [formData, setFormData] = useState({
-  
-    // Dispatch Header
-    dispatch_date: new Date().toISOString().split('T')[0],
-    reference_type: 'PO',
-    reference_id: '',
-    warehouse_id: '',
-    created_by: '',
-    remarks: '',
-    
-    // Receiver & Transport
-    receiver_name: '',
-    receiver_contact: '',
-    delivery_address: '',
-    vehicle_number: '',
-    driver_name: '',
-    driver_contact: '',
-    eway_bill_number: '',
-    
-    // Line Items
-    line_items: [{
-      item_id: '',
-      item_code: '',
-      item_name: '',
-      quantity_dispatched: '',
-      uom: '',
-      available_qty: 0,
-      batch_number: '',
-      remarks: ''
-    }]
-  });
 
   const validateForm = () => {
     const newErrors = {};
@@ -250,6 +271,14 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     marginTop: '4px'
   };
 
+  const inventoryOptions =
+  formData.reference_type === "PO"
+    ? inventory.filter(inv =>
+        poItems.some(p => p.item_id === inv.item_id)
+      )
+    : inventory;
+
+
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
@@ -324,14 +353,33 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
             
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Reference ID *</label>
-              <input
-                disabled={isReadOnly}
-                type="text"
-                value={formData.reference_id}
-                onChange={(e) => setFormData({ ...formData, reference_id: e.target.value })}
-                style={inputStyle}
-                required
-              />
+              {formData.reference_type === "PO" ? (
+                <select
+                  disabled={isReadOnly}
+                  value={formData.reference_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reference_id: e.target.value })
+                  }
+                  style={inputStyle}
+                >
+                  <option value="">Select Purchase Order</option>
+                  {poList.map(po => (
+                    <option key={po.id} value={po.id}>
+                      {po.po_number}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  disabled={isReadOnly}
+                  type="text"
+                  value={formData.reference_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reference_id: e.target.value })
+                  }
+                  style={inputStyle}
+                />
+              )}
               {errors.reference_id && <div style={errorStyle}>{errors.reference_id}</div>}
             </div>
             
@@ -534,7 +582,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                     required
                   >
                     <option value="">Select inventory item</option>
-                    {inventory.map(inv => (
+                    {inventoryOptions.map(inv => (
                       <option key={inv.id} value={inv.id}>
                         {inv.item_code} — {inv.item_name}
                         {" | Store "}{inv.store_id}
@@ -580,11 +628,27 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                     value={item.quantity_dispatched}
                     onChange={(e) => {
                       const qty = Number(e.target.value);
-                      if (qty > item.available_qty) {
-                        updateLineItem(index, 'quantity_dispatched', item.available_qty);
-                        alert(`Max available: ${item.available_qty}`);
+
+                      // PO pending qty (if applicable)
+                      const poItem = poItems.find(
+                        (p) => p.item_id === item.item_id
+                      );
+
+                      const maxAllowed =
+                        formData.reference_type === "PO"
+                          ? Math.min(
+                              item.available_qty,
+                              poItem?.pending_qty ?? 0
+                            )
+                          : item.available_qty;
+
+                      if (qty > maxAllowed) {
+                        alert(`Max allowed quantity: ${maxAllowed}`);
+                        updateLineItem(index, "quantity_dispatched", maxAllowed);
+                        return;
                       }
-                      updateLineItem(index, 'quantity_dispatched', qty);
+
+                      updateLineItem(index, "quantity_dispatched", qty);
                     }}
                     style={inputStyle}
                     required

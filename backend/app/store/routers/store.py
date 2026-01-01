@@ -201,6 +201,10 @@ def get_inventory(
     ]
 
 
+@router.get("/po/{po_id}/pending-items")
+def get_po_pending_items(po_id: int, db: Session = Depends(get_db)):
+    return StoreService.get_po_pending_items(db, po_id)
+
 
 
 
