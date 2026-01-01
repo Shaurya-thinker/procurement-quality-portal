@@ -1,25 +1,25 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from backend.app.quality.models.inspection import (
+from app.quality.models.inspection import (
     QualityInspection,
     QualityInspectionLine
 )
-from backend.app.quality.models.material_receipt import (
+from app.quality.models.material_receipt import (
     MaterialReceipt,
     MaterialReceiptLine
 )
-from backend.app.quality.models.gate_pass import (
+from app.quality.models.gate_pass import (
     GatePass,
     GatePassItem
 )
-from backend.app.procurement.models.purchase_order_line import PurchaseOrderLine
+from app.procurement.models.purchase_order_line import PurchaseOrderLine
 
 
 class GatePassService:
 
     @staticmethod
-    def generate_gate_pass(db: Session, inspection_id: int, issued_by: str):
+    def generate_gate_pass(db: Session, inspection_id: int, issued_by: str, vendor_name: str | None = None, component_details: str | None = None):
         """
         Generate a Gate Pass for an inspection.
         Only accepted quantities are allowed to move to Store.
@@ -64,7 +64,9 @@ class GatePassService:
             mr_id=mr.id,
             inspection_id=inspection.id,
             issued_by=issued_by,
-            issued_at=datetime.utcnow()
+            issued_at=datetime.utcnow(),
+            vendor_name= mr.vendor_name,
+            component_details= mr.component_details
         )
 
         db.add(gate_pass)

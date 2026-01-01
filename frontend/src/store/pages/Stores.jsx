@@ -76,10 +76,21 @@ export default function Stores() {
 
           <button
             className="back-button"
+            style={{
+              marginLeft: '8px',
+              backgroundColor: '#2563eb'
+            }}
+            onClick={() => navigate('/store/inventory')}
+          >
+             Global Inventory
+          </button> 
+
+          <button
+            className="back-button"
             style={{ marginLeft: '8px', backgroundColor: '#10b981' }}
             onClick={() => navigate('/store/dispatches')}
           >
-            📦 Material Dispatches
+             Material Dispatches
           </button>
         </div>
       

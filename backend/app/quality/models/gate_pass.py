@@ -16,15 +16,18 @@ class GatePass(Base):
     mr_id = Column(Integer, nullable=False)
     inspection_id = Column(Integer, nullable=False)
 
+    vendor_name = Column(String(255), nullable=True)
+    component_details = Column(String(255), nullable=True)
+
     issued_by = Column(String(100), nullable=False)
     issued_at = Column(DateTime, default=datetime.utcnow)
     
     store_status = Column(String(20), default="PENDING")
 
     items = relationship(
-    "backend.app.quality.models.gate_pass.GatePassItem",
-    back_populates="gate_pass",
-    cascade="all, delete-orphan"
+        "GatePassItem",
+        back_populates="gate_pass",
+        cascade="all, delete-orphan"
     )
 
 Index("idx_gate_pass_store_status", GatePass.store_status)

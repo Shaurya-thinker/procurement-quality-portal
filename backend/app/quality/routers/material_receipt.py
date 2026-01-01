@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.app.core.db import get_db
-from backend.app.quality.schemas.material_receipt import (
+from app.core.db import get_db
+from app.quality.schemas.material_receipt import (
     MaterialReceiptCreate,
     MaterialReceiptRead
 )
-from backend.app.quality.services.material_receipt_service import MaterialReceiptService
+from app.quality.services.material_receipt_service import MaterialReceiptService
 
 router = APIRouter(prefix="/material-receipt", tags=["Quality - Material Receipt"])
 

@@ -33,23 +33,6 @@ export default function MaterialReceipt() {
 
 
   const [lineItems, setLineItems] = useState([]);
-
-  useEffect(() => {
-  if (lineItems.length === 0) return;
-
-  const componentDetails = lineItems
-    .filter(item => item.received_quantity)
-    .map(item =>
-      `${item.description} – ${item.received_quantity} ${item.unit}`
-    )
-    .join(', ');
-
-  setMrData(prev => ({
-    ...prev,
-    component_details: componentDetails,
-  }));
-}, [lineItems]);
-
   const [vendors, setVendors] = useState([]);
 
   useEffect(() => {
@@ -205,25 +188,29 @@ Each item:
     transition: 'background-color 0.3s ease',
   };
 
-  const handlePOSelect = async (poId) => {
+ const handlePOSelect = async (poId) => {
   try {
     const res = await getPODetails(poId);
     const po = res.data;
 
     setSelectedPO(po);
 
+    // 🔑 FIND vendor name from vendors list
+    const vendor = vendors.find(v => v.id === po.vendor_id);
+
+    setMrData(prev => ({
+      ...prev,
+      vendor_id: po.vendor_id,
+      vendor_name: vendor?.name || '',   // ✅ GUARANTEED
+    }));
+
     const mappedItems = po.line_items.map(line => ({
-      po_line_id: line.id,        // or line.id if you add it later
+      po_line_id: line.id,
       item_code: line.item_code,
       description: line.item_description,
       unit: line.unit,
       ordered_quantity: line.quantity,
       received_quantity: '',
-    }));
-    setMrData(prev => ({
-      ...prev,
-      vendor_id: po.vendor_id,
-      purchase_number: po.po_number,
     }));
 
     setLineItems(mappedItems);
@@ -231,6 +218,12 @@ Each item:
     console.error('Failed to load PO details', err);
   }
 };
+
+
+useEffect(() => {
+  console.log("MR DATA:", mrData);
+}, [mrData]);
+
 
   const handleSaveReceipt = async () => {
   if (!mrData.bill_no || !mrData.entry_no || !mrData.mr_reference_no) {
@@ -253,12 +246,6 @@ Each item:
     alert('No line items found');
     return;
   }
-
-  const componentDetails = lineItems
-  .map(item =>
-    `${item.description} – ${item.received_quantity} ${item.unit}`
-  )
-  .join(', ');
 
 
   // 🔴 LINE ITEM VALIDATION
@@ -291,7 +278,9 @@ Each item:
     const payload = {
       po_id: selectedPO.id,
       vendor_id: selectedPO.vendor_id,
-      component_details: componentDetails,
+
+      vendor_name: mrData.vendor_name,
+      component_details: mrData.component_details,
 
       bill_no: mrData.bill_no,
       entry_no: mrData.entry_no,

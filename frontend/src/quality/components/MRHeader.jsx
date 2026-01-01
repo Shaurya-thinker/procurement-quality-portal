@@ -1,5 +1,6 @@
 import { getVendors } from '../../api/vendor.api';
 import { useEffect, useState } from 'react';
+import { getAllStores, getStoreBins } from '../../api/store.api';
 
 
 export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
@@ -57,8 +58,25 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
   const [vendors, setVendors] = useState([]);
 
   useEffect(() => {
-      getVendors().then(res => setVendors(res.data));
-    }, []);
+    getVendors().then(res => setVendors(res.data));
+  },  []);
+
+  const [stores, setStores] = useState([]);
+  const [bins, setBins] = useState([]);
+
+  useEffect(() => {
+    getAllStores().then(res => setStores(res.data));
+  }, []);
+
+  useEffect(() => {
+    if (!mrData.store_id) {
+      setBins([]);
+      return;
+    }
+
+    getStoreBins(mrData.store_id).then(res => setBins(res.data));
+  }, [mrData.store_id]);
+
 
   
   const inputStyle = {
@@ -159,7 +177,7 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
           <label style={labelStyle}>Component Details</label>
           <input
             type="text"
-            value={mrData.component_details || 'Auto-generated from line items'}
+            value={mrData.component_details || 'Auto-filled from bin'}
             disabled
             style={{ ...inputStyle, backgroundColor: '#f8fafc' }}
           />
@@ -189,23 +207,59 @@ export default function MRHeader({ mrData, onChange, isReadOnly = false }) {
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Store ID</label>
-          <input
+          <label style={labelStyle}>Store</label>
+          <select
             value={mrData.store_id || ''}
-            onChange={(e) => handleChange('store_id', Number(e.target.value))}
+            onChange={(e) => {
+              const storeId = Number(e.target.value);
+              onChange({
+                ...mrData,
+                store_id: storeId,
+                bin_id: '', // reset bin on store change
+              });
+            }}
             disabled={isReadOnly}
-            style={inputStyle}
-          />
+            style={{ ...inputStyle, cursor: 'pointer' }}
+            required
+          >
+            <option value="">Select Store</option>
+            {stores.map(store => (
+              <option key={store.id} value={store.id}>
+                {store.name} ({store.plant_name})
+              </option>
+            ))}
+          </select>
 
-          <label style={{ ...labelStyle, marginTop: 8 }}>Bin ID</label>
-          <input
+          <label style={{ ...labelStyle, marginTop: 8 }}>Bin</label>
+          <select
             value={mrData.bin_id || ''}
-            onChange={(e) => handleChange('bin_id', Number(e.target.value))}
-            disabled={isReadOnly}
-            style={inputStyle}
-          />
-        </div>
+            onChange={(e) => {
+              const binId = Number(e.target.value);
+              const selectedBin = bins.find(b => b.id === binId);
 
+              onChange({
+                ...mrData,
+                bin_id: binId,
+                component_details: selectedBin?.component_details || '',
+              });
+            }}
+            disabled={isReadOnly || !mrData.store_id}
+            style={{
+              ...inputStyle,
+              cursor: mrData.store_id ? 'pointer' : 'not-allowed',
+            }}
+            required
+          >
+            <option value="">
+              {mrData.store_id ? 'Select Bin' : 'Select Store First'}
+            </option>
+            {bins.map(bin => (
+              <option key={bin.id} value={bin.id}>
+                {bin.bin_no} — {bin.component_details || 'General'}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div style={fieldStyle}>
           <label style={labelStyle}>MR Reference No</label>

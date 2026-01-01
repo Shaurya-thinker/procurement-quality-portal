@@ -6,8 +6,13 @@ class InventoryRead(BaseModel):
     id: int
     item_id: int
     quantity: int
+
     store_id: int
+    store_name: str
+
     bin_id: int
+    bin_no: str
+
     gate_pass_id: int
     created_at: datetime
 

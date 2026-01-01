@@ -1,4 +1,9 @@
-export default function InventoryTable({ items = [], searchTerm = '', locationFilter = '' }) {
+export default function InventoryTable({
+  items = [],
+  searchTerm = '',
+  hideStore = false,
+  onDispatch,
+}) {
   const containerStyle = {
     backgroundColor: '#ffffff',
     borderRadius: '6px',
@@ -40,15 +45,6 @@ export default function InventoryTable({ items = [], searchTerm = '', locationFi
     fontWeight: '500',
   };
 
-  const locationBadgeStyle = {
-    display: 'inline-block',
-    padding: '4px 8px',
-    backgroundColor: '#e0e7ff',
-    color: '#3730a3',
-    borderRadius: '3px',
-    fontSize: '12px',
-  };
-
   const emptyStateStyle = {
     padding: '32px 16px',
     textAlign: 'center',
@@ -56,15 +52,24 @@ export default function InventoryTable({ items = [], searchTerm = '', locationFi
     fontSize: '14px',
   };
 
-  // Filter items based on search term and location filter
-  const filteredItems = items.filter(item => {
-    const matchesSearch = !searchTerm || 
-      item.item_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.item_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesLocation = !locationFilter || item.location === locationFilter;
-    
-    return matchesSearch && matchesLocation;
+  const highlightRowStyle = {
+    backgroundColor: '#f1c3f5ff', // soft yellow
+  };
+
+  const isSearchActive = searchTerm && searchTerm.trim() !== '';
+
+
+  /* 🔎 Search filtering (valid fields only) */
+  const filteredItems = items.filter((item) => {
+    if (!searchTerm) return true;
+
+    const term = searchTerm.toLowerCase();
+
+    return (
+      item.item_id?.toString().includes(term) ||
+      item.store_id?.toString().includes(term) ||
+      item.bin_id?.toString().includes(term)
+    );
   });
 
   const formatDate = (dateString) => {
@@ -81,7 +86,7 @@ export default function InventoryTable({ items = [], searchTerm = '', locationFi
     return (
       <div style={containerStyle}>
         <div style={emptyStateStyle}>
-          No inventory items found. Start by receiving items from quality.
+          No inventory items found. Receive items via Gate Pass.
         </div>
       </div>
     );
@@ -91,7 +96,7 @@ export default function InventoryTable({ items = [], searchTerm = '', locationFi
     return (
       <div style={containerStyle}>
         <div style={emptyStateStyle}>
-          No items match your search or filter criteria.
+          No items match your search.
         </div>
       </div>
     );
@@ -102,31 +107,55 @@ export default function InventoryTable({ items = [], searchTerm = '', locationFi
       <table style={tableStyle}>
         <thead>
           <tr>
-            <th style={thStyle}>Item Code</th>
-            <th style={thStyle}>Item Name</th>
-            <th style={thStyle}>Quantity Available</th>
-            <th style={thStyle}>Location</th>
-            <th style={thStyle}>Last Updated</th>
+            <th style={thStyle}>Inventory ID</th>
+            <th style={thStyle}>Item ID</th>
+            <th style={thStyle}>Quantity</th>
+            {!hideStore && <th style={thStyle}>Store ID</th>}
+            <th style={thStyle}>Bin ID</th>
+            <th style={thStyle}>Received On</th>
+            {!hideStore && onDispatch && <th style={thStyle}>Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {filteredItems.map((item, index) => (
-            <tr key={index}>
-              <td style={tdStyle}>
-                <span style={{ fontWeight: '500' }}>{item.item_code || '-'}</span>
-              </td>
-              <td style={tdStyle}>{item.item_name || '-'}</td>
+          {filteredItems.map((item) => (
+            <tr
+              key={item.id}
+              style={isSearchActive ? highlightRowStyle : {}}
+            >
+              <td style={tdStyle}>{item.id}</td>
+              <td style={tdStyle}>{item.item_id}</td>
               <td style={tdStyle}>
                 <span style={quantityBadgeStyle}>
-                  {item.quantity_available || 0}
+                  {item.quantity}
                 </span>
               </td>
+              {!hideStore && (
+                <td style={tdStyle}>{item.store_id}</td>
+              )}
+              <td style={tdStyle}>{item.bin_id}</td>
               <td style={tdStyle}>
-                <span style={locationBadgeStyle}>
-                  {item.location || '-'}
-                </span>
+                {formatDate(item.created_at)}
               </td>
-              <td style={tdStyle}>{formatDate(item.last_updated)}</td>
+              {!hideStore && onDispatch && (
+                <td style={tdStyle}>
+                  <button
+                    onClick={() => onDispatch(item)}
+                    disabled={item.quantity <= 0}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                    }}
+                  >
+                    Dispatch
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

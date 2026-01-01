@@ -15,7 +15,7 @@ class InventoryItem(Base):
 
     quantity = Column(Integer, nullable=False)
 
-    gate_pass_id = Column(Integer, nullable=False, unique=True)
+    gate_pass_id = Column(Integer, nullable=False)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 

@@ -1,4 +1,4 @@
-export default function GatePassPreview({ gatePassData, onDispatch, dispatchDisabled = false }) {
+export default function GatePassPreview({ gatePassData, onDispatch, }) {
   const containerStyle = {
     backgroundColor: "#ffffff",
     borderRadius: "6px",
@@ -168,6 +168,12 @@ export default function GatePassPreview({ gatePassData, onDispatch, dispatchDisa
           <div style={valueStyle}>{gatePassData.vendor_name}</div>
         </div>
         <div style={infoFieldStyle}>
+          <div style={labelStyle}>Component Details</div>
+          <div style={valueStyle}>
+            {gatePassData.component_details || "-"}
+          </div>
+        </div>
+        <div style={infoFieldStyle}>
           <div style={labelStyle}>Destination</div>
           <div style={valueStyle}>Store</div>
         </div>
@@ -247,17 +253,37 @@ export default function GatePassPreview({ gatePassData, onDispatch, dispatchDisa
         <button onClick={handlePrint} style={printButtonStyle}>
           🖨️ Print Gate Pass
         </button>
-        <button
-          onClick={onDispatch}
-          disabled={dispatchDisabled}
-          style={{
-            ...dispatchButtonStyle,
-            opacity: dispatchDisabled ? 0.6 : 1,
-            cursor: dispatchDisabled ? "not-allowed" : "pointer",
-          }}
-        >
-          {dispatchDisabled ? "✓ Dispatched" : "✓ Dispatch to Store"}
-        </button>
+
+        {/* SHOW DISPATCH ONLY IF SENT_TO_STORE */}
+        {gatePassData.store_status === "SENT_TO_STORE" && (
+          <button
+            onClick={onDispatch}
+            disabled={dispatching}
+            style={{
+              ...dispatchButtonStyle,
+              opacity: dispatching ? 0.6 : 1,
+              cursor: dispatching ? "not-allowed" : "pointer",
+            }}
+          >
+            ✓ Dispatch to Store
+          </button>
+        )}
+
+        {/* SHOW STATUS IF RECEIVED */}
+        {gatePassData.store_status === "RECEIVED" && (
+          <div
+            style={{
+              padding: "10px 24px",
+              backgroundColor: "#ecfdf5",
+              color: "#065f46",
+              borderRadius: "4px",
+              fontSize: "14px",
+              fontWeight: "600",
+            }}
+          >
+            ✔ Received in Store
+          </div>
+        )}
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ from app.store.schemas import (
 from app.store.models.inventory import InventoryItem
 from app.store.models.store import Store, Bin
 from ...core.db import get_db
+from app.procurement.models.item import Item
 
 router = APIRouter(prefix="/api/v1/store", tags=["Store"])
 
@@ -26,6 +27,123 @@ def receive_gate_pass(
         return StoreService.receive_gate_pass(db, gate_pass_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/stores/{store_id}/pending-gate-passes")
+def get_pending_gate_passes(store_id: int, db: Session = Depends(get_db)):
+    from app.quality.models.gate_pass import GatePass
+    from app.quality.models.material_receipt import MaterialReceipt
+
+    results = (
+        db.query(
+            GatePass.id,
+            GatePass.gate_pass_number,
+            MaterialReceipt.mr_number,
+            MaterialReceipt.vendor_name,   # ✅ USE THIS
+        )
+        .join(MaterialReceipt, GatePass.mr_id == MaterialReceipt.id)
+        .filter(MaterialReceipt.store_id == store_id)
+        .filter(GatePass.store_status == "SENT_TO_STORE")
+        .all()
+    )
+
+    return [
+        {
+            "id": r.id,
+            "gate_pass_number": r.gate_pass_number,
+            "mr_number": r.mr_number,
+            "vendor_name": r.vendor_name,
+        }
+        for r in results
+    ]
+
+
+@router.get("/stores/{store_id}/received-gate-passes")
+def get_received_gate_passes(store_id: int, db: Session = Depends(get_db)):
+    from app.quality.models.gate_pass import GatePass
+    from app.quality.models.material_receipt import MaterialReceipt
+
+    results = (
+        db.query(
+            GatePass.id,
+            GatePass.gate_pass_number,
+            MaterialReceipt.mr_number,
+            MaterialReceipt.vendor_name,
+            GatePass.issued_at.label("received_at"),  # ✅ CORRECT
+        )
+        .join(MaterialReceipt, GatePass.mr_id == MaterialReceipt.id)
+        .filter(MaterialReceipt.store_id == store_id)
+        .filter(GatePass.store_status == "RECEIVED")
+        .order_by(GatePass.issued_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": r.id,
+            "gate_pass_number": r.gate_pass_number,
+            "mr_number": r.mr_number,
+            "vendor_name": r.vendor_name,
+            "received_at": r.received_at,
+        }
+        for r in results
+    ]
+
+
+@router.get("/gate-passes/{gate_pass_id}")
+def get_gate_pass_detail(gate_pass_id: int, db: Session = Depends(get_db)):
+    from app.quality.models.gate_pass import GatePass, GatePassItem
+    from app.quality.models.material_receipt import MaterialReceipt
+    from app.procurement.models.purchase_order import PurchaseOrder
+    from app.procurement.models.item import Item
+
+    # 1️⃣ Fetch Gate Pass
+    gp = (
+        db.query(GatePass)
+        .filter(GatePass.id == gate_pass_id)
+        .first()
+    )
+
+    if not gp:
+        raise HTTPException(status_code=404, detail="Gate pass not found")
+
+    # 2️⃣ Fetch MR
+    mr = (
+        db.query(MaterialReceipt)
+        .filter(MaterialReceipt.id == gp.mr_id)
+        .first()
+    )
+
+    # 3️⃣ Fetch PO via MR
+    po = (
+        db.query(PurchaseOrder)
+        .filter(PurchaseOrder.id == mr.po_id)
+        .first()
+        if mr else None
+    )
+
+    # 4️⃣ Fetch items
+    items = (
+        db.query(GatePassItem, Item)
+        .join(Item, Item.id == GatePassItem.item_id)
+        .filter(GatePassItem.gate_pass_id == gate_pass_id)
+        .all()
+    )
+
+    return {
+        "id": gp.id,
+        "gate_pass_number": gp.gate_pass_number,
+        "mr_number": mr.mr_number if mr else None,
+        "po_number": po.po_number if po else None,   # ✅ FIX
+        "vendor_name": mr.vendor_name if mr else None,
+        "items": [
+            {
+                "item_code": item.code,
+                "description": item.description,
+                "accepted_quantity": gpi.accepted_quantity,
+            }
+            for gpi, item in items
+        ],
+    }
 
 
 @router.get("/inventory")
@@ -35,7 +153,26 @@ def get_inventory(
     item_id: Optional[int] = Query(None),
     db: Session = Depends(get_db)
 ):
-    query = db.query(InventoryItem)
+    query = (
+        db.query(
+            InventoryItem.id,
+            InventoryItem.item_id,
+
+            Item.code.label("item_code"),
+            Item.description.label("item_name"),
+            Item.unit.label("unit"),
+
+            InventoryItem.quantity,
+            InventoryItem.store_id,
+            Store.name.label("store_name"),
+            InventoryItem.bin_id,
+            Bin.bin_no.label("bin_no"),
+            InventoryItem.created_at,
+        )
+        .join(Item, Item.id == InventoryItem.item_id)
+        .join(Store, Store.id == InventoryItem.store_id)
+        .join(Bin, Bin.id == InventoryItem.bin_id)
+    )
 
     if store_id:
         query = query.filter(InventoryItem.store_id == store_id)
@@ -44,7 +181,30 @@ def get_inventory(
     if item_id:
         query = query.filter(InventoryItem.item_id == item_id)
 
-    return query.all()
+    results = query.all()
+
+    return [
+        {
+            "id": r.id,
+            "item_id": r.item_id,
+            "item_code": r.item_code,
+            "item_name": r.item_name,
+            "unit": r.unit,
+            "quantity": r.quantity,
+            "store_id": r.store_id,
+            "store_name": r.store_name,
+            "bin_id": r.bin_id,
+            "bin_no": r.bin_no,
+            "created_at": r.created_at,
+        }
+        for r in results
+    ]
+
+
+@router.get("/po/{po_id}/pending-items")
+def get_po_pending_items(po_id: int, db: Session = Depends(get_db)):
+    return StoreService.get_po_pending_items(db, po_id)
+
 
 
 

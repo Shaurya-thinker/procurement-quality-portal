@@ -13,11 +13,46 @@ import {
   getStoreBins,
   getInventoryByStore,
 } from '../../api/store.api';
+import { getPendingGatePasses, receiveGatePass, getGatePassDetails } from '../../api/store.api';
+
 
 
 export const useStore = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const getPendingGatePassesAsync = useCallback(async (storeId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getPendingGatePasses(storeId);
+      return res.data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getGatePassDetailsAsync = useCallback(async (id) => {
+    setLoading(true);
+    try {
+      const res = await getGatePassDetails(id);
+      return res.data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const receiveGatePassAsync = useCallback(async (gatePassId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await receiveGatePass(gatePassId);
+      return res.data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
 
   const getInventoryAsync = useCallback(async (params = {}) => {
     setLoading(true);
@@ -51,21 +86,6 @@ export const useStore = () => {
 }, []);
 
 
-  const addInventoryAsync = useCallback(async (data) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await addInventory(data);
-      return response.data;
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to add inventory';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
 
   const getDispatchesAsync = useCallback(async (params = {}) => {
     setLoading(true);
@@ -75,21 +95,6 @@ export const useStore = () => {
       return response.data;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch dispatches';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const getInventoryItemDetailsAsync = useCallback(async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await getInventoryItemDetails(id);
-      return response.data;
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch inventory item details';
       setError(errorMessage);
       throw err;
     } finally {
@@ -210,8 +215,6 @@ export const useStore = () => {
     loading,
     error,
     getInventory: getInventoryAsync,
-    getInventoryItemDetails: getInventoryItemDetailsAsync,
-    addInventory: addInventoryAsync,
     getDispatches: getDispatchesAsync,
     createStore: createStoreAsync,
     getAllStores: getAllStoresAsync,
@@ -221,6 +224,9 @@ export const useStore = () => {
     addBin: addBinAsync,
     getStoreBins: getStoreBinsAsync,
     getInventoryByStore: getInventoryByStoreAsync,
+    getPendingGatePasses: getPendingGatePassesAsync,
+    receiveGatePass: receiveGatePassAsync,
+    getGatePassDetails: getGatePassDetailsAsync,
     clearError,
   };
 };

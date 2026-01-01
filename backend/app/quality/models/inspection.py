@@ -19,7 +19,7 @@ class QualityInspection(Base):
     material_receipt = relationship("MaterialReceipt")  # ✅ ADD THIS
 
     lines = relationship(
-    "backend.app.quality.models.inspection.QualityInspectionLine",
+    "app.quality.models.inspection.QualityInspectionLine",
     back_populates="inspection",
     cascade="all, delete-orphan",
     lazy="joined"

@@ -3,13 +3,13 @@ from datetime import datetime
 
 from sqlalchemy import func
 
-from backend.app.quality.models.material_receipt import (
+from app.quality.models.material_receipt import (
     MaterialReceipt,
     MaterialReceiptLine
 )
-from backend.app.procurement.models.purchase_order import PurchaseOrder
-from backend.app.procurement.models.purchase_order_line import PurchaseOrderLine
-from backend.app.procurement.schemas.purchase_order import POStatus
+from app.procurement.models.purchase_order import PurchaseOrder
+from app.procurement.models.purchase_order_line import PurchaseOrderLine
+from app.procurement.schemas.purchase_order import POStatus
 
 
 class MaterialReceiptService:

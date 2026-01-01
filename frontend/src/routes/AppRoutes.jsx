@@ -24,6 +24,10 @@ import DispatchDetail from "../store/pages/DispatchDetail";
 import ContractorsList from "../contractors/pages/ContractorsList";
 import CreateContractor from "../contractors/pages/CreateContractor";
 import ContractorDetails from "../contractors/pages/ContractorDetails";
+import InventoryByStore from "../store/pages/InventoryByStore";
+import StoreGatePasses from "../store/pages/StoreGatePasses";
+import ReceivedGatePasses from "../store/pages/ReceivedGatePasses";
+
 
 export default function AppRoutes() {
   return (
@@ -57,6 +61,8 @@ export default function AppRoutes() {
       <Route path="/announcements" element={<ProtectedRoute><Announcement /></ProtectedRoute>} />
 
       {/* Store Routes */}
+      <Route path="/store/:storeId/gate-passes" element={<ProtectedRoute><StoreGatePasses /></ProtectedRoute>}/>
+      <Route path="/store/:storeId/received-gate-passes" element={<ReceivedGatePasses />}/>
       <Route path="/store" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
       <Route path="/store/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
 
@@ -64,6 +70,7 @@ export default function AppRoutes() {
       <Route path="/store/dispatch/create" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
       <Route path="/store/dispatch/edit/:dispatchId" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
       <Route path="/store/dispatch/:dispatchId" element={<ProtectedRoute><DispatchDetail /></ProtectedRoute>} />
+      <Route path="/store/:storeId/inventory" element={<InventoryByStore />} />
 
 
       <Route path="/store/:storeId" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />

@@ -8,18 +8,20 @@ import requests
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from backend.app.procurement.models import PurchaseOrder, Item
-from backend.app.procurement.schemas.purchase_order import (PurchaseOrderDetailRead, PurchaseOrderLineDetailRead,)
-from backend.app.procurement.schemas.item import ItemCreate, ItemRead
+from app.procurement.models import PurchaseOrder, Item
+from app.procurement.schemas.purchase_order import (PurchaseOrderDetailRead, PurchaseOrderLineDetailRead,)
+from app.procurement.schemas.item import ItemCreate, ItemRead
+from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem
 
-from backend.app.procurement.models import (
+from app.procurement.models import (
     PurchaseOrder,
     PurchaseOrderLine,
     Item,
     POStatus,
 )
-from backend.app.procurement.schemas import (
+from app.procurement.schemas import (
     PurchaseOrderCreate,
     PurchaseOrderRead,
     PurchaseOrderLineRead,
@@ -487,7 +489,7 @@ class ProcurementService:
         Return a consolidated tracking summary for a purchase order.
 
         Tries to read material receipt and QC inspection information from the
-        `backend.app.quality` module if available. This function is read-only
+        `app.quality` module if available. This function is read-only
         with respect to quality module data.
         """
         # Get basic PO info
@@ -501,7 +503,7 @@ class ProcurementService:
 
         # Defensive: try to import quality models/services if the quality module exists
         try:
-            from backend.app.quality import models as quality_models
+            from app.quality import models as quality_models
             # Commonly, material receipt and qc tables may reference po_id
             MaterialReceipt = getattr(quality_models, "MaterialReceipt", None)
             QCInspection = getattr(quality_models, "QCInspection", None)
@@ -583,3 +585,51 @@ class ProcurementService:
             ],
             "total": len(purchase_orders)
         }
+
+    @staticmethod
+    def get_po_items_with_pending_qty(db: Session, po_id: int):
+        """
+        Return PO items with ordered, dispatched and pending quantity
+        """
+
+        # Subquery: dispatched quantity per item for this PO
+        dispatched_subq = (
+            db.query(
+                MaterialDispatchLineItem.item_id,
+                func.coalesce(func.sum(MaterialDispatchLineItem.quantity_dispatched), 0)
+                .label("dispatched_qty")
+            )
+            .join(MaterialDispatch, MaterialDispatch.id == MaterialDispatchLineItem.dispatch_id)
+            .filter(
+                MaterialDispatch.reference_type == "PO",
+                MaterialDispatch.reference_id == str(po_id),
+                MaterialDispatch.dispatch_status != "CANCELLED"
+            )
+            .group_by(MaterialDispatchLineItem.item_id)
+            .subquery()
+        )
+
+        # Main query
+        results = (
+            db.query(
+                PurchaseOrderLine.item_id,
+                PurchaseOrderLine.quantity.label("ordered_qty"),
+                func.coalesce(dispatched_subq.c.dispatched_qty, 0).label("dispatched_qty")
+            )
+            .outerjoin(
+                dispatched_subq,
+                dispatched_subq.c.item_id == PurchaseOrderLine.item_id
+            )
+            .filter(PurchaseOrderLine.po_id == po_id)
+            .all()
+        )
+
+        return [
+            {
+                "item_id": r.item_id,
+                "ordered_qty": r.ordered_qty,
+                "already_dispatched": float(r.dispatched_qty),
+                "pending_qty": max(r.ordered_qty - float(r.dispatched_qty), 0)
+            }
+            for r in results
+        ]

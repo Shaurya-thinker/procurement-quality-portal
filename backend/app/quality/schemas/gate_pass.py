@@ -23,6 +23,8 @@ class GatePassRead(BaseModel):
     po_id: int
     mr_id: int
     inspection_id: int
+    vendor_name: str | None
+    component_details: str | None
     issued_by: str
     issued_at: datetime
     store_status: str

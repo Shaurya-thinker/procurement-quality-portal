@@ -2,22 +2,22 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Header
 from sqlalchemy.orm import Session
 from typing import List
-from backend.app.core.config import DEBUG
+from app.core.config import DEBUG
 
 
-from backend.app.core.db import get_db
-from backend.app.procurement.schemas import (
+from app.core.db import get_db
+from app.procurement.schemas import (
     PurchaseOrderCreate,
     PurchaseOrderRead,
     PurchaseOrderUpdate,
     POStatus,
 )
-from backend.app.procurement.schemas import VendorRead
-from backend.app.procurement.schemas import PurchaseOrderTracking
-from backend.app.procurement.services import ProcurementService
-from backend.app.procurement.schemas.purchase_order import PurchaseOrderDetailRead
-from backend.app.procurement.models import Item
-from backend.app.procurement.schemas.item import ItemRead, ItemCreate
+from app.procurement.schemas import VendorRead
+from app.procurement.schemas import PurchaseOrderTracking
+from app.procurement.services import ProcurementService
+from app.procurement.schemas.purchase_order import PurchaseOrderDetailRead
+from app.procurement.models import Item
+from app.procurement.schemas.item import ItemRead, ItemCreate
 
 router = APIRouter(prefix="/api/v1/procurement", tags=["Procurement"])
 
@@ -190,4 +190,14 @@ def get_po_tracking(
         return tracking
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
 
+@router.get("/{po_id}/pending-items")
+def get_po_pending_items(
+    po_id: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        return ProcurementService.get_po_items_with_pending_qty(db, po_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

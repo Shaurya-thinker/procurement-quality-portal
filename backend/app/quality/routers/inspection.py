@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.app.core.db import get_db
-from backend.app.quality.schemas.inspection import (
+from app.core.db import get_db
+from app.quality.schemas.inspection import (
     InspectionCreate,
     InspectionRead
 )
-from backend.app.quality.services.inspection_service import InspectionService
-from backend.app.quality.models.inspection import QualityInspection
+from app.quality.services.inspection_service import InspectionService
+from app.quality.models.inspection import QualityInspection
 
 router = APIRouter(prefix="/inspection", tags=["Quality - Inspection"])
 

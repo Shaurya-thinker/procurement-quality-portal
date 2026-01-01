@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from backend.app.quality.models.material_receipt import (
+from app.quality.models.material_receipt import (
     MaterialReceipt,
     MaterialReceiptLine
 )
-from backend.app.quality.models.inspection import (
+from app.quality.models.inspection import (
     QualityInspection,
     QualityInspectionLine
 )

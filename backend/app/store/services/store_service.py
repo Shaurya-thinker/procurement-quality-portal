@@ -10,13 +10,16 @@ from app.store.models.inventory_transaction import InventoryTransaction
 from datetime import datetime
 import uuid
 from app.store.models.store import Store, Bin
+from sqlalchemy import func
+from app.procurement.models.purchase_order_line import PurchaseOrderLine
+from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem, DispatchStatus
 
 class StoreService:
     
     @staticmethod
     def receive_gate_pass(db: Session, gate_pass_id: int):
-        from backend.app.quality.models.gate_pass import GatePass
-        from backend.app.quality.models.material_receipt import MaterialReceipt
+        from app.quality.models.gate_pass import GatePass
+        from app.quality.models.material_receipt import MaterialReceipt
 
         # 1️⃣ Fetch Gate Pass
         gate_pass = db.query(GatePass).filter(
@@ -37,22 +40,11 @@ class StoreService:
         if not mr:
             raise ValueError("Material Receipt not found")
 
-        if not mr.store_id or not mr.bin_id:
-            raise ValueError("Store or Bin not assigned in MR")
         
         # 2️⃣ Validate Store exists
         store = db.query(Store).filter(Store.id == mr.store_id).first()
         if not store:
             raise ValueError("Invalid Store assigned in Material Receipt")
-
-        # 3️⃣ Validate Bin exists and belongs to Store
-        bin = db.query(Bin).filter(
-            Bin.id == mr.bin_id,
-            Bin.store_id == mr.store_id
-        ).first()
-
-        if not bin:
-            raise ValueError("Invalid Bin assigned in Material Receipt")
 
 
         # 3️⃣ Receive inventory (IN)
@@ -64,25 +56,24 @@ class StoreService:
                 .filter(
                     InventoryItem.item_id == item.item_id,
                     InventoryItem.store_id == mr.store_id,
-                    InventoryItem.bin_id == mr.bin_id,
-                    InventoryItem.gate_pass_id == gate_pass.id
+                    InventoryItem.bin_id == mr.bin_id, 
                 )
                 .with_for_update()
                 .first()
             )
 
-            if not inventory:
+            if inventory:
+                inventory.quantity += received_qty
+            else:
                 inventory = InventoryItem(
                     item_id=item.item_id,
-                    quantity=received_qty,
                     store_id=mr.store_id,
                     bin_id=mr.bin_id,
+                    quantity=received_qty,
                     gate_pass_id=gate_pass.id
                 )
                 db.add(inventory)
-                db.flush()  # 👈 REQUIRED to get inventory.id
-            else:
-                inventory.quantity += received_qty
+                db.flush()
 
             # 🔹 INVENTORY TRANSACTION (IN)
             txn = InventoryTransaction(
@@ -189,3 +180,58 @@ class StoreService:
     def get_store_bins(db: Session, store_id: int) -> List[Bin]:
         """Get all bins for a store."""
         return db.query(Bin).filter(Bin.store_id == store_id).all()
+
+    @staticmethod
+    def get_po_pending_items(db: Session, po_id: int):
+        """
+        Returns PO items with pending quantity.
+        pending = ordered - dispatched
+        """
+
+        # 1️⃣ Get PO lines
+        po_lines = (
+            db.query(
+                PurchaseOrderLine.item_id,
+                PurchaseOrderLine.quantity.label("ordered_qty"),
+            )
+            .filter(PurchaseOrderLine.po_id == po_id)
+            .all()
+        )
+
+        if not po_lines:
+            return []
+
+        # 2️⃣ Get already dispatched qty per item
+        dispatched = (
+            db.query(
+                MaterialDispatchLineItem.item_id,
+                func.coalesce(func.sum(MaterialDispatchLineItem.quantity_dispatched), 0)
+                .label("dispatched_qty")
+            )
+            .join(MaterialDispatch)
+            .filter(
+                MaterialDispatch.reference_type == "PO",
+                MaterialDispatch.reference_id == str(po_id),
+                MaterialDispatch.dispatch_status == DispatchStatus.DISPATCHED
+            )
+            .group_by(MaterialDispatchLineItem.item_id)
+            .all()
+        )
+
+        dispatched_map = {
+            d.item_id: float(d.dispatched_qty) for d in dispatched
+        }
+
+        # 3️⃣ Build response
+        result = []
+        for line in po_lines:
+            pending = float(line.ordered_qty) - dispatched_map.get(line.item_id, 0)
+            if pending > 0:
+                result.append({
+                    "item_id": line.item_id,
+                    "ordered_qty": float(line.ordered_qty),
+                    "dispatched_qty": dispatched_map.get(line.item_id, 0),
+                    "pending_qty": pending
+                })
+
+        return result

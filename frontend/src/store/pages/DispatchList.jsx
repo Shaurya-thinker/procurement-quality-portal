@@ -234,10 +234,18 @@ export default function DispatchList() {
                     <td style={tdStyle}>{dispatch.created_by}</td>
 
                     <td style={tdStyle}>
+                      {dispatch.line_items.reduce(
+                        (sum, li) => sum + Number(li.quantity_dispatched), 0
+                      )}
+                    </td>
+
+                    <td style={tdStyle}>
                       {new Date(dispatch.dispatch_date).toLocaleDateString()}
                     </td>
 
-                    <td style={tdStyle}>{dispatch.reference_id}</td>
+                    <td style={tdStyle}>
+                      {dispatch.reference_type} – {dispatch.reference_id}
+                    </td>
 
                     <td style={tdStyle}>
                       {dispatch.dispatch_status === 'DISPATCHED' && (

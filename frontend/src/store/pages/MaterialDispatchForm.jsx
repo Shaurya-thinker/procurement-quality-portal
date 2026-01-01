@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../hooks/useStore';
+import { useLocation } from 'react-router-dom';
+import { getPOs } from '../../api/procurement.api';
+import { getPOPendings } from '../../api/store.api';
 
 
 export default function MaterialDispatchForm({ initialData = null, mode = 'CREATE' }) {
@@ -11,18 +14,8 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
   const navigate = useNavigate();
   const { getInventory } = useStore();
   const [inventory, setInventory] = useState([]);
-
-  useEffect(() => {
-    getInventory()
-      .then(data => setInventory(data))
-      .catch(err => console.error('Failed to load inventory', err));
-  }, []);
-
-
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const submitDraft = () => handleSubmit(true);
-  const submitIssue = () => handleSubmit(false);
+  const [poList, setPoList] = useState([]);
+  const [poItems, setPoItems] = useState([]);
   const [formData, setFormData] = useState({
   
     // Dispatch Header
@@ -54,6 +47,60 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
       remarks: ''
     }]
   });
+
+  useEffect(() => {
+    getPOs()
+      .then(res => setPoList(res.data))
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (formData.reference_type === "PO" && formData.reference_id) {
+      getPOPendings(formData.reference_id)
+        .then(res => setPoItems(res.data))
+        .catch(console.error);
+    } else {
+      setPoItems([]);
+    }
+  }, [formData.reference_type, formData.reference_id]);
+
+
+  const location = useLocation();
+  const selectedInventory = location.state?.inventory;
+
+  useEffect(() => {
+    if (selectedInventory && mode === 'CREATE') {
+      setFormData(prev => ({
+        ...prev,
+        warehouse_id: selectedInventory.store_id,
+        line_items: [{
+          inventory_item_id: selectedInventory.id,
+          item_id: selectedInventory.item_id,
+          item_code: selectedInventory.item_code,
+          item_name: selectedInventory.item_name,
+          uom: selectedInventory.unit,
+          available_qty: selectedInventory.quantity,
+          quantity_dispatched: '',
+          batch_number: '',
+          remarks: ''
+        }]
+      }));
+    }
+  }, [selectedInventory]);
+
+
+
+  useEffect(() => {
+    getInventory()
+      .then(data => setInventory(data))
+      .catch(err => console.error('Failed to load inventory', err));
+  }, []);
+
+
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const submitDraft = () => handleSubmit(true);
+  const submitIssue = () => handleSubmit(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -224,22 +271,35 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     marginTop: '4px'
   };
 
+  const inventoryOptions =
+  formData.reference_type === "PO"
+    ? inventory.filter(inv =>
+        poItems.some(p => p.item_id === inv.item_id)
+      )
+    : inventory;
+
+
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-  <button
-    onClick={() => navigate(-1)}
-    className="back-arrow-btn"
-    aria-label="Go back"
-  >
-    ←
-  </button>
 
-  <h1>
-  {mode === "CREATE" && "Create Material Dispatch"}
-  {mode === "EDIT" && "Edit Material Dispatch"}
-  {mode === "VIEW" && "Material Dispatch Details"}
-</h1>
+  {selectedInventory && (
+    <div
+      style={{
+        marginTop: 8,
+        marginBottom: 16,
+        padding: "8px 12px",
+        background: "#eff6ff",
+        borderLeft: "4px solid #2563eb",
+        color: "#1e40af",
+        fontSize: 13,
+      }}
+    >
+      Dispatching from Inventory ID #{selectedInventory.id} —{" "}
+      {selectedInventory.item_code} ({selectedInventory.quantity} available)
+    </div>
+  )}
+
 </div>
 
 {mode === "VIEW" && initialData?.dispatch_status === "DRAFT" && (
@@ -293,21 +353,40 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
             
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Reference ID *</label>
-              <input
-                disabled={isReadOnly}
-                type="text"
-                value={formData.reference_id}
-                onChange={(e) => setFormData({ ...formData, reference_id: e.target.value })}
-                style={inputStyle}
-                required
-              />
+              {formData.reference_type === "PO" ? (
+                <select
+                  disabled={isReadOnly}
+                  value={formData.reference_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reference_id: e.target.value })
+                  }
+                  style={inputStyle}
+                >
+                  <option value="">Select Purchase Order</option>
+                  {poList.map(po => (
+                    <option key={po.id} value={po.id}>
+                      {po.po_number}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  disabled={isReadOnly}
+                  type="text"
+                  value={formData.reference_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reference_id: e.target.value })
+                  }
+                  style={inputStyle}
+                />
+              )}
               {errors.reference_id && <div style={errorStyle}>{errors.reference_id}</div>}
             </div>
             
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Warehouse ID *</label>
               <input
-                disabled={isReadOnly}
+                disabled={isReadOnly || !!selectedInventory}
                 type="number"
                 value={formData.warehouse_id}
                 onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
@@ -462,7 +541,8 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
             </button>
           </div>
           
-          {formData.line_items.map((item, index) => (
+          {formData.line_items.map((item, index) => {
+            return (
             <div key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: '500', margin: 0 }}>Item {index + 1}</h3>
@@ -485,14 +565,14 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Inventory Item *</label>
                   <select
-                    disabled={isReadOnly}
-                    value={item.item_id}
+                    disabled={isReadOnly || !!selectedInventory}
+                    value={item.inventory_item_id || ''}
                     onChange={(e) => {
                       const inv = inventory.find(i => i.id === Number(e.target.value));
                       if (!inv) return;
 
                       updateLineItem(index, 'inventory_item_id', inv.id); 
-                      updateLineItem(index, 'item_id', inv.id);
+                      updateLineItem(index, 'item_id', inv.item_id);
                       updateLineItem(index, 'item_code', inv.item_code);
                       updateLineItem(index, 'item_name', inv.item_name);
                       updateLineItem(index, 'uom', inv.unit);
@@ -502,9 +582,12 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                     required
                   >
                     <option value="">Select inventory item</option>
-                    {inventory.map(inv => (
+                    {inventoryOptions.map(inv => (
                       <option key={inv.id} value={inv.id}>
-                        {inv.item_code} — {inv.item_name} (Stock: {inv.quantity})
+                        {inv.item_code} — {inv.item_name}
+                        {" | Store "}{inv.store_id}
+                        {" | Bin "}{inv.bin_no}
+                        {" | Stock: "}{inv.quantity}
                       </option>
                     ))}
                   </select>
@@ -515,9 +598,9 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Code *</label>
                   <input
-                    disabled={isReadOnly}
+                    disabled
                     type="text"
-                    value={item.item_code}
+                    value={item.item_code || ""}
                     readOnly
                     style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />
@@ -527,10 +610,10 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Name *</label>
                   <input
-                    disabled={isReadOnly}
-                    type="text"
-                    value={item.item_name}
-                    readOnly
+                     disabled
+                      type="text"
+                      value={item.item_name || ""}
+                      readOnly
                     style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />
                   {errors[`line_items.${index}.item_name`] && <div style={errorStyle}>{errors[`line_items.${index}.item_name`]}</div>}
@@ -545,24 +628,42 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                     value={item.quantity_dispatched}
                     onChange={(e) => {
                       const qty = Number(e.target.value);
-                      if (qty > item.available_qty) {
-                        alert(`Available stock: ${item.available_qty}`);
+
+                      // PO pending qty (if applicable)
+                      const poItem = poItems.find(
+                        (p) => p.item_id === item.item_id
+                      );
+
+                      const maxAllowed =
+                        formData.reference_type === "PO"
+                          ? Math.min(
+                              item.available_qty,
+                              poItem?.pending_qty ?? 0
+                            )
+                          : item.available_qty;
+
+                      if (qty > maxAllowed) {
+                        alert(`Max allowed quantity: ${maxAllowed}`);
+                        updateLineItem(index, "quantity_dispatched", maxAllowed);
                         return;
                       }
-                      updateLineItem(index, 'quantity_dispatched', qty);
+
+                      updateLineItem(index, "quantity_dispatched", qty);
                     }}
                     style={inputStyle}
                     required
                   />
                   {errors[`line_items.${index}.quantity_dispatched`] && <div style={errorStyle}>{errors[`line_items.${index}.quantity_dispatched`]}</div>}
                 </div>
-                
+                <small style={{ color: "#6b7280" }}>
+                  Available: {item.available_qty}
+                </small>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>UOM *</label>
                   <input
-                    disabled={isReadOnly}
+                    disabled
                     type="text"
-                    value={item.uom}
+                    value={item.uom || ""}
                     readOnly
                     style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
                   />
@@ -592,7 +693,8 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
                 </div>
               </div>
             </div>
-          ))}
+          );
+        })} 
         </div>
 
         {/* Submit Buttons */}
