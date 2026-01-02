@@ -39,8 +39,6 @@ class MaterialDispatchCreate(BaseModel):
     warehouse_id: int = Field(..., gt=0)
     created_by: str = Field(..., min_length=1, max_length=100)
     remarks: Optional[str] = None
-    
-    is_draft: bool = False
 
     # Receiver & Transport
     receiver_name: str = Field(..., min_length=1, max_length=200)

@@ -29,3 +29,27 @@ export const deleteContractor = async (id) => {
   const res = await api.delete(`/api/v1/contractors/${id}`);
   return res.data;
 };
+
+// Deactivate contractor (ACTIVE → INACTIVE)
+export const deactivateContractor = async (id) => {
+  const res = await api.put(`/api/v1/contractors/${id}`, {
+    status: "INACTIVE",
+  });
+  return res.data;
+};
+
+// Activate contractor (INACTIVE → ACTIVE)
+export const activateContractor = async (id) => {
+  const res = await api.put(`/api/v1/contractors/${id}`, {
+    status: "ACTIVE",
+  });
+  return res.data;
+};
+
+// Blacklist contractor (INACTIVE → BLACKLISTED)
+export const blacklistContractor = async (id) => {
+  const res = await api.put(`/api/v1/contractors/${id}`, {
+    status: "BLACKLISTED",
+  });
+  return res.data;
+};
