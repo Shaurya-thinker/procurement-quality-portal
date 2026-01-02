@@ -166,7 +166,7 @@ const isInspectionCompleteAndValid = () => {
 
     {/* Back button */}
     <button
-      onClick={() => navigate(-1)}
+      onClick={() => navigate(`/quality/material-receipt/${mrData.id}`)}
       style={{
         width: "36px",
         height: "36px",
