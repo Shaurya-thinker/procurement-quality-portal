@@ -21,6 +21,9 @@ export const getPOTracking = (id) =>
 export const getPOsByVendor = (vendorId) =>
   api.get(`/api/v1/procurement/vendor/${vendorId}`);
 
+export const getPendingPOItems = (poId) =>
+  api.get(`/api/v1/procurement/${poId}/pending-items`);
+
 export const getVendorDetails = (vendorId) =>
   api.get(`/api/v1/procurement/vendors/${vendorId}`);
 

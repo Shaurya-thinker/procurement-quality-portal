@@ -3,7 +3,7 @@ import string
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem, DispatchStatus
+from app.store.models.material_dispatch import MaterialDispatch, MaterialDispatchLineItem, DispatchStatus, ReferenceType
 from app.store.schemas.material_dispatch import MaterialDispatchCreate, MaterialDispatchRead, MaterialDispatchUpdate
 from sqlalchemy.exc import IntegrityError
 from app.store.models.inventory import InventoryItem
@@ -57,57 +57,60 @@ class MaterialDispatchService:
                     .first()
                 )
 
-                # 🔐 PO PENDING QTY VALIDATION
-                if dispatch.reference_type == "PO" and not dispatch_create.is_draft:
-                    pending_items = ProcurementService.get_po_items_with_pending_qty(
-                        db, int(dispatch.reference_id)
-                    )
-
-                    po_item = next(
-                        (p for p in pending_items if p["item_id"] == line.item_id),
-                        None
-                    )
-
-                    if not po_item:
-                        raise ValueError(
-                            f"Item {line.item_code} is not part of PO {dispatch.reference_id}"
-                        )
-
-                    dispatch_qty = int(line.quantity_dispatched)
-
-                    if dispatch_qty > po_item["pending_qty"]:
-                        raise ValueError(
-                            f"Dispatch qty exceeds PO pending qty for item {line.item_code}. "
-                            f"Pending: {po_item['pending_qty']}, Requested: {dispatch_qty}"
-                        )
-
                 if not inventory:
                     raise ValueError(
                         f"Inventory item not found (ID: {line.inventory_item_id})"
                     )
 
-                dispatch_qty = int(line.quantity_dispatched)  # ✅ FIXED
+                # ✅ Only validate & deduct stock when issuing
+                if not dispatch_create.is_draft:
 
-                if inventory.quantity < dispatch_qty:
-                    raise ValueError(
-                        f"Insufficient stock for item {line.item_code}. "
-                        f"Available: {inventory.quantity}, Requested: {dispatch_qty}"
+                    if dispatch.reference_type == ReferenceType.PO:
+                        pending_items = ProcurementService.get_po_items_with_pending_qty(
+                            db, int(dispatch.reference_id)
+                        )
+
+                        po_item = next(
+                            (p for p in pending_items if p["item_id"] == line.item_id),
+                            None
+                        )
+
+                        if not po_item:
+                            raise ValueError(
+                                f"Item {line.item_code} is not part of PO {dispatch.reference_id}"
+                            )
+
+                        dispatch_qty = int(line.quantity_dispatched)
+
+                        if dispatch_qty > po_item["pending_qty"]:
+                            raise ValueError(
+                                f"Dispatch qty exceeds PO pending qty for item {line.item_code}. "
+                                f"Pending: {po_item['pending_qty']}, Requested: {dispatch_qty}"
+                            )
+
+                    dispatch_qty = int(line.quantity_dispatched)
+
+                    if inventory.quantity < dispatch_qty:
+                        raise ValueError(
+                            f"Insufficient stock for item {line.item_code}. "
+                            f"Available: {inventory.quantity}, Requested: {dispatch_qty}"
+                        )
+
+                    inventory.quantity -= dispatch_qty
+
+                    txn = InventoryTransaction(
+                        inventory_item_id=inventory.id,
+                        transaction_type="OUT",
+                        quantity=dispatch_qty,
+                        reference_type="DISPATCH",
+                        reference_id=dispatch.id,
+                        remarks="Material dispatched",
+                        created_by=dispatch.created_by
                     )
 
-                inventory.quantity -= dispatch_qty
+                    db.add(txn)
 
-                txn = InventoryTransaction(
-                    inventory_item_id=inventory.id,
-                    transaction_type="OUT",
-                    quantity=dispatch_qty,
-                    reference_type="DISPATCH",
-                    reference_id=dispatch.id,
-                    remarks="Material dispatched",
-                    created_by=dispatch.created_by
-                )
-
-                db.add(txn)
-
+                # ✅ ALWAYS create line item (draft or issued)
                 dispatch_line = MaterialDispatchLineItem(
                     dispatch_id=dispatch.id,
                     inventory_item_id=inventory.id,
@@ -122,18 +125,15 @@ class MaterialDispatchService:
 
                 db.add(dispatch_line)
 
-            if not dispatch_create.is_draft:
-                dispatch.dispatch_status = DispatchStatus.DISPATCHED
-
-
             db.commit()
             db.refresh(dispatch)
-
             return MaterialDispatchRead.from_orm(dispatch)
 
         except Exception as e:
             db.rollback()
             raise e
+
+
         
     @staticmethod
     def cancel_material_dispatch(db: Session, dispatch_id: int, cancelled_by: str, cancel_reason: str):
@@ -248,3 +248,95 @@ class MaterialDispatchService:
         except Exception as e:
             db.rollback()
             raise e
+
+
+    @staticmethod
+    def issue_material_dispatch(db: Session, dispatch_id: int) -> MaterialDispatchRead:
+        dispatch = (
+            db.query(MaterialDispatch)
+            .filter(MaterialDispatch.id == dispatch_id)
+            .with_for_update()
+            .first()
+        )
+
+        if not dispatch:
+            raise ValueError("Dispatch not found")
+
+        if dispatch.dispatch_status != DispatchStatus.DRAFT:
+            raise ValueError("Only DRAFT dispatches can be issued")
+
+        try:
+            for line in dispatch.line_items:
+                inventory = (
+                    db.query(InventoryItem)
+                    .filter(InventoryItem.id == line.inventory_item_id)
+                    .with_for_update()
+                    .first()
+                )
+
+                if not inventory:
+                    raise ValueError(
+                        f"Inventory item not found for item {line.item_code}"
+                    )
+
+                dispatch_qty = int(line.quantity_dispatched)
+
+                # 🔒 PO validation
+                if dispatch.reference_type == ReferenceType.PO:
+                    pending_items = ProcurementService.get_po_items_with_pending_qty(
+                        db, int(dispatch.reference_id)
+                    )
+
+                    po_item = next(
+                        (p for p in pending_items if p["item_id"] == line.item_id),
+                        None
+                    )
+
+
+                    if not po_item:
+                        raise ValueError(
+                            f"Item {line.item_code} not part of PO {dispatch.reference_id}"
+                        )
+
+                    if dispatch_qty > po_item["pending_qty"]:
+                        raise ValueError(
+                            f"Dispatch qty exceeds PO pending qty for item {line.item_code}"
+                        )
+
+                # 🔻 Inventory validation
+                if inventory.quantity < dispatch_qty:
+                    raise ValueError(
+                        f"Insufficient stock for item {line.item_code}"
+                    )
+
+                # 🔻 Deduct inventory
+                inventory.quantity -= dispatch_qty
+
+                txn = InventoryTransaction(
+                    inventory_item_id=inventory.id,
+                    transaction_type="OUT",
+                    quantity=dispatch_qty,
+                    reference_type="DISPATCH",
+                    reference_id=dispatch.id,
+                    remarks="Material dispatched",
+                    created_by=dispatch.created_by
+                )
+                print("DEBUG pending_items:", pending_items)
+                print("DEBUG dispatch line:", line.item_code)
+
+
+                db.add(txn)
+
+            # ✅ Finalize dispatch
+            dispatch.dispatch_status = DispatchStatus.DISPATCHED
+            dispatch.updated_at = datetime.utcnow()
+
+            db.commit()
+            db.refresh(dispatch)
+
+            return MaterialDispatchRead.from_orm(dispatch)
+
+        except Exception as e:
+            db.rollback()
+            raise e
+

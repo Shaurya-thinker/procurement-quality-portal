@@ -17,50 +17,103 @@ export default function DispatchDetail() {
       .then(setData);
   }, [dispatchId]);
 
+  useEffect(() => {
+  if (data?.dispatch_status === "DRAFT") {
+    navigate(`/store/dispatch/edit/${dispatchId}`);
+  }
+}, [data, dispatchId, navigate]);
+
+
+  const handleCancel = async () => {
+    const reason = prompt("Enter reason for cancellation (required):");
+
+    if (!reason || reason.trim().length < 5) {
+      alert("Cancellation reason must be at least 5 characters.");
+      return;
+    }
+
+    try {
+      await fetch(
+        `http://localhost:8000/api/v1/store/material-dispatch/${dispatchId}/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ cancel_reason: reason }),
+        }
+      );
+
+      navigate("/store/dispatch");
+    } catch {
+      alert("Failed to cancel dispatch");
+    }
+  };
+
   if (!data) {
     return <p style={{ padding: 24 }}>Loading dispatch…</p>;
   }
 
   return (
     <div style={{ padding: 24, background: "#f9fafb", minHeight: "100vh" }}>
-      
-      {/* 🔙 Back Arrow + Title */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          marginBottom: "16px",
-        }}
-      >
-        <button
-          onClick={() => navigate(-1)}
-          className="back-arrow-btn"
-          aria-label="Go back"
-        >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <button onClick={() => navigate(-1)} className="back-arrow-btn">
           ←
         </button>
-
         <h2 style={{ margin: 0 }}>Material Dispatch</h2>
       </div>
 
-      {/* 🔒 Finalized banner */}
       {data.dispatch_status !== "DRAFT" && (
         <div
           style={{
-            background: "#fef3c7",
-            padding: "10px",
-            borderRadius: 6,
-            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+            padding: "14px 16px",
+            borderRadius: "10px",
+            marginBottom: "20px",
+            borderLeft: "5px solid #f59e0b",
             color: "#92400e",
-            fontSize: 14,
+            boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
           }}
         >
-          This dispatch is finalized and cannot be edited.
+          <span
+            style={{
+              fontSize: "20px",
+              lineHeight: "1",
+            }}
+          >
+            ⚠️
+          </span>
+
+          <div style={{ fontSize: "14px", fontWeight: "600" }}>
+            This dispatch has been finalized and can no longer be edited.
+          </div>
         </div>
       )}
 
       <DispatchPreview dispatch={data} />
+
+      {data.dispatch_status === "DISPATCHED" && (
+        <div style={{ marginTop: 32, display: "flex", justifyContent: "flex-end" }}>
+          <button
+            onClick={handleCancel}
+            style={{
+              padding: "12px 24px",
+              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              color: "white",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            Cancel Dispatch
+          </button>
+        </div>
+      )}
     </div>
   );
 }

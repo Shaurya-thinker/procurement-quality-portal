@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useQuality } from "../hooks/useQuality";
 import MRHeader from "../components/MRHeader";
 import "../css/Inspection.css";
@@ -10,9 +10,10 @@ import { generateGatePass } from "../../api/quality.api";
 export default function Inspection() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { submitInspection } = useQuality();
+  const { mrId } = useParams();
+  const { submitInspection, getMaterialReceiptDetails } = useQuality();
 
-  const [mrData, setMrData] = useState(location.state?.mrData || null);
+  const [mrData, setMrData] = useState(null);
   const [poData, setPoData] = useState(null);
   const [inspectionItems, setInspectionItems] = useState([]);
   const [inspectorName, setInspectorName] = useState("");
@@ -21,41 +22,45 @@ export default function Inspection() {
   /* ================= INITIALIZE INSPECTION ITEMS ================= */
 
   useEffect(() => {
-    const initInspection = async () => {
-      if (!location.state?.mrData) return;
+  if (!mrId) return;
 
-      const mr = location.state.mrData;
+  const initInspection = async () => {
+    try {
+      // 🔑 STEP 1: fetch MR (single source of truth)
+      const mr = await getMaterialReceiptDetails(mrId);
       setMrData(mr);
 
-      try {
-        const poRes = await getPODetails(mr.po_id);
-        const po = poRes.data;
-        setPoData(po);
+      // 🔑 STEP 2: fetch PO
+      const poRes = await getPODetails(mr.po_id);
+      const po = poRes.data;
+      setPoData(po);
 
-        const items = po.line_items.map((poLine) => {
-          const mrLine = mr.lines.find(
-            (l) => l.po_line_id === poLine.id
-          );
+      // 🔑 STEP 3: build inspection items
+      const items = po.line_items.map((poLine) => {
+        const mrLine = mr.lines.find(
+          (l) => l.po_line_id === poLine.id
+        );
 
-          return {
-            mr_line_id: mrLine?.id,
-            item_code: poLine.item_code,
-            description: poLine.item_description,
-            received_qty: mrLine?.received_quantity || 0,
-            accepted_qty: "",
-            rejected_qty: "",
-            remarks: "",
-          };
-        });
+        return {
+          mr_line_id: mrLine?.id,
+          item_code: poLine.item_code,
+          description: poLine.item_description,
+          received_qty: Number(mrLine?.received_quantity || 0),
+          accepted_qty: "",
+          rejected_qty: "",
+          remarks: "",
+        };
+      });
 
-        setInspectionItems(items);
-      } catch (err) {
-        console.error("Failed to load PO for inspection", err);
-      }
-    };
+      setInspectionItems(items);
+    } catch (err) {
+      console.error("Failed to initialize inspection", err);
+    }
+  };
 
-    initInspection();
-  }, [location.state]);
+  initInspection();
+}, [mrId]);
+
 
   /* ================= HANDLE ITEM CHANGE ================= */
 

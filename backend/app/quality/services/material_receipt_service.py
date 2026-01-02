@@ -123,6 +123,20 @@ class MaterialReceiptService:
         db.commit()
         db.refresh(po)
 
+        # ADD THIS FUNCTION
+        def _get_po_receipt_summary(db, po_id):
+            results = (
+                db.query(
+                    MaterialReceiptLine.po_line_id,
+                    func.coalesce(func.sum(MaterialReceiptLine.received_quantity), 0).label("received")
+                )
+                .join(MaterialReceipt)
+                .filter(MaterialReceipt.po_id == po_id)
+                .group_by(MaterialReceiptLine.po_line_id)
+                .all()
+            )
+            return {r.po_line_id: r.received for r in results}
+
         return mr
     
 

@@ -99,8 +99,53 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const submitDraft = () => handleSubmit(true);
-  const submitIssue = () => handleSubmit(false);
+  const submitDraft = () => {
+    handleSubmit({ isDraft: true });
+  };
+
+  const submitIssue = async () => {
+  // 🔒 Frontend PO safety check
+    if (formData.reference_type === "PO") {
+      for (const li of formData.line_items) {
+        const match = poItems.find(p => p.item_id === li.item_id);
+        if (!match) {
+          alert(
+            `Item ${li.item_code} does not belong to selected PO`
+          );
+          return;
+        }
+      }
+    }
+
+    // EDIT mode → issue existing draft
+    if (mode === "EDIT" && initialData?.id) {
+      const res = await fetch(
+        `http://localhost:8000/api/v1/store/material-dispatch/${initialData.id}/issue`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.detail || "Failed to issue dispatch");
+        return;
+      }
+
+      alert("Dispatch issued successfully");
+      navigate("/store/dispatches");
+      return;
+    }
+
+    // CREATE mode → create + issue
+    handleSubmit({ isDraft: false });
+  };
+
+
+
 
   const validateForm = () => {
     const newErrors = {};
@@ -134,7 +179,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (isDraft) => {
+  const handleSubmit = async ({ isDraft }) => {
     if (isReadOnly) {
   alert('This dispatch is finalized and cannot be modified.');
   return;
@@ -143,11 +188,11 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     // Build a payload with proper types for validation and sending
     const payload = {
       ...formData,
-      is_draft: isDraft,
+      is_draft: isDraft, // ✅ explicit, guaranteed
       dispatch_date: new Date(formData.dispatch_date).toISOString(),
-      warehouse_id: formData.warehouse_id === '' ? null : Number(formData.warehouse_id),
+      warehouse_id: Number(formData.warehouse_id),
       line_items: formData.line_items.map(item => ({
-        inventory_item_id: item.inventory_item_id, 
+        inventory_item_id: item.inventory_item_id,
         item_id: item.item_id,
         item_code: item.item_code,
         item_name: item.item_name,
@@ -242,13 +287,33 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
   };
 
   useEffect(() => {
-  if (initialData) {
-    setFormData({
-      ...initialData,
-      dispatch_date: initialData.dispatch_date.split('T')[0]
-    });
-  }
+  if (!initialData) return;
+
+  setFormData({
+    ...initialData,
+    dispatch_date: initialData.dispatch_date.split("T")[0],
+    line_items: initialData.line_items.map(li => ({
+      ...li,
+      inventory_item_id: li.inventory_item_id ?? "",
+      available_qty: 0,            // will be filled by inventory lookup
+      quantity_dispatched: Number(li.quantity_dispatched)
+    }))
+  });
 }, [initialData]);
+
+useEffect(() => {
+  if (!inventory.length || !formData.line_items.length) return;
+
+  setFormData(prev => ({
+    ...prev,
+    line_items: prev.line_items.map(li => {
+      const inv = inventory.find(i => i.id === li.inventory_item_id);
+      return inv
+        ? { ...li, available_qty: inv.quantity }
+        : li;
+    })
+  }));
+}, [inventory]);
 
 
   const updateLineItem = (index, field, value) => {
@@ -716,7 +781,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
 
               <button
                 type="button"
-                onClick={() => handleSubmit(true)}
+                onClick={submitDraft}
                 disabled={loading}
                 style={{
                   padding: '12px 24px',
@@ -731,8 +796,12 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
 
               <button
                 type="button"
-                onClick={() => handleSubmit(false)}
-                disabled={loading}
+                onClick={submitIssue}
+                disabled={
+                  loading ||
+                  !formData.reference_id ||
+                  !formData.line_items.length
+                }
                 style={{
                   padding: '12px 24px',
                   background: '#2563eb',

@@ -95,3 +95,27 @@ def cancel_material_dispatch(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
+@router.post("/{dispatch_id}/issue", response_model=MaterialDispatchRead)
+def issue_material_dispatch(
+    dispatch_id: int,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_store_role)
+):
+    """
+    Issue a DRAFT material dispatch
+    """
+    try:
+        dispatch = MaterialDispatchService.issue_material_dispatch(
+            db=db,
+            dispatch_id=dispatch_id,
+        )
+        return MaterialDispatchRead.from_orm(dispatch)
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to issue material dispatch: {str(e)}"
+        )

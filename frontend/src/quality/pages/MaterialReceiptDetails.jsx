@@ -4,6 +4,7 @@ import { useQuality } from "../hooks/useQuality";
 import MRHeader from "../components/MRHeader";
 import MRLineItemTable from "../components/MRLineItemTable";
 import POStatusBadge from "../../procurement/components/POStatusBadge";
+import { getPODetails } from "../../api/procurement.api";
 
 export default function MaterialReceiptDetails() {
   const { mrId } = useParams();
@@ -12,6 +13,8 @@ export default function MaterialReceiptDetails() {
 
   const [mr, setMr] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lineItems, setLineItems] = useState([]);
+
 
   useEffect(() => {
     if (!mrId) return;
@@ -21,6 +24,45 @@ export default function MaterialReceiptDetails() {
       .then(setMr)
       .finally(() => setLoading(false));
   }, [mrId]);
+
+  useEffect(() => {
+  if (!mr || !mr.po_id) return;
+
+  const loadLineItems = async () => {
+    try {
+      const poRes = await getPODetails(mr.po_id);
+      const po = poRes.data;
+
+      const mergedItems = po.line_items.map(poLine => {
+        const mrLine = mr.lines.find(
+            l => l.po_line_id === poLine.id
+        );
+        const receivedQty = mrLine ? Number(mrLine.received_quantity) : 0;
+
+        return {
+            po_line_id: poLine.id,
+            item_code: poLine.item_code,
+            description: poLine.item_description,
+            unit: poLine.unit,
+            ordered_quantity: poLine.quantity,
+            received_quantity: receivedQty,
+            remaining_quantity: Math.max(
+                poLine.quantity - receivedQty,
+                0
+            ),
+        };
+        });
+
+      setLineItems(mergedItems);
+    } catch (err) {
+      console.error("Failed to load MR line items", err);
+    }
+  };
+
+  loadLineItems();
+}, [mr]);
+
+
 
   if (loading) {
     return (
@@ -37,6 +79,7 @@ export default function MaterialReceiptDetails() {
       </div>
     );
   }
+
 
   const isReadOnly = mr.status !== "CREATED";
 
@@ -72,7 +115,7 @@ export default function MaterialReceiptDetails() {
       {/* ================= LINE ITEMS ================= */}
       <div style={{ ...cardStyle, marginTop: 24 }}>
         <div style={sectionTitleStyle}>Line Items</div>
-        <MRLineItemTable items={mr.lines} isReadOnly />
+        <MRLineItemTable items={lineItems} mode="view" />
       </div>
 
       {/* ================= ACTIONS ================= */}

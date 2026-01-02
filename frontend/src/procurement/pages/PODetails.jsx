@@ -6,6 +6,7 @@ import VendorInfoCard from '../components/VendorInfoCard';
 import POLineItemRow from '../components/POLineItemRow';
 import { getVendorDetails } from '../../api/procurement.api';
 
+
 const PODetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
