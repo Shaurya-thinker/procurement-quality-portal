@@ -91,9 +91,22 @@ class MaterialDispatchRead(BaseModel):
     class Config:
         from_attributes = True
 
-class MaterialDispatchUpdate(BaseModel):
-    dispatch_status: Optional[DispatchStatus] = None
+class MaterialDispatchLineItemUpdate(BaseModel):
+    inventory_item_id: int
+    item_id: int
+    item_code: str
+    item_name: str
+    quantity_dispatched: Decimal
+    uom: str
+    batch_number: Optional[str] = None
     remarks: Optional[str] = None
+
+
+class MaterialDispatchUpdate(BaseModel):
+    remarks: Optional[str] = None
+    dispatch_date: Optional[datetime] = None
+    line_items: Optional[List[MaterialDispatchLineItemUpdate]] = None
+
 
 class MaterialDispatchCancel(BaseModel):
     cancel_reason: str = Field(..., min_length=5, max_length=500)

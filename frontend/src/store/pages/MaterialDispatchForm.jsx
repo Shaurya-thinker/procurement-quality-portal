@@ -99,33 +99,38 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
   const submitDraft = () => {
-    handleSubmit({ isDraft: true });
+    handleSubmit();
   };
 
   const submitIssue = async () => {
-  // 🔒 Frontend PO safety check
+    if (!initialData?.id) {
+      alert("Please save draft before issuing");
+      return;
+    }
+
+    // PO safety check
     if (formData.reference_type === "PO") {
       for (const li of formData.line_items) {
         const match = poItems.find(p => p.item_id === li.item_id);
         if (!match) {
-          alert(
-            `Item ${li.item_code} does not belong to selected PO`
-          );
+          alert(`Item ${li.item_code} does not belong to selected PO`);
           return;
         }
       }
     }
 
-    // EDIT mode → issue existing draft
-    if (mode === "EDIT" && initialData?.id) {
+    try {
+      setLoading(true);
+
       const res = await fetch(
         `http://localhost:8000/api/v1/store/material-dispatch/${initialData.id}/issue`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
 
@@ -136,15 +141,11 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
       }
 
       alert("Dispatch issued successfully");
-      navigate("/store/dispatches");
-      return;
+      navigate(`/store/dispatch/${initialData.id}`);
+    } finally {
+      setLoading(false);
     }
-
-    // CREATE mode → create + issue
-    handleSubmit({ isDraft: false });
-  };
-
-
+};
 
 
   const validateForm = () => {
@@ -179,7 +180,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async ({ isDraft }) => {
+  const handleSubmit = async () => {
     if (isReadOnly) {
   alert('This dispatch is finalized and cannot be modified.');
   return;
@@ -188,7 +189,6 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     // Build a payload with proper types for validation and sending
     const payload = {
       ...formData,
-      is_draft: isDraft, // ✅ explicit, guaranteed
       dispatch_date: new Date(formData.dispatch_date).toISOString(),
       warehouse_id: Number(formData.warehouse_id),
       line_items: formData.line_items.map(item => ({
@@ -228,11 +228,14 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
         body: JSON.stringify(payload)
       });
       
-      if (response.ok) {
-        const result = await response.json();
-        alert(`Material Dispatch created successfully! Dispatch Number: ${result.dispatch_number}`);
-        navigate('/store/dispatches');
-      } else {
+        if (response.ok) {
+          const result = await response.json();
+          alert(`Material Dispatch saved successfully`);
+
+          // 👉 Go directly to dispatch detail
+          navigate(`/store/dispatch/${result.id}`);
+        }
+        else {
         const error = await response.json().catch(() => ({}));
         // If backend returned pydantic validation errors (422), map them to inline errors
         if (error.detail && Array.isArray(error.detail)) {
@@ -366,22 +369,6 @@ useEffect(() => {
   )}
 
 </div>
-
-{mode === "VIEW" && initialData?.dispatch_status === "DRAFT" && (
-  <button
-    onClick={() => navigate(`/store/dispatch/edit/${initialData.id}`)}
-    style={{
-      marginLeft: 12,
-      padding: "6px 12px",
-      background: "#2563eb",
-      color: "white",
-      border: "none",
-      borderRadius: 6
-    }}
-  >
-    ✏️ Edit
-  </button>
-)}
       
       <form>
         {/* Dispatch Header */}
@@ -685,7 +672,10 @@ useEffect(() => {
                 </div>
                 
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Quantity *</label>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 500 }}>
+                    Quantity *
+                  </label>
+
                   <input
                     disabled={isReadOnly}
                     type="number"
@@ -694,7 +684,6 @@ useEffect(() => {
                     onChange={(e) => {
                       const qty = Number(e.target.value);
 
-                      // PO pending qty (if applicable)
                       const poItem = poItems.find(
                         (p) => p.item_id === item.item_id
                       );
@@ -718,11 +707,43 @@ useEffect(() => {
                     style={inputStyle}
                     required
                   />
-                  {errors[`line_items.${index}.quantity_dispatched`] && <div style={errorStyle}>{errors[`line_items.${index}.quantity_dispatched`]}</div>}
+
+                  {/* 👇 Helper text */}
+                  {formData.reference_type === "PO" ? (
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontSize: 12,
+                        color: "#92400e",
+                        display: "flex",
+                        gap: 12,
+                      }}
+                    >
+                      <span>
+                        <strong>PO Pending:</strong>{" "}
+                        {poItems.find(p => p.item_id === item.item_id)?.pending_qty ?? 0}
+                      </span>
+                      <span style={{ color: "#6b7280" }}>
+                        Inventory Available: {item.available_qty}
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontSize: 12,
+                        color: "#6b7280",
+                      }}
+                    >
+                      Available: {item.available_qty}
+                    </div>
+                  )}
+                  {errors[`line_items.${index}.quantity_dispatched`] && (
+                    <div style={errorStyle}>
+                      {errors[`line_items.${index}.quantity_dispatched`]}
+                    </div>
+                  )}
                 </div>
-                <small style={{ color: "#6b7280" }}>
-                  Available: {item.available_qty}
-                </small>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>UOM *</label>
                   <input
@@ -767,7 +788,7 @@ useEffect(() => {
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button
                 type="button"
-                onClick={() => navigate('/store')}
+                onClick={() => navigate('/store/dispatch')}
                 style={{
                   padding: '12px 24px',
                   background: '#6b7280',
@@ -799,6 +820,7 @@ useEffect(() => {
                 onClick={submitIssue}
                 disabled={
                   loading ||
+                  !initialData?.id ||
                   !formData.reference_id ||
                   !formData.line_items.length
                 }
