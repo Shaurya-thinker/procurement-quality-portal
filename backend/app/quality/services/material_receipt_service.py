@@ -123,7 +123,59 @@ class MaterialReceiptService:
         db.commit()
         db.refresh(po)
 
+        # ADD THIS FUNCTION
+        def _get_po_receipt_summary(db, po_id):
+            results = (
+                db.query(
+                    MaterialReceiptLine.po_line_id,
+                    func.coalesce(func.sum(MaterialReceiptLine.received_quantity), 0).label("received")
+                )
+                .join(MaterialReceipt)
+                .filter(MaterialReceipt.po_id == po_id)
+                .group_by(MaterialReceiptLine.po_line_id)
+                .all()
+            )
+            return {r.po_line_id: r.received for r in results}
+
         return mr
+    
+
+    @staticmethod
+    def update_material_receipt(db: Session, mr_id: int, data):
+        mr = db.query(MaterialReceipt).filter(MaterialReceipt.id == mr_id).first()
+
+        if not mr:
+            raise ValueError("Material Receipt not found")
+
+        # ❌ Block editing after inspection
+        if mr.status != "CREATED":
+            raise ValueError("Material Receipt cannot be edited after inspection")
+
+        # Update header fields
+        for field in [
+            "bill_no", "entry_no", "mr_reference_no", "receipt_date",
+            "vehicle_no", "challan_no", "store_id", "bin_id",
+            "remarks", "vendor_name", "component_details"
+        ]:
+            setattr(mr, field, getattr(data, field))
+
+        # 🔥 Replace lines safely
+        mr.lines.clear()
+        db.flush()
+
+        for item in data.lines:
+            mr.lines.append(
+                MaterialReceiptLine(
+                    po_line_id=item.po_line_id,
+                    ordered_quantity=0,  # already known
+                    received_quantity=item.received_quantity,
+                )
+            )
+
+        db.commit()
+        db.refresh(mr)
+        return mr
+
 
     @staticmethod
     def list_material_receipts(db: Session):

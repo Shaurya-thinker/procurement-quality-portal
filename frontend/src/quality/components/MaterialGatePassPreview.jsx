@@ -1,4 +1,4 @@
-export default function GatePassPreview({ gatePassData, onDispatch, }) {
+export default function GatePassPreview({ gatePassData, onDispatch, dispatching}) {
   const containerStyle = {
     backgroundColor: "#ffffff",
     borderRadius: "6px",
@@ -255,7 +255,7 @@ export default function GatePassPreview({ gatePassData, onDispatch, }) {
         </button>
 
         {/* SHOW DISPATCH ONLY IF SENT_TO_STORE */}
-        {gatePassData.store_status === "SENT_TO_STORE" && (
+        {gatePassData.store_status === "PENDING" && (
           <button
             onClick={onDispatch}
             disabled={dispatching}
@@ -267,6 +267,12 @@ export default function GatePassPreview({ gatePassData, onDispatch, }) {
           >
             ✓ Dispatch to Store
           </button>
+        )}
+
+        {gatePassData.store_status === "SENT_TO_STORE" && (
+          <div className="status-pill">
+            Sent to Store
+          </div>
         )}
 
         {/* SHOW STATUS IF RECEIVED */}

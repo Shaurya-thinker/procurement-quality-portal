@@ -3,15 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { useQuality } from '../hooks/useQuality';
 import MRHeader from '../components/MRHeader';
 import MRLineItemTable from '../components/MRLineItemTable';
-import { getPODetails } from '../../api/procurement.api';
 import { getPOs } from '../../api/procurement.api';
 import { getVendors } from '../../api/vendor.api';
+import { getPODetails } from "../../api/procurement.api";
+import { getPendingPOItems } from "../../api/procurement.api";
+
+
+const formatDateForAPI = (date) => {
+  if (!date) return null;
+
+  // already yyyy-mm-dd
+  if (date.includes("-") && date.split("-")[0].length === 4) {
+    return date;
+  }
+
+  // convert dd-mm-yyyy → yyyy-mm-dd
+  const [dd, mm, yyyy] = date.split("-");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 
 export default function MaterialReceipt() {
   const navigate = useNavigate();
   const {
   createMaterialReceipt,
-  getPurchaseOrders,
   loading,
   error,
   clearError,
@@ -29,6 +44,7 @@ export default function MaterialReceipt() {
   remarks: '',
   vendor_id: '',     
   vendor_name: '',
+  component_details: '', 
 });
 
 
@@ -56,8 +72,14 @@ Each item:
   const [selectedPO, setSelectedPO] = useState(null);
 
   useEffect(() => {
-  getPOs().then(res => setPurchaseOrders(res.data));
+  getPOs().then(res => {
+    const usablePOs = res.data.filter(
+      po => po.status !== "CANCELLED"
+    );
+    setPurchaseOrders(usablePOs);
+  });
 }, []);
+
 
 
   const containerStyle = {
@@ -190,34 +212,39 @@ Each item:
 
  const handlePOSelect = async (poId) => {
   try {
-    const res = await getPODetails(poId);
-    const po = res.data;
-
+    // 1️⃣ Get PO header (ONLY for vendor info)
+   const poRes = await getPODetails(poId);
+   const po = poRes.data;
     setSelectedPO(po);
 
-    // 🔑 FIND vendor name from vendors list
     const vendor = vendors.find(v => v.id === po.vendor_id);
-
     setMrData(prev => ({
       ...prev,
       vendor_id: po.vendor_id,
-      vendor_name: vendor?.name || '',   // ✅ GUARANTEED
+      vendor_name: vendor?.name || "",
     }));
 
-    const mappedItems = po.line_items.map(line => ({
-      po_line_id: line.id,
-      item_code: line.item_code,
-      description: line.item_description,
-      unit: line.unit,
-      ordered_quantity: line.quantity,
-      received_quantity: '',
-    }));
+    // 2️⃣ Get PENDING ITEMS (SOURCE OF TRUTH)
+    const pendingRes = await getPendingPOItems(poId);
+
+    const mappedItems = pendingRes.data
+      .filter(item => item.remaining_quantity > 0)
+      .map(item => ({
+        po_line_id: item.po_line_id,
+        item_code: item.item_code,
+        description: item.item_description,
+        unit: item.unit,
+        ordered_quantity: item.ordered_quantity,
+        remaining_quantity: item.remaining_quantity,
+        received_quantity: "",
+      }));
 
     setLineItems(mappedItems);
   } catch (err) {
-    console.error('Failed to load PO details', err);
+    console.error("Failed to load PO pending items", err);
   }
 };
+
 
 
 useEffect(() => {
@@ -255,19 +282,16 @@ useEffect(() => {
     const received = Number(item.received_quantity);
     const ordered = Number(item.ordered_quantity);
 
-    if (isNaN(received)) {
-      alert(`Received quantity missing for item ${item.item_code}`);
-      return;
-    }
-
-    if (received < 0) {
-      alert(`Received quantity cannot be negative for item ${item.item_code}`);
-      return;
-    }
-
-    if (received > ordered) {
+    if (isNaN(received) || received <= 0) {
       alert(
-        `Received quantity (${received}) cannot exceed ordered quantity (${ordered}) for item ${item.item_code}`
+        `Received quantity must be greater than 0 for item ${item.item_code}`
+      );
+      return;
+    }
+
+   if (received > item.remaining_quantity) {
+      alert(
+        `Received quantity (${received}) cannot exceed remaining quantity (${item.remaining_quantity})`
       );
       return;
     }
@@ -276,8 +300,8 @@ useEffect(() => {
   // ✅ SAFE TO SUBMIT
   try {
     const payload = {
-      po_id: selectedPO.id,
-      vendor_id: selectedPO.vendor_id,
+      po_id: Number(selectedPO.id),
+      vendor_id: Number(selectedPO.vendor_id),
 
       vendor_name: mrData.vendor_name,
       component_details: mrData.component_details,
@@ -286,20 +310,23 @@ useEffect(() => {
       entry_no: mrData.entry_no,
       mr_reference_no: mrData.mr_reference_no,
 
-      receipt_date: mrData.receipt_date || null,
-      vehicle_no: mrData.vehicle_no,
-      challan_no: mrData.challan_no,
+      receipt_date: formatDateForAPI(mrData.receipt_date),
+      vehicle_no: mrData.vehicle_no || null,
+      challan_no: mrData.challan_no || null,
 
-      store_id: mrData.store_id || null,
-      bin_id: mrData.bin_id || null,
+      store_id: Number(mrData.store_id),
+      bin_id: Number(mrData.bin_id),
 
-      remarks: mrData.remarks,
+      remarks: mrData.remarks || null,
 
-      lines: lineItems.map(item => ({
-        po_line_id: item.po_line_id,
-        received_quantity: Number(item.received_quantity || 0),
+     lines: lineItems
+      .filter(item => Number(item.received_quantity) > 0)
+      .map(item => ({
+        po_line_id: Number(item.po_line_id),
+        received_quantity: Number(item.received_quantity),
       })),
     };
+
 
     const result = await createMaterialReceipt(payload);
 
@@ -388,7 +415,7 @@ useEffect(() => {
       <MRLineItemTable
         items={lineItems}
         onChange={setLineItems}
-        isReadOnly={true}
+        mode="create"
       />
     </div>
 

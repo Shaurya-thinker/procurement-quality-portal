@@ -408,13 +408,7 @@ const POList = () => {
                         </span>
                       </td>
                       <td style={tdStyle}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewPO(po.id);
-                          }}
-                          className="btn-secondary btn-small"
-                        >
+                        <button className="btn-secondary btn-small">
                           View Details
                         </button>
                       </td>

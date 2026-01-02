@@ -6,6 +6,7 @@ export default function DispatchList() {
   const navigate = useNavigate();
   const { getDispatches, loading, error } = useStore();
   const [dispatches, setDispatches] = useState([]);
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   useEffect(() => {
     loadDispatches();
@@ -24,154 +25,112 @@ export default function DispatchList() {
     navigate('/store/dispatch/create');
   };
 
+  /* ================= STYLES ================= */
+
   const containerStyle = {
     padding: '24px',
-    backgroundColor: '#f9fafb',
-    minHeight: '100vh',
+    maxWidth: '1200px',
+    margin: '0 auto',
   };
 
-  const headerStyle = {
+  const headingStyle = {
+    fontSize: '32px',
+    fontWeight: '700',
+    marginBottom: '32px',
+    color: '#1e293b',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '24px',
-  };
-
-  const titleStyle = {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#1f2937',
+    letterSpacing: '-0.5px',
   };
 
   const createButtonStyle = {
-    padding: '12px 24px',
-    backgroundColor: '#10b981',
+    padding: '14px 28px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: 'white',
     border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
+    borderRadius: '10px',
     cursor: 'pointer',
+    fontSize: '15px',
+    fontWeight: '700',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
+    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
   };
 
-  const cardStyle = {
+  const tableContainerStyle = {
     backgroundColor: 'white',
-    borderRadius: '8px',
-    border: '1px solid #e5e7eb',
+    borderRadius: '16px',
+    border: '1px solid #f1f5f9',
     overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
   };
 
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-  };
+  const tableStyle = { width: '100%', borderCollapse: 'collapse' };
 
   const thStyle = {
-    padding: '16px',
+    padding: '18px 20px',
     textAlign: 'left',
-    borderBottom: '1px solid #e5e7eb',
-    backgroundColor: '#f9fafb',
-    fontWeight: '600',
-    fontSize: '12px',
-    color: '#374151',
-    textTransform: 'uppercase',
+    borderBottom: '2px solid #cbd5e1',
+    fontWeight: '700',
+    fontSize: '14px',
+    color: '#1e293b',
+    background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
   };
 
   const tdStyle = {
-    padding: '16px',
-    borderBottom: '1px solid #e5e7eb',
+    padding: '18px 20px',
+    borderBottom: '1px solid #f1f5f9',
     fontSize: '14px',
-    color: '#1f2937',
+    color: '#1e293b',
+    fontWeight: '500',
   };
 
-  const emptyStateStyle = {
-    padding: '48px 24px',
-    textAlign: 'center',
-    color: '#6b7280',
+  const getRowStyle = (isHovered, isCancelled) => ({
+    transition: 'all 0.25s ease',
+    backgroundColor: isHovered ? '#f8fafc' : 'transparent',
+    transform: isHovered ? 'translateX(4px)' : 'translateX(0)',
+    opacity: isCancelled ? 0.6 : 1,
+  });
+
+  const statusBadgeStyle = (status) => {
+    if (status === 'DRAFT') return { bg: '#fef3c7', color: '#92400e' };
+    if (status === 'DISPATCHED') return { bg: '#dcfce7', color: '#166534' };
+    return { bg: '#fee2e2', color: '#7f1d1d' };
   };
 
-  const errorStyle = {
-    padding: '16px',
-    backgroundColor: '#fee2e2',
-    color: '#7f1d1d',
-    borderRadius: '6px',
-    marginBottom: '16px',
+  const actionButtonStyle = {
+    padding: '8px 16px',
+    background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: '600',
   };
 
-  const handleCancel = async (dispatchId) => {
-    const reason = prompt(
-      'Enter reason for cancellation (required):'
-    );
-
-    if (!reason || reason.trim().length < 5) {
-      alert('Cancellation reason must be at least 5 characters.');
-      return;
-    }
-
-    try {
-      await fetch(
-        `http://localhost:8000/api/v1/store/material-dispatch/${dispatchId}/cancel`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ cancel_reason: reason })
-        }
-      );
-
-      loadDispatches();
-    } catch {
-      alert('Failed to cancel dispatch');
-    }
-  };
+  /* ================= RENDER ================= */
 
   return (
     <div style={containerStyle}>
-      <div
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '24px',
-  }}
->
-  <button
-    onClick={() => navigate(-1)}
-    className="back-arrow-btn"
-    aria-label="Go back"
-  >
-    ←
-  </button>
+      <div style={headingStyle}>
+        <div>Material Dispatches</div>
+        <button onClick={handleCreateDispatch} style={createButtonStyle}>
+          <span style={{ fontSize: '18px' }}>+</span>
+          Create Dispatch
+        </button>
+      </div>
 
-  <h1 style={titleStyle}>Material Dispatches</h1>
+      {error && <div style={{ color: '#b91c1c', marginBottom: 16 }}>{error}</div>}
 
-  <button
-    onClick={handleCreateDispatch}
-    style={createButtonStyle}
-    disabled={loading}
-  >
-    <span>+</span>
-    Create Dispatch
-  </button>
-</div>
-
-
-      {error && <div style={errorStyle}>{error}</div>}
-
-      <div style={cardStyle}>
+      <div style={tableContainerStyle}>
         {loading ? (
-          <div style={emptyStateStyle}>Loading dispatches...</div>
+          <div style={{ padding: 40, textAlign: 'center' }}>Loading dispatches…</div>
         ) : dispatches.length === 0 ? (
-          <div style={emptyStateStyle}>
-            <p>No dispatches found</p>
-            <p style={{ fontSize: '12px', marginTop: '8px' }}>
-              Click "Create Dispatch" to get started
-            </p>
+          <div style={{ padding: 80, textAlign: 'center', color: '#64748b' }}>
+            No dispatches found
           </div>
         ) : (
           <table style={tableStyle}>
@@ -183,48 +142,32 @@ export default function DispatchList() {
                 <th style={thStyle}>Quantity</th>
                 <th style={thStyle}>Date</th>
                 <th style={thStyle}>Reference</th>
+                <th style={thStyle}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {dispatches.map((dispatch) => {
+                const badge = statusBadgeStyle(dispatch.dispatch_status);
                 const isCancelled = dispatch.dispatch_status === 'CANCELLED';
 
                 return (
                   <tr
                     key={dispatch.id}
-                    style={{
-                      opacity: isCancelled ? 0.6 : 1,
-                      cursor: dispatch.dispatch_status === 'DRAFT' ? 'pointer' : 'default'
-                    }}
-                   onClick={() => {
-                      if (dispatch.dispatch_status === "DRAFT") {
-                        navigate(`/store/dispatch/edit/${dispatch.id}`);
-                      } else {
-                        navigate(`/store/dispatch/${dispatch.id}`);
-                      }
-                    }}
+                    style={getRowStyle(hoveredRow === dispatch.id, isCancelled)}
+                    onMouseEnter={() => setHoveredRow(dispatch.id)}
+                    onMouseLeave={() => setHoveredRow(null)}
                   >
                     <td style={tdStyle}>{dispatch.dispatch_number}</td>
 
                     <td style={tdStyle}>
                       <span
                         style={{
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          backgroundColor:
-                            dispatch.dispatch_status === 'DRAFT'
-                              ? '#fef3c7'
-                              : dispatch.dispatch_status === 'DISPATCHED'
-                              ? '#dcfce7'
-                              : '#fee2e2',
-                          color:
-                            dispatch.dispatch_status === 'DRAFT'
-                              ? '#92400e'
-                              : dispatch.dispatch_status === 'DISPATCHED'
-                              ? '#166534'
-                              : '#7f1d1d'
+                          padding: '6px 12px',
+                          borderRadius: 999,
+                          background: badge.bg,
+                          color: badge.color,
+                          fontWeight: 700,
+                          fontSize: 12,
                         }}
                       >
                         {dispatch.dispatch_status}
@@ -235,12 +178,13 @@ export default function DispatchList() {
 
                     <td style={tdStyle}>
                       {dispatch.line_items.reduce(
-                        (sum, li) => sum + Number(li.quantity_dispatched), 0
+                        (sum, li) => sum + Number(li.quantity_dispatched),
+                        0
                       )}
                     </td>
 
                     <td style={tdStyle}>
-                      {new Date(dispatch.dispatch_date).toLocaleDateString()}
+                      {new Date(dispatch.dispatch_date).toLocaleDateString('en-IN')}
                     </td>
 
                     <td style={tdStyle}>
@@ -248,25 +192,12 @@ export default function DispatchList() {
                     </td>
 
                     <td style={tdStyle}>
-                      {dispatch.dispatch_status === 'DISPATCHED' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCancel(dispatch.id);
-                          }}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      )}
+                      <button
+                        className="btn-secondary btn-small"
+                        onClick={() => navigate(`/store/dispatch/${dispatch.id}`)}
+                      >
+                        View Details
+                      </button>
                     </td>
                   </tr>
                 );

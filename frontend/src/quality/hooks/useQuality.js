@@ -22,7 +22,12 @@ export const useQuality = () => {
       const response = await createMaterialReceipt(data);
       return response.data;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to create material receipt';
+      const errorMessage =
+      err.response?.data?.detail ||
+      err.response?.data?.message ||
+      err.message ||
+      'Failed to create material receipt';
+
       setError(errorMessage);
       throw err;
     } finally {

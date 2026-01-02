@@ -60,3 +60,27 @@ export const getInventoryByStore = (storeId) =>
     params: { store_id: storeId }
   });
 
+/* ================= DISPATCH ================= */
+
+// Create dispatch (always creates DRAFT)
+export const createDispatch = (data) =>
+  api.post("/api/v1/store/material-dispatch", data);
+
+// Update draft dispatch
+export const updateDispatch = (dispatchId, data) =>
+  api.put(`/api/v1/store/material-dispatch/${dispatchId}`, data);
+
+// Get single dispatch
+export const getDispatchById = (dispatchId) =>
+  api.get(`/api/v1/store/material-dispatch/${dispatchId}`);
+
+// Issue draft dispatch
+export const issueDispatch = (dispatchId) =>
+  api.post(`/api/v1/store/material-dispatch/${dispatchId}/issue`);
+
+// Cancel dispatched dispatch
+export const cancelDispatch = (dispatchId, payload) =>
+  api.post(
+    `/api/v1/store/material-dispatch/${dispatchId}/cancel`,
+    payload
+  );

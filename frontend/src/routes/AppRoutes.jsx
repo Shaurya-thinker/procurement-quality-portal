@@ -28,6 +28,8 @@ import InventoryByStore from "../store/pages/InventoryByStore";
 import StoreGatePasses from "../store/pages/StoreGatePasses";
 import ReceivedGatePasses from "../store/pages/ReceivedGatePasses";
 import EditContractor from "../contractors/pages/EditContractor";
+import MaterialReceiptList from "../quality/pages/MaterialReceiptList";
+import MaterialReceiptDetails from "../quality/pages/MaterialReceiptDetails";
 
 
 export default function AppRoutes() {
@@ -52,11 +54,12 @@ export default function AppRoutes() {
       <Route path="/procurement/:id/edit" element={<ProtectedRoute><CreatePO /></ProtectedRoute>}/>
 
       {/* Quality Routes */}
-      <Route path="/quality" element={<ProtectedRoute><MaterialReceipt /></ProtectedRoute>} />
-      <Route path="/quality/inspection/:mrNumber" element={<ProtectedRoute><Inspection /></ProtectedRoute>} />
-      <Route path="/quality/gate-pass/:inspectionId" element={<ProtectedRoute><QualityGatePass /></ProtectedRoute>}/>
+      <Route path="/quality" element={<ProtectedRoute><MaterialReceiptList /></ProtectedRoute>} />
+      <Route path="/quality/material-receipt/create" element={<ProtectedRoute><MaterialReceipt /></ProtectedRoute>} />
+      <Route path="/quality/material-receipt/:mrId" element={<ProtectedRoute><MaterialReceiptDetails /></ProtectedRoute>} />
+      <Route path="/quality/inspection/:mrId" element={<ProtectedRoute><Inspection /></ProtectedRoute>} />
+      <Route path="/quality/gate-pass/:inspectionId" element={<ProtectedRoute><QualityGatePass /></ProtectedRoute>} />
       <Route path="/quality/report/:inspectionId" element={<ProtectedRoute><QualityReport /></ProtectedRoute>} />
-
 
       {/* Announcements Route */}
       <Route path="/announcements" element={<ProtectedRoute><Announcement /></ProtectedRoute>} />

@@ -25,6 +25,18 @@ def create_material_receipt(
 def list_material_receipts(db: Session = Depends(get_db)):
     return MaterialReceiptService.list_material_receipts(db)
 
+@router.put("/{mr_id}", response_model=MaterialReceiptRead)
+def update_material_receipt(
+    mr_id: int,
+    payload: MaterialReceiptCreate,
+    db: Session = Depends(get_db)
+):
+    try:
+        return MaterialReceiptService.update_material_receipt(db, mr_id, payload)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 
 @router.get("/{mr_id}", response_model=MaterialReceiptRead)
 def get_material_receipt(mr_id: int, db: Session = Depends(get_db)):
