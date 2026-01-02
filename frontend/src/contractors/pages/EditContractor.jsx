@@ -1,6 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { fetchContractorById, updateContractor } from "../../api/contractors.api";
+import {
+  fetchContractorById,
+  updateContractor,
+} from "../../api/contractors.api";
+import ContractorForm from "../components/ContractorForm";
 
 export default function EditContractor() {
   const { id } = useParams();
@@ -11,7 +15,7 @@ export default function EditContractor() {
     fetchContractorById(id).then(setFormData);
   }, [id]);
 
-  if (!formData) return <p>Loading...</p>;
+  if (!formData) return <div style={{ padding: 24 }}>Loading...</div>;
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,14 +27,18 @@ export default function EditContractor() {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ padding: "24px" }}>
-      <h1>Edit Contractor</h1>
+    <div style={{ padding: 24, maxWidth: 600 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}>
+        Edit Contractor
+      </h1>
 
-      <input name="name" value={formData.name} onChange={handleChange} />
-      <input name="phone" value={formData.phone} onChange={handleChange} />
-      <input name="email" value={formData.email || ""} onChange={handleChange} />
-
-      <button type="submit">Save</button>
-    </form>
+      <ContractorForm
+        formData={formData}
+        onChange={handleChange}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate(`/contractors/${id}`)}
+        submitLabel="Update Contractor"
+      />
+    </div>
   );
 }
