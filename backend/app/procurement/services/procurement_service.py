@@ -293,62 +293,75 @@ class ProcurementService:
             "page_size": page_size,
             "total_pages": (total + page_size - 1) // page_size
         }
-    
+
+
     @staticmethod
-    def get_po_items_with_pending_qty(db: Session, po_id: int):
-        po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
+    def get_po_items_with_pending_qty(db, po_id: int):
+        # 1️⃣ Validate PO
+        po = (
+            db.query(PurchaseOrder)
+            .filter(PurchaseOrder.id == po_id)
+            .first()
+        )
 
         if not po:
             raise ValueError("Purchase Order not found")
 
-        result = []
+        if po.status == POStatus.CANCELLED:
+            return []
 
-        for line in po.lines:
-            item = db.query(Item).filter(Item.id == line.item_id).first()
-
-            total_received = (
-                db.query(func.coalesce(func.sum(MaterialReceiptLine.received_quantity), 0))
-                .join(MaterialReceipt)
-                .filter(
-                    MaterialReceipt.po_id == po_id,
-                    MaterialReceiptLine.po_line_id == line.id
-                )
-                .scalar()
+        # 2️⃣ Subquery: total received per PO line
+        received_subq = (
+            db.query(
+                MaterialReceiptLine.po_line_id.label("po_line_id"),
+                func.coalesce(
+                    func.sum(MaterialReceiptLine.received_quantity), 0
+                ).label("received_qty")
             )
+            .join(MaterialReceipt, MaterialReceipt.id == MaterialReceiptLine.mr_id)
+            .filter(MaterialReceipt.po_id == po_id)
+            .group_by(MaterialReceiptLine.po_line_id)
+            .subquery()
+        )
 
-            # 🔻 already dispatched quantity
-            total_dispatched = (
-                db.query(func.coalesce(func.sum(MaterialDispatchLineItem.quantity_dispatched), 0))
-                .join(
-                    MaterialDispatch,
-                    MaterialDispatch.id == MaterialDispatchLineItem.dispatch_id
-                )
-                .filter(
-                    MaterialDispatch.reference_type == ReferenceType.PO,
-                    MaterialDispatch.reference_id == str(po_id),
-                    MaterialDispatch.dispatch_status == DispatchStatus.DISPATCHED,
-                    MaterialDispatchLineItem.item_id == line.item_id
-                )
-
-                .scalar()
+        # 3️⃣ Main query: PO lines + received qty
+        results = (
+            db.query(
+                PurchaseOrderLine.id.label("po_line_id"),
+                PurchaseOrderLine.item_id,
+                Item.code.label("item_code"),
+                Item.description.label("item_description"),
+                Item.unit,
+                PurchaseOrderLine.quantity.label("ordered_quantity"),
+                func.coalesce(received_subq.c.received_qty, 0).label("received_quantity"),
             )
+            .join(Item, Item.id == PurchaseOrderLine.item_id)
+            .outerjoin(
+                received_subq,
+                received_subq.c.po_line_id == PurchaseOrderLine.id
+            )
+            .filter(PurchaseOrderLine.po_id == po_id)
+            .all()
+        )
 
-
-            remaining = line.quantity - total_received - total_dispatched
-
-
+        # 4️⃣ Build response
+        response = []
+        for r in results:
+            remaining = r.ordered_quantity - r.received_quantity
             if remaining > 0:
-                result.append({
-                    "po_line_id": line.id,
-                    "item_id": line.item_id,          # ✅ ADD THIS
-                    "item_code": item.code if item else "",
-                    "item_description": item.name if item else "",
-                    "unit": item.unit if item else "",
-                    "ordered_quantity": line.quantity,
-                    "pending_qty": remaining,         # 🔁 rename for clarity
+                response.append({
+                    "po_line_id": r.po_line_id,
+                    "item_id": r.item_id,
+                    "item_code": r.item_code,
+                    "item_description": r.item_description,
+                    "unit": r.unit,
+                    "ordered_quantity": r.ordered_quantity,
+                    "received_quantity": r.received_quantity,
+                    "remaining_quantity": remaining,
                 })
 
-        return result
+        return response
+
 
 
     @staticmethod
