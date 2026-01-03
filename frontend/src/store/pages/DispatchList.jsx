@@ -193,7 +193,7 @@ export default function DispatchList() {
 
                     <td style={tdStyle}>
                       <button
-                        className="btn-secondary btn-small"
+                        className="btn-primary"
                         onClick={() => navigate(`/store/dispatch/${dispatch.id}`)}
                       >
                         View Details

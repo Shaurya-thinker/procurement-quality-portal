@@ -1,5 +1,6 @@
 from datetime import date, time
 from pydantic import BaseModel
+from typing import Optional
 
 class EventOut(BaseModel):
     id: int
@@ -49,3 +50,25 @@ class MeetingIn(BaseModel):
     meeting_date: date
     meeting_time: time | None = None
     meeting_link: str | None = None
+
+
+# ===================== UPDATE SCHEMAS =====================
+
+class EventUpdate(BaseModel):
+    title: Optional[str] = None
+    event_date: Optional[date] = None
+    description: Optional[str] = None
+
+
+class TrainingUpdate(BaseModel):
+    training_name: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    description: Optional[str] = None
+
+
+class MeetingUpdate(BaseModel):
+    meeting_title: Optional[str] = None
+    meeting_date: Optional[date] = None
+    meeting_time: Optional[time] = None
+    meeting_link: Optional[str] = None

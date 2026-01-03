@@ -408,7 +408,7 @@ const POList = () => {
                         </span>
                       </td>
                       <td style={tdStyle}>
-                        <button className="btn-secondary btn-small">
+                        <button className="btn-primary">
                           View Details
                         </button>
                       </td>

@@ -25,10 +25,10 @@ from app.store.routers.store import router as store_router
 from app.attendance.routers.attendance import router as attendance_router
 from app.store.services.store_service import StoreService
 from app.store.routers.material_dispatch import router as material_dispatch_router
+from app.contractors import models as contractor_models
 from app.announcements.router import router as announcements_router
-from app.contractors import models as contractor_models
 from app.contractors.router import router as contractor_router
-from app.contractors import models as contractor_models
+
 
 
 # Create all tables
@@ -42,6 +42,10 @@ app = FastAPI(
     description="Unified API for Procurement, Quality Control, and Store Management",
     version="1.0.0"
 )
+
+from app.core.db import Base, engine
+Base.metadata.create_all(bind=engine)
+
 
 # Add CORS middleware
 app.add_middleware(
@@ -73,6 +77,7 @@ app.include_router(inspection_router, prefix="/api/v1/quality")
 app.include_router(gate_pass_router, prefix="/api/v1/quality")
 app.include_router(store_router)
 app.include_router(material_dispatch_router)
+app.include_router(announcements_router, prefix="/api/v1/announcements")
 app.include_router(attendance_router, prefix="/api/v1/attendance", tags=["Attendance"])
 app.include_router(contractor_router)
 

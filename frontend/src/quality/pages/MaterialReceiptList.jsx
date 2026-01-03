@@ -237,7 +237,7 @@ const MaterialReceiptList = () => {
                         e.stopPropagation();
                         navigate(`/quality/material-receipt/${mr.id}`);
                       }}
-                      className="btn-secondary btn-small"
+                      className="btn-primary"
                     >
                       View Details
                     </button>

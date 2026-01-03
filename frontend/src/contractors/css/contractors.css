@@ -1,26 +1,40 @@
+/* ================= PAGE ================= */
+
 .contractors-page {
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 24px;
 }
 
+/* ================= CARD ================= */
+
 .contractors-card {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
+/* ================= HEADER ================= */
 
 .contractors-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .contractors-header h1 {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  color: #1f2937;
+  color: #1e293b;
+  letter-spacing: -0.3px;
 }
+
+/* ================= TABLE ================= */
 
 .contractors-table {
   width: 100%;
@@ -28,52 +42,79 @@
   font-size: 14px;
 }
 
+.contractors-table thead {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #e5e7eb;
+}
+
 .contractors-table th {
   text-align: left;
-  padding: 12px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 14px 16px;
   color: #374151;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .contractors-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
-  color: #1f2937;
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  font-weight: 500;
 }
 
 .contractors-table tbody tr {
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .contractors-table tbody tr:hover {
-  background: #f1f5f9;
+  background: #f8fafc;
+  transform: translateX(4px);
 }
 
+/* ================= STATUS PILL ================= */
+
 .status-pill {
-  display: inline-block;
-  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
 }
 
 .status-active {
-  background: #dcfce7;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
   color: #166534;
+  border-color: #86efac;
 }
 
 .status-inactive {
-  background: #fee2e2;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
   color: #7f1d1d;
+  border-color: #fca5a5;
 }
+
+.status-blacklisted {
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  color: #1f2937;
+  border-color: #9ca3af;
+}
+
+/* ================= DETAILS PAGE ================= */
+
 .contractor-details-page {
   max-width: 900px;
   margin: 0 auto;
   padding: 24px;
 }
+
+/* ================= DETAILS HEADER ================= */
 
 .contractor-details-header {
   display: flex;
@@ -82,30 +123,119 @@
   margin-bottom: 24px;
 }
 
-.contractor-details-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
+.contractor-details-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.2px;
 }
 
+/* ================= DETAILS CARD ================= */
+
+.contractor-details-card {
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ================= DETAIL ROWS ================= */
+
 .detail-row {
-  display: flex;
-  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
 }
 
 .detail-label {
-  width: 140px;
-  font-weight: 600;
-  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .detail-value {
+  font-size: 14px;
   color: #1e293b;
+  font-weight: 500;
 }
+
+/* ================= ACTIONS ================= */
 
 .contractor-actions {
   margin-top: 24px;
   display: flex;
   gap: 12px;
+  padding-top: 16px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+/* ================= EMPTY STATE (future-ready) ================= */
+
+.contractors-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: #64748b;
+}
+
+.contractors-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.contractors-empty-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.contractors-empty-text {
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .contractors-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .contractors-table th,
+  .contractors-table td {
+    padding: 12px 10px;
+  }
+
+  .detail-row {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-label {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .contractors-page {
+    padding: 16px;
+  }
+
+  .contractors-card {
+    padding: 16px;
+  }
+
+  .status-pill {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
 }

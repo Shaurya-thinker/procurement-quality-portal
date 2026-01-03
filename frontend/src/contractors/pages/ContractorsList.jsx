@@ -253,7 +253,7 @@ const ContractorsList = () => {
                     <td style={tdStyle}>
                       <button
                         onClick={() => navigate(`/contractors/${c.id}`)}
-                        className="btn-secondary btn-small"
+                        className="btn-primary"
                       >
                         View Details
                       </button>

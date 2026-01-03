@@ -274,7 +274,7 @@ const Stores = () => {
                   <td style={tdStyle}>{store.bins?.length || 0}</td>
                   <td style={tdStyle}>
                     <button
-                      className="btn-secondary btn-small"
+                      className="btn-primary"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/store/${store.id}`);

@@ -17,6 +17,11 @@ export default function Attendance() {
   const [success, setSuccess] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [hoveredDate, setHoveredDate] = useState(null);
+  const [range, setRange] = useState({
+    from: null,
+    to: null,
+  });
 
 
   const userId = 1; // TODO: auth context
@@ -143,30 +148,66 @@ export default function Attendance() {
 
     const days = [];
 
-    // Empty slots before month starts
-    for (let i = 0; i < firstDay.getDay(); i++) {
-      days.push(null);
-    }
-
-    // Actual days
-    for (let d = 1; d <= lastDay.getDate(); d++) {
+    for (let i = 0; i < firstDay.getDay(); i++) days.push(null);
+    for (let d = 1; d <= lastDay.getDate(); d++)
       days.push(new Date(year, month, d));
-    }
 
     return days;
   };
 
-  const getStatusForDate = (date) => {
+  const getRecordByDate = (date) => {
+    if (!date) return null;
+    const key = date.toISOString().split('T')[0];
+    return history.find((h) => h.attendance_date === key);
+  };
+
+  const isSunday = (date) => date?.getDay() === 0;
+
+  const getWeekRange = (date) => {
     if (!date) return null;
 
-    const dayStr = date.toISOString().split('T')[0];
+    const start = new Date(date);
+    const end = new Date(date);
 
-    const record = history.find(
-      (h) => h.attendance_date === dayStr
-    );
+    const day = start.getDay(); // 0 = Sun
+    const diffToMonday = day === 0 ? -6 : 1 - day;
 
-    return record?.status || null;
+    start.setDate(start.getDate() + diffToMonday);
+    end.setDate(start.getDate() + 6);
+
+    return { start, end };
   };
+
+  const getWeekRecords = (date) => {
+    const range = getWeekRange(date);
+    if (!range) return [];
+
+    return history.filter((h) => {
+      const d = new Date(h.attendance_date);
+      return d >= range.start && d <= range.end;
+    });
+  };
+
+  const getFilteredHistory = () => {
+    if (!range.from && !range.to) return history;
+
+    return history.filter((r) => {
+      const recordDate = new Date(r.attendance_date);
+
+      if (range.from) {
+        const fromDate = new Date(range.from);
+        if (recordDate < fromDate) return false;
+      }
+
+      if (range.to) {
+        const toDate = new Date(range.to);
+        if (recordDate > toDate) return false;
+      }
+
+      return true;
+    });
+  };
+
 
 
   /* ================= RENDER ================= */
@@ -188,39 +229,63 @@ export default function Attendance() {
           </h2>
 
           <div className="calendar-nav">
-            <button onClick={() =>
-              setCurrentMonth(
-                new Date(currentMonth.setMonth(currentMonth.getMonth() - 1))
-              )
-            }>
+            <button
+              onClick={() =>
+                setCurrentMonth(
+                  new Date(
+                    currentMonth.getFullYear(),
+                    currentMonth.getMonth() - 1,
+                    1
+                  )
+                )
+              }
+            >
               ‹
             </button>
-            <button onClick={() =>
-              setCurrentMonth(
-                new Date(currentMonth.setMonth(currentMonth.getMonth() + 1))
-              )
-            }>
+
+            <button
+              onClick={() =>
+                setCurrentMonth(
+                  new Date(
+                    currentMonth.getFullYear(),
+                    currentMonth.getMonth() + 1,
+                    1
+                  )
+                )
+              }
+            >
               ›
             </button>
           </div>
         </div>
-
+        
         <div className="calendar-weekdays">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-            <div key={d} className="weekday">{d}</div>
+            <div key={d} className="weekday">
+              {d}
+            </div>
           ))}
         </div>
 
         <div className="calendar-days">
           {getMonthDays(currentMonth).map((day, idx) => {
-            const status = getStatusForDate(day);
+            const record = getRecordByDate(day);
+            const statusClass = record?.status
+              ? record.status.toLowerCase()
+              : '';
 
             return (
               <div
                 key={idx}
-                className={`calendar-day 
-                  ${!day ? 'empty' : ''} 
-                  ${status ? status.toLowerCase() : ''}`}
+                className={[
+                  'calendar-day',
+                  !day && 'empty',
+                  statusClass,
+                  isSunday(day) && 'holiday',
+                  selectedDate?.toDateString() === day?.toDateString() && 'selected',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 onClick={() => day && setSelectedDate(day)}
               >
                 {day?.getDate()}
@@ -231,13 +296,56 @@ export default function Attendance() {
       </div>
 
       {selectedDate && (
-        <div className="attendance-card">
-          <h3 className="section-title">
-            {formatDate(selectedDate)}
-          </h3>
-          <p>Status: {getStatusForDate(selectedDate) || 'No record'}</p>
-        </div>
+        <WeeklySummary
+          selectedDate={selectedDate}
+          records={getWeekRecords(selectedDate)}
+          formatDate={formatDate}
+          formatDuration={formatDuration}
+        />
       )}
+
+
+      {selectedDate && (() => {
+        const record = getRecordByDate(selectedDate);
+
+        return (
+          <div className="attendance-card">
+            <h3 className="section-title">
+              {formatDate(selectedDate)}
+            </h3>
+
+            {record ? (
+              <div className="summary-grid">
+                <SummaryItem
+                  label="Check-in"
+                  value={formatTime(record.check_in_time)}
+                />
+                <SummaryItem
+                  label="Check-out"
+                  value={formatTime(record.check_out_time)}
+                />
+                <SummaryItem
+                  label="Total Worked"
+                  value={formatDuration(record.total_worked_minutes)}
+                />
+                <div className="summary-item status">
+                  <div className="summary-label">Status</div>
+                  <AttendanceStatusBadge status={record.status} />
+                </div>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">📭</div>
+                <div className="empty-title">No record for this day</div>
+                <div className="empty-text">
+                  The user did not check in on this date
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
 
       {/* ================= TODAY ================= */}
       <div className="attendance-card">
@@ -283,6 +391,37 @@ export default function Attendance() {
           <h2 className="section-title">Attendance History</h2>
         </div>
 
+        <div className="history-filters">
+          <div className="filter-group">
+            <label>From</label>
+            <input
+              type="date"
+              value={range.from || ''}
+              onChange={(e) =>
+                setRange({ ...range, from: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="filter-group">
+            <label>To</label>
+            <input
+              type="date"
+              value={range.to || ''}
+              onChange={(e) =>
+                setRange({ ...range, to: e.target.value })
+              }
+            />
+          </div>
+
+          <button
+            className="btn-secondary"
+            onClick={() => setRange({ from: null, to: null })}
+          >
+            Reset
+          </button>
+        </div>
+
         {history.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📅</div>
@@ -304,7 +443,7 @@ export default function Attendance() {
                 </tr>
               </thead>
               <tbody>
-                {history.map((r, i) => (
+                {getFilteredHistory().map((r, i) => (
                   <tr key={i}>
                     <td>{formatDate(r.attendance_date)}</td>
                     <td>{formatTime(r.check_in_time)}</td>
@@ -333,3 +472,64 @@ const SummaryItem = ({ label, value }) => (
   </div>
 );
 
+const WeeklySummary = ({
+  selectedDate,
+  records,
+  formatDate,
+  formatDuration,
+}) => {
+  const range = (() => {
+    const start = new Date(selectedDate);
+    const day = start.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    start.setDate(start.getDate() + diff);
+
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+
+    return { start, end };
+  })();
+
+  const totalMinutes = records.reduce(
+    (sum, r) => sum + (r.total_worked_minutes || 0),
+    0
+  );
+
+  const presentDays = records.length;
+
+  return (
+    <div className="attendance-card">
+      <div className="card-header">
+        <h2 className="section-title">
+          Weekly Summary
+        </h2>
+        <div className="week-range">
+          {formatDate(range.start)} – {formatDate(range.end)}
+        </div>
+      </div>
+
+      <div className="summary-grid">
+        <div className="summary-item">
+          <div className="summary-label">Days Present</div>
+          <div className="summary-value">{presentDays}</div>
+        </div>
+
+        <div className="summary-item">
+          <div className="summary-label">Total Worked</div>
+          <div className="summary-value">
+            {formatDuration(totalMinutes)}
+          </div>
+        </div>
+
+        <div className="summary-item">
+          <div className="summary-label">Average / Day</div>
+          <div className="summary-value">
+            {presentDays
+              ? formatDuration(Math.floor(totalMinutes / presentDays))
+              : '--'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
