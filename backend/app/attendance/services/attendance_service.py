@@ -77,7 +77,8 @@ class AttendanceService:
         # Update attendance with check-out time
         check_out_time = datetime.now()
         time_diff = check_out_time - attendance.check_in_time
-        total_minutes = int(time_diff.total_seconds() / 60)
+        import math
+        total_minutes = max(1, math.ceil(time_diff.total_seconds() / 60))
         
         logger.info(f"[CHECK-OUT] Calculating worked time: {total_minutes} minutes")
         

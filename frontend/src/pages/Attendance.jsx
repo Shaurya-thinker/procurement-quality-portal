@@ -1,5 +1,13 @@
-import { useState, useEffect } from 'react';
-import { checkIn, checkOut, getTodayAttendance, getAttendanceHistory } from '../api/attendanceApi';
+import { useEffect, useState } from 'react';
+import {
+  checkIn,
+  checkOut,
+  getTodayAttendance,
+  getAttendanceHistory,
+} from '../api/attendanceApi';
+
+import AttendanceStatusBadge from './AttendanceStatusBadge';
+import './Attendance.css';
 
 export default function Attendance() {
   const [todayData, setTodayData] = useState(null);
@@ -7,94 +15,63 @@ export default function Attendance() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
-  // Mock user ID - in real app, get from auth context
-  const userId = 1;
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
+
+
+  const userId = 1; // TODO: auth context
 
   useEffect(() => {
-    loadTodayAttendance();
-    loadHistory();
+    refresh();
   }, []);
 
-  const loadTodayAttendance = async () => {
+  /* ================= DATA LOAD ================= */
+
+  const refresh = () => {
+    loadToday();
+    loadHistory();
+  };
+
+  const loadToday = async () => {
     try {
-      const response = await getTodayAttendance(userId);
-      setTodayData(response.data);
+      const res = await getTodayAttendance(userId);
+      setTodayData(res.data);
     } catch (err) {
-      console.log('Today attendance error:', err.response?.data);
-      // Only show error for actual server errors, not missing attendance
-      if (err.response?.status !== 404) {
-        handleError(err, 'Failed to load today\'s attendance');
-      } else {
-        // Handle 404 as NOT_STARTED state
-        const today = new Date().toISOString().split('T')[0];
+      if (err.response?.status === 404) {
         setTodayData({
           user_id: userId,
-          attendance_date: today,
           check_in_time: null,
           check_out_time: null,
           total_worked_minutes: null,
           status: 'NOT_STARTED',
           can_check_in: true,
-          can_check_out: false
+          can_check_out: false,
         });
+      } else {
+        handleError(err, "Failed to load today's attendance");
       }
     }
   };
 
   const loadHistory = async () => {
     try {
-      const response = await getAttendanceHistory(userId);
-      setHistory(response.data.records || []);
+      const res = await getAttendanceHistory(userId);
+      setHistory(res.data.records || []);
     } catch (err) {
-      console.log('History error:', err.response?.data);
       handleError(err, 'Failed to load attendance history');
     }
   };
 
-  const handleError = (err, defaultMessage) => {
-    console.log('Full error object:', err);
-    console.log('Error response data:', err.response?.data);
-    
-    let errorMessage = defaultMessage;
-    
-    if (err.response?.data) {
-      const errorData = err.response.data;
-      
-      if (errorData.detail && Array.isArray(errorData.detail)) {
-        errorMessage = errorData.detail.map(error => 
-          `${error.loc?.join('.')} - ${error.msg}`
-        ).join('; ');
-      } else if (errorData.detail) {
-        errorMessage = errorData.detail;
-      } else if (errorData.message) {
-        errorMessage = errorData.message;
-      }
-    } else if (err.message) {
-      errorMessage = err.message;
-    }
-    
-    setError(errorMessage);
-    setTimeout(() => setError(''), 5000);
-  };
+  /* ================= ACTIONS ================= */
 
   const handleCheckIn = async () => {
     setLoading(true);
-    setError('');
-    setSuccess('');
-    
-    console.log('[FRONTEND] Attempting check-in for user:', userId);
-    console.log('[FRONTEND] API call will be made to:', 'POST /api/v1/attendance/check-in');
-    
+    clearMessages();
     try {
-      const response = await checkIn(userId);
-      console.log('[FRONTEND] Check-in response:', response);
-      setSuccess('Successfully checked in!');
-      loadTodayAttendance();
-      loadHistory();
+      await checkIn(userId);
+      setSuccess('Checked in successfully');
+      refresh();
     } catch (err) {
-      console.log('[FRONTEND] Check-in error:', err);
-      console.log('[FRONTEND] Error response:', err.response);
       handleError(err, 'Failed to check in');
     } finally {
       setLoading(false);
@@ -102,15 +79,14 @@ export default function Attendance() {
   };
 
   const handleCheckOut = async () => {
+    if (!window.confirm('Are you sure you want to check out?')) return;
+
     setLoading(true);
-    setError('');
-    setSuccess('');
-    
+    clearMessages();
     try {
       await checkOut(userId);
-      setSuccess('Successfully checked out!');
-      loadTodayAttendance();
-      loadHistory();
+      setSuccess('Checked out successfully');
+      refresh();
     } catch (err) {
       handleError(err, 'Failed to check out');
     } finally {
@@ -118,205 +94,224 @@ export default function Attendance() {
     }
   };
 
-  const formatTime = (dateTime) => {
-    if (!dateTime) return '-';
-    return new Date(dateTime).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+  /* ================= HELPERS ================= */
+
+  const clearMessages = () => {
+    setError('');
+    setSuccess('');
   };
 
-  const formatDuration = (minutes) => {
-    if (!minutes) return '-';
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+  const handleError = (err, fallback) => {
+    const msg =
+      err.response?.data?.detail ||
+      err.message ||
+      fallback;
+
+    setError(msg);
+    setTimeout(() => setError(''), 5000);
   };
 
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+  const formatTime = (v) =>
+    v
+      ? new Date(v).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        })
+      : '--';
+
+  const formatDuration = (m) => {
+    if (m === null || m === undefined) return '--';
+    return `${Math.floor(m / 60)}h ${m % 60}m`;
+  };
+
+  const formatDate = (d) =>
+    new Date(d).toLocaleDateString('en-US', {
       weekday: 'short',
-      year: 'numeric',
+      day: 'numeric',
       month: 'short',
-      day: 'numeric'
+      year: 'numeric',
     });
+
+
+  const getMonthDays = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    const days = [];
+
+    // Empty slots before month starts
+    for (let i = 0; i < firstDay.getDay(); i++) {
+      days.push(null);
+    }
+
+    // Actual days
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      days.push(new Date(year, month, d));
+    }
+
+    return days;
   };
+
+  const getStatusForDate = (date) => {
+    if (!date) return null;
+
+    const dayStr = date.toISOString().split('T')[0];
+
+    const record = history.find(
+      (h) => h.attendance_date === dayStr
+    );
+
+    return record?.status || null;
+  };
+
+
+  /* ================= RENDER ================= */
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px', color: '#1f2937' }}>
-        Attendance & Time Tracking
-      </h1>
+    <div className="attendance-page">
+      <h1 className="page-title">Attendance & Time Tracking</h1>
 
-      {error && (
-        <div style={{
-          backgroundColor: '#fee2e2',
-          color: '#7f1d1d',
-          padding: '12px 16px',
-          borderRadius: '4px',
-          marginBottom: '16px'
-        }}>
-          {error}
+      {error && <div className="alert alert-error">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
+
+
+      {/* ================= CALENDAR ================= */}
+      <div className="attendance-card">
+        <div className="card-header calendar-header">
+          <h2 className="section-title">
+            {currentMonth.toLocaleString('default', { month: 'long' })}{' '}
+            {currentMonth.getFullYear()}
+          </h2>
+
+          <div className="calendar-nav">
+            <button onClick={() =>
+              setCurrentMonth(
+                new Date(currentMonth.setMonth(currentMonth.getMonth() - 1))
+              )
+            }>
+              ‹
+            </button>
+            <button onClick={() =>
+              setCurrentMonth(
+                new Date(currentMonth.setMonth(currentMonth.getMonth() + 1))
+              )
+            }>
+              ›
+            </button>
+          </div>
+        </div>
+
+        <div className="calendar-weekdays">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+            <div key={d} className="weekday">{d}</div>
+          ))}
+        </div>
+
+        <div className="calendar-days">
+          {getMonthDays(currentMonth).map((day, idx) => {
+            const status = getStatusForDate(day);
+
+            return (
+              <div
+                key={idx}
+                className={`calendar-day 
+                  ${!day ? 'empty' : ''} 
+                  ${status ? status.toLowerCase() : ''}`}
+                onClick={() => day && setSelectedDate(day)}
+              >
+                {day?.getDate()}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {selectedDate && (
+        <div className="attendance-card">
+          <h3 className="section-title">
+            {formatDate(selectedDate)}
+          </h3>
+          <p>Status: {getStatusForDate(selectedDate) || 'No record'}</p>
         </div>
       )}
 
-      {success && (
-        <div style={{
-          backgroundColor: '#dcfce7',
-          color: '#15803d',
-          padding: '12px 16px',
-          borderRadius: '4px',
-          marginBottom: '16px'
-        }}>
-          {success}
+      {/* ================= TODAY ================= */}
+      <div className="attendance-card">
+        <div className="card-header">
+          <h2 className="section-title">Today's Attendance</h2>
         </div>
-      )}
 
-      {/* Today's Summary */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '6px',
-        border: '1px solid #e5e7eb',
-        padding: '24px',
-        marginBottom: '24px'
-      }}>
-        <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
-          Today's Attendance
-        </h2>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-          <div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Check-in Time</div>
-            <div style={{ fontSize: '16px', fontWeight: '500', color: '#1f2937' }}>
-              {formatTime(todayData?.check_in_time)}
-            </div>
-          </div>
-          
-          <div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Check-out Time</div>
-            <div style={{ fontSize: '16px', fontWeight: '500', color: '#1f2937' }}>
-              {formatTime(todayData?.check_out_time)}
-            </div>
-          </div>
-          
-          <div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Total Worked</div>
-            <div style={{ fontSize: '16px', fontWeight: '500', color: '#1f2937' }}>
-              {formatDuration(todayData?.total_worked_minutes)}
-            </div>
-          </div>
-          
-          <div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Status</div>
-            <div style={{ 
-              fontSize: '14px', 
-              fontWeight: '500',
-              color: todayData?.status === 'COMPLETED' ? '#059669' : 
-                     todayData?.status === 'IN_PROGRESS' ? '#d97706' : '#6b7280',
-              textTransform: 'capitalize'
-            }}>
-              {todayData?.status?.replace('_', ' ') || 'Not Started'}
-            </div>
+        <div className="summary-grid">
+          <SummaryItem label="Check-in" value={formatTime(todayData?.check_in_time)} />
+          <SummaryItem label="Check-out" value={formatTime(todayData?.check_out_time)} />
+          <SummaryItem
+            label="Total Worked"
+            value={formatDuration(todayData?.total_worked_minutes)}
+          />
+          <div className="summary-item status">
+            <div className="summary-label">Status</div>
+            <AttendanceStatusBadge status={todayData?.status} />
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="attendance-actions">
           <button
+            className="btn-primary"
+            disabled={loading || !todayData?.can_check_in || todayData?.status === 'COMPLETED'}
             onClick={handleCheckIn}
-            disabled={loading || !todayData?.can_check_in}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: todayData?.can_check_in ? '#10b981' : '#9ca3af',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: todayData?.can_check_in ? 'pointer' : 'not-allowed',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
           >
-            {loading ? 'Processing...' : 'Check In'}
+            {loading ? 'Processing…' : 'Check In'}
           </button>
-          
+
           <button
-            onClick={handleCheckOut}
+            className="btn-danger"
             disabled={loading || !todayData?.can_check_out}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: todayData?.can_check_out ? '#ef4444' : '#9ca3af',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: todayData?.can_check_out ? 'pointer' : 'not-allowed',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
+            onClick={handleCheckOut}
           >
-            {loading ? 'Processing...' : 'Check Out'}
+            {loading ? 'Processing…' : 'Check Out'}
           </button>
         </div>
       </div>
 
-      {/* Attendance History */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '6px',
-        border: '1px solid #e5e7eb',
-        padding: '24px'
-      }}>
-        <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
-          Attendance History
-        </h2>
-        
+      {/* ================= HISTORY ================= */}
+      <div className="attendance-card">
+        <div className="card-header">
+          <h2 className="section-title">Attendance History</h2>
+        </div>
+
         {history.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#6b7280', padding: '24px' }}>
-            No attendance records found
+          <div className="empty-state">
+            <div className="empty-icon">📅</div>
+            <div className="empty-title">No attendance records</div>
+            <div className="empty-text">
+              Start by checking in to track your workday
+            </div>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="table-responsive">
+            <table className="attendance-table">
               <thead>
                 <tr>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
-                    Date
-                  </th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
-                    Check In
-                  </th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
-                    Check Out
-                  </th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
-                    Total Time
-                  </th>
-                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #d1d5db', fontSize: '12px', color: '#374151', fontWeight: '600' }}>
-                    Status
-                  </th>
+                  <th>Date</th>
+                  <th>Check In</th>
+                  <th>Check Out</th>
+                  <th>Total Time</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {history.map((record, index) => (
-                  <tr key={index}>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
-                      {formatDate(record.attendance_date)}
-                    </td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
-                      {formatTime(record.check_in_time)}
-                    </td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
-                      {formatTime(record.check_out_time)}
-                    </td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
-                      {formatDuration(record.total_worked_minutes)}
-                    </td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '14px' }}>
-                      <span style={{
-                        color: record.status === 'COMPLETED' ? '#059669' : '#d97706',
-                        textTransform: 'capitalize'
-                      }}>
-                        {record.status?.replace('_', ' ')}
-                      </span>
+                {history.map((r, i) => (
+                  <tr key={i}>
+                    <td>{formatDate(r.attendance_date)}</td>
+                    <td>{formatTime(r.check_in_time)}</td>
+                    <td>{formatTime(r.check_out_time)}</td>
+                    <td>{formatDuration(r.total_worked_minutes)}</td>
+                    <td>
+                      <AttendanceStatusBadge status={r.status} />
                     </td>
                   </tr>
                 ))}
@@ -328,3 +323,13 @@ export default function Attendance() {
     </div>
   );
 }
+
+/* ================= SUB COMPONENT ================= */
+
+const SummaryItem = ({ label, value }) => (
+  <div className="summary-item">
+    <div className="summary-label">{label}</div>
+    <div className="summary-value">{value}</div>
+  </div>
+);
+
