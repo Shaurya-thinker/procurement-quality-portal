@@ -414,13 +414,12 @@ const CreatePO = () => {
           </div>
 
           <div style={formGroupStyle}>
-            <label style={labelStyle}>PO Date</label>
+            <label style={labelStyle}>Created Date</label>
             <input
               type="date"
               value={poDate}
-              onChange={(e) => setPoDate(e.target.value)}
-              disabled={isReadOnly}
-              style={isReadOnly ? readOnlyInputStyle : inputStyle}
+              disabled
+              style={readOnlyInputStyle}
             />
           </div>
 

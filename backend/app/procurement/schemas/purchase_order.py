@@ -60,6 +60,7 @@ class PurchaseOrderRead(BaseModel):
     vendor_id: int
     status: POStatus
     created_at: datetime
+    po_sent_at: Optional[datetime] = None 
     lines: List[PurchaseOrderLineRead]
 
 
@@ -101,5 +102,6 @@ class PurchaseOrderDetailRead(BaseModel):
     vendor_id: int
     status: POStatus
     created_at: datetime
+    po_sent_at: Optional[datetime] = None
     line_items: list[PurchaseOrderLineDetailRead]
 

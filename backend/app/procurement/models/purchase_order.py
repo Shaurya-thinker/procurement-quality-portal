@@ -24,6 +24,7 @@ class PurchaseOrder(Base):
     vendor_id = Column(Integer, nullable=False, index=True)
     status = Column(SQLEnum(POStatus), default=POStatus.DRAFT, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    po_sent_at = Column(DateTime, nullable=True)
     
     # Relationship to PurchaseOrderLine
     lines = relationship(

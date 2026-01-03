@@ -99,7 +99,7 @@ const PODetails = () => {
     try {
       const result = await sendProcurementOrder(id);
       setSuccessMessage('PO sent successfully');
-      setPoData({ ...poData, status: 'SENT' });
+      setPoData({ ...poData, status: 'SENT', po_sent_at: result.po_sent_at, });
       setShowSendConfirm(false);
       loadTracking();
       setTimeout(() => {
@@ -450,7 +450,9 @@ const PODetails = () => {
           <div style={infoItemStyle}>
             <div style={infoLabelStyle}>PO Date & Time</div>
             <div style={infoValueStyle}>
-              {formatDateTime(poData.po_date || poData.created_at)}
+              {poData.po_sent_at
+                ? formatDateTime(poData.po_sent_at)
+                : '—'}
             </div>
           </div>
           <div style={infoItemStyle}>

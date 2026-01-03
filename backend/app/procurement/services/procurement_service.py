@@ -217,6 +217,7 @@ class ProcurementService:
             "vendor_id": db_po.vendor_id,
             "status": db_po.status,
             "created_at": db_po.created_at,
+            "po_sent_at": db_po.po_sent_at,
             "lines": [
                 {
                     "id": line.id,
@@ -275,6 +276,7 @@ class ProcurementService:
                     "vendor_id": po.vendor_id,
                     "status": po.status,
                     "created_at": po.created_at,
+                    "po_sent_at": po.po_sent_at,
                     "lines": [
                         {
                             "id": line.id,
@@ -393,43 +395,36 @@ class ProcurementService:
             vendor_id=db_po.vendor_id,
             status=db_po.status,
             created_at=db_po.created_at,
+            po_sent_at=db_po.po_sent_at,
             line_items=line_items,
         )
 
     
+    from datetime import datetime
+
     @staticmethod
     def send_purchase_order(db: Session, po_id: int) -> PurchaseOrderRead:
-        """
-        Send a purchase order (set status to SENT).
-        
-        Args:
-            db: Database session
-            po_id: Purchase order ID
-            
-        Returns:
-            PurchaseOrderRead: Updated purchase order
-            
-        Raises:
-            ValueError: If purchase order not found or cannot be sent
-        """
         db_po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
-        
+
         if not db_po:
             raise ValueError(f"Purchase order with ID {po_id} not found")
-        
-        if db_po.status == POStatus.SENT:
-            raise ValueError(f"Purchase order {db_po.po_number} is already sent")
-        
+
+        if db_po.status != POStatus.DRAFT:
+            raise ValueError("Only DRAFT purchase orders can be sent")
+
         db_po.status = POStatus.SENT
+        db_po.po_sent_at = datetime.utcnow()   # ✅ SET HERE
+
         db.commit()
-        
-        # Build response dict
-        po_dict = {
+        db.refresh(db_po)
+
+        return PurchaseOrderRead.model_validate({
             "id": db_po.id,
             "po_number": db_po.po_number,
             "vendor_id": db_po.vendor_id,
             "status": db_po.status,
             "created_at": db_po.created_at,
+            "po_sent_at": db_po.po_sent_at,     # ✅ INCLUDE
             "lines": [
                 {
                     "id": line.id,
@@ -440,8 +435,8 @@ class ProcurementService:
                 }
                 for line in db_po.lines
             ]
-        }
-        return PurchaseOrderRead.model_validate(po_dict)
+        })
+
 
     @staticmethod
     def update_purchase_order(db: Session, po_id: int, po_update: PurchaseOrderUpdate) -> PurchaseOrderRead:
@@ -513,6 +508,7 @@ class ProcurementService:
                 "vendor_id": db_po.vendor_id,
                 "status": db_po.status,
                 "created_at": db_po.created_at,
+                "po_sent_at": db_po.po_sent_at,
                 "lines": lines_data,
             }
             return PurchaseOrderRead.model_validate(po_dict)
@@ -642,6 +638,7 @@ class ProcurementService:
                     "vendor_id": po.vendor_id,
                     "status": po.status,
                     "created_at": po.created_at,
+                    "po_sent_at": po.po_sent_at,
                     "lines": [
                         {
                             "id": line.id,
