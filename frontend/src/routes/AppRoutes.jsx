@@ -67,7 +67,7 @@ export default function AppRoutes() {
       {/* Store Routes */}
       <Route path="/store/:storeId/gate-passes" element={<ProtectedRoute><StoreGatePasses /></ProtectedRoute>}/>
       <Route path="/store/:storeId/received-gate-passes" element={<ReceivedGatePasses />}/>
-      <Route path="/store" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
+      <Route path="/storae" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
       <Route path="/store/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
 
       <Route path="/store/dispatches" element={<ProtectedRoute><DispatchList /></ProtectedRoute>} />

@@ -244,9 +244,6 @@ class MaterialDispatchService:
         except Exception as e:
             db.rollback()
             raise e
-       
-        
-    print("🔥🔥🔥 NEW ISSUE LOGIC ACTIVE 🔥🔥🔥")
 
     @staticmethod
     def issue_material_dispatch(db: Session, dispatch_id: int) -> MaterialDispatchRead:
