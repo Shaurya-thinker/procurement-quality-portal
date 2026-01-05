@@ -9,7 +9,7 @@ class EventOut(BaseModel):
     event_date: date
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TrainingOut(BaseModel):
@@ -19,7 +19,7 @@ class TrainingOut(BaseModel):
     end_date: date
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MeetingOut(BaseModel):
@@ -29,7 +29,7 @@ class MeetingOut(BaseModel):
     meeting_time: time | None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class EventIn(BaseModel):

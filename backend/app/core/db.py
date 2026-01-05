@@ -6,7 +6,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[2]
 DB_PATH = BASE_DIR / "app.db"
 
-print("🗄️ SQLite DB Path:", DB_PATH)
 
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
