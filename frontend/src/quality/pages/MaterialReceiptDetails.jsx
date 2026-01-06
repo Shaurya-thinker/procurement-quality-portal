@@ -87,21 +87,46 @@ export default function MaterialReceiptDetails() {
     <div style={containerStyle}>
       {/* ================= HEADER ================= */}
       <div style={headerStyle}>
-        <div>
-          <h1 style={titleStyle}>Material Receipt</h1>
-          <div style={subTitleStyle}>{mr.mr_number}</div>
-        </div>
+  {/* LEFT: BACK ARROW + TITLE */}
+  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    <button
+      onClick={() => navigate(-1)}
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        border: "1px solid #e2e8f0",
+        background: "white",
+        color: "#1e293b",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+        flexShrink: 0,
+      }}
+      aria-label="Go back"
+    >
+      ←
+    </button>
 
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-          <POStatusBadge status={mr.status} />
-          <button
-            onClick={() => navigate("/quality")}
-            className="btn-secondary btn-small"
-          >
-            Back to List
-          </button>
-        </div>
-      </div>
+    <div>
+      <h1 style={titleStyle}>Material Receipt</h1>
+      <div style={subTitleStyle}>{mr.mr_number}</div>
+    </div>
+  </div>
+
+  {/* RIGHT: STATUS + ACTION */}
+  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+    <POStatusBadge status={mr.status} />
+    <button
+      onClick={() => navigate("/quality")}
+      className="btn-secondary btn-small"
+    >
+      Back to List
+    </button>
+  </div>
+</div>
 
       {/* ================= RECEIPT DETAILS ================= */}
       <div style={cardStyle}>

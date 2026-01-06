@@ -58,9 +58,27 @@ export default function DispatchDetail() {
     <div style={{ padding: 24, background: "#f9fafb", minHeight: "100vh" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <button onClick={() => navigate(-1)} className="back-arrow-btn">
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            border: "1px solid #e2e8f0",
+            background: "white",
+            color: "#1e293b",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+            flexShrink: 0,
+          }}
+          aria-label="Go back"
+        >
           ←
         </button>
+
         <h2 style={{ margin: 0 }}>Material Dispatch</h2>
 
         {/* ✅ EDIT BUTTON (ONLY FOR DRAFT) */}

@@ -65,7 +65,7 @@ export default function AppRoutes() {
 
       {/* Store Routes */}
       <Route path="/store/:storeId/gate-passes" element={<ProtectedRoute><StoreGatePasses /></ProtectedRoute>}/>
-      <Route path="/store/:storeId/received-gate-passes" element={<ReceivedGatePasses />}/>
+      <Route path="/store/:storeId/received-gate-passes" element={<ProtectedRoute><ReceivedGatePasses /></ProtectedRoute>} />
       <Route path="/store" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
       <Route path="/store/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
 
@@ -73,7 +73,7 @@ export default function AppRoutes() {
       <Route path="/store/dispatch/create" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
       <Route path="/store/dispatch/edit/:dispatchId" element={<ProtectedRoute><CreateDispatch /></ProtectedRoute>} />
       <Route path="/store/dispatch/:dispatchId" element={<ProtectedRoute><DispatchDetail /></ProtectedRoute>} />
-      <Route path="/store/:storeId/inventory" element={<InventoryByStore />} />
+      <Route path="/store/:storeId/inventory" element={<ProtectedRoute><InventoryByStore /></ProtectedRoute>} />
 
 
       <Route path="/store/:storeId" element={<ProtectedRoute><StoreDetail /></ProtectedRoute>} />

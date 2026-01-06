@@ -16,12 +16,10 @@ import LogoutIcon from "./icons/LogoutIcon"
 import Logo from "../assets/logo.png"
 import { fetchEvents, fetchTrainings, fetchMeetings } from "../api/announcements.api"
 
-
 export default function DashboardLayout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [showUserDropdown, setShowUserDropdown] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false)
   const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata')
@@ -257,18 +255,7 @@ export default function DashboardLayout({ children }) {
     <div className="dashboard-body">
 
       {/* SIDEBAR */}
-      <aside className={`dashboard-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
-        <div className="sidebar-header">
-          <button
-            className="sidebar-toggle"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <span className={`toggle-icon ${sidebarCollapsed ? "collapsed" : ""}`}>
-              ‹
-            </span>
-          </button>
-        </div>
+      <aside className="dashboard-sidebar">
 
         <nav className="sidebar-nav">
           <ul className="nav-list">
@@ -279,28 +266,25 @@ export default function DashboardLayout({ children }) {
                   className={`nav-link ${isActive(item.path) ? "active" : ""}`}
                 >
                   <span className="nav-icon">{item.icon}</span>
-                  {!sidebarCollapsed && (
-                    <span className="nav-label">{item.label}</span>
-                  )}
+                  <span className="nav-label">{item.label}</span>
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
 
-        <div className="sidebar-footer">
-        <button
-          onClick={handleLogout}
-          className={`nav-link logout-nav ${sidebarCollapsed ? "collapsed" : ""}`}
-          title={sidebarCollapsed ? "Logout" : ""}
-        >
-          <span className="nav-icon">
-            <LogoutIcon />
-          </span>
-          {!sidebarCollapsed && <span className="nav-label">Logout</span>}
-        </button>
-      </div>
-      </aside>
+       <div className="sidebar-footer">
+  <button
+    onClick={handleLogout}
+    className="nav-link logout-nav"
+  >
+    <span className="nav-icon">
+      <LogoutIcon />
+    </span>
+    <span className="nav-label">Logout</span>
+  </button>
+</div>
+</aside>
 
       {/* MAIN CONTENT */}
       <main className="dashboard-content">

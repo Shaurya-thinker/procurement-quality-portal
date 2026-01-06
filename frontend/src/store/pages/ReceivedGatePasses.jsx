@@ -39,12 +39,25 @@ export default function ReceivedGatePasses() {
         }}
       >
         <button
-          onClick={() => navigate(-1)}
-          className="back-arrow-btn"
-          aria-label="Go back"
-        >
-          ←
-        </button>
+  onClick={() => navigate(-1)}
+  style={{
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    border: "1px solid #e2e8f0",
+    background: "white",
+    color: "#1e293b",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+    flexShrink: 0,
+  }}
+  aria-label="Go back"
+>
+  ←
+</button>
 
         <div>
           <h2 style={{ margin: 0 }}>Received Gate Passes</h2>

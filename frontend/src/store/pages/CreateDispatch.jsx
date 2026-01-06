@@ -33,7 +33,26 @@ export default function CreateDispatch() {
   return (
     <div style={{ padding: '24px', backgroundColor: '#f9fafb', minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-        <button onClick={() => navigate(-1)} className="back-arrow-btn">←</button>
+       <button
+  onClick={() => navigate(-1)}
+  style={{
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    border: "1px solid #e2e8f0",
+    background: "white",
+    color: "#1e293b",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+    flexShrink: 0,
+  }}
+  aria-label="Go back"
+>
+  ←
+</button>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700 }}>
             {dispatchId ? "Edit Material Dispatch" : "Create Material Dispatch"}

@@ -377,25 +377,32 @@
 }
 
 .nav-link {
-  padding: 10px 12px;
-  margin: 0 12px;
-  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 0 16px;
+  border-radius: 14px;
   text-decoration: none;
+
   color: rgba(255, 255, 255, 0.75);
+
   display: flex;
-  flex-direction: column;
+  flex-direction: row;          /* ✅ SIDE BY SIDE */
   align-items: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-  font-size: 13px;
+  gap: 12px;                    /* space between icon & text */
+
+  transition: all 0.2s ease;
+  font-size: 14px;
 }
 
-.nav-link .nav-icon {
+.nav-icon {
   font-size: 18px;
+  display: flex;
+  align-items: center;
 }
 
-.nav-link .nav-label {
-  font-size: 12px;
+.nav-label {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -423,52 +430,11 @@
 
 /* Keep the rest of original styles intact */
 
-.dashboard-sidebar.collapsed {
-  width: 88px;
-}
-
-.sidebar-header {
-  position: absolute;
-  top: 16px;
-  right: -20px; /* slightly outside sidebar */
-  z-index: 20;
-}
-
-
 .sidebar-footer {
   margin-top: auto;      /* pushes logout to bottom */
   padding-bottom: 11px;  /* breathing room */
   display: flex;
   flex-direction: column;
-}
-
-
-.sidebar-toggle {
-  width: 40px;
-  height: 40px;
-  background: #1e3a8a;
-  border: none;
-  border-radius: 12px;
-  color: white;
-  cursor: pointer;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: all 0.2s ease;
-}
-
-.sidebar-toggle:hover {
-  background: #2563eb;
-  transform: scale(1.05);
-}
-
-
-.sidebar-toggle:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.08);
 }
 
 /* =========================
@@ -489,16 +455,19 @@
 }
 
 .nav-link {
-  padding: 18px 20px;
+  padding: 14px 18px;
   margin: 0 16px;
   border-radius: 14px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.65);
+
+  color: rgba(255, 255, 255, 0.75);
+
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+
   transition: all 0.2s ease;
+  font-size: 14px;
 }
 
 .nav-link:hover {
@@ -568,19 +537,6 @@
   color: inherit;
 }
 
-.toggle-icon {
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
-  line-height: 1;
-  display: inline-block;
-  transition: transform 0.25s ease;
-}
-
-/* When sidebar is collapsed, arrow points right */
-.toggle-icon.collapsed {
-  transform: rotate(180deg);
-}
 
 /* =========================
    EVENTS DROPDOWN
