@@ -13,7 +13,8 @@ import UserIcon from "./icons/UserIcon"
 import BellIcon from "./icons/BellIcon"
 import MailIcon from "./icons/MailIcon"
 import LogoutIcon from "./icons/LogoutIcon"
-import Logo from "../assets/logo.png";
+import Logo from "../assets/logo.png"
+import { fetchEvents, fetchTrainings, fetchMeetings } from "../api/announcements.api"
 
 
 export default function DashboardLayout({ children }) {
@@ -25,12 +26,48 @@ export default function DashboardLayout({ children }) {
   const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false)
   const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata')
   const [showEventsDropdown, setShowEventsDropdown] = useState(false)
+  const [eventsData, setEventsData] = useState([])
+  const [eventsLoading, setEventsLoading] = useState(false)
   const userEmail = localStorage.getItem("userEmail") || "user@smg.com"
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
+
+  const loadEventsDropdown = async () => {
+    setEventsLoading(true)
+    try {
+      const [events, trainings, meetings] = await Promise.all([
+        fetchEvents().catch(() => []),
+        fetchTrainings().catch(() => []),
+        fetchMeetings().catch(() => [])
+      ])
+
+      const eventsList = Array.isArray(events) ? events : events.data || []
+      const trainingsList = Array.isArray(trainings) ? trainings : trainings.data || []
+      const meetingsList = Array.isArray(meetings) ? meetings : meetings.data || []
+
+      const combined = [
+        ...eventsList.map(e => ({ ...e, type: 'Event', icon: '📅' })),
+        ...trainingsList.map(t => ({ ...t, type: 'Training', icon: '🎓' })),
+        ...meetingsList.map(m => ({ ...m, type: 'Meeting', icon: '📋' }))
+      ]
+
+      setEventsData(combined.slice(0, 5))
+    } catch (err) {
+      console.warn('Failed to load events:', err)
+      setEventsData([])
+    } finally {
+      setEventsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (showEventsDropdown) {
+      loadEventsDropdown()
+    }
+  }, [showEventsDropdown])
 
   const timezones = {
     'Asia/Kolkata': 'Indian Standard Time',
@@ -147,7 +184,7 @@ export default function DashboardLayout({ children }) {
         </button>
 
         <div className="events-menu">
-          <button 
+          <button
             className="header-icon-button events-button"
             onClick={() => setShowEventsDropdown(!showEventsDropdown)}
           >
@@ -155,16 +192,36 @@ export default function DashboardLayout({ children }) {
           </button>
           {showEventsDropdown && (
             <div className="events-dropdown">
-              <div className="dropdown-header">Events & Information</div>
-              <button className="dropdown-item">
-                <span>📅 Events and Information</span>
-              </button>
-              <button className="dropdown-item">
-                <span>🎓 Upcoming Training</span>
-              </button>
-              <button className="dropdown-item">
-                <span>📋 Meeting Schedule</span>
-              </button>
+              <div className="dropdown-header-with-close">
+                <span>Events & Announcements</span>
+                <button
+                  className="close-dropdown-btn"
+                  onClick={() => setShowEventsDropdown(false)}
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+              {eventsLoading ? (
+                <div className="dropdown-loading">Loading events...</div>
+              ) : eventsData.length > 0 ? (
+                eventsData.map((item, idx) => (
+                  <div key={idx} className="events-dropdown-item">
+                    <div className="event-item-header">
+                      <span className="event-icon">{item.icon}</span>
+                      <span className="event-type">{item.type}</span>
+                    </div>
+                    <div className="event-title">{item.title || item.meeting_title || 'Untitled'}</div>
+                    {item.event_date && (
+                      <div className="event-date">
+                        {new Date(item.event_date).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="dropdown-empty">No events scheduled</div>
+              )}
             </div>
           )}
         </div>

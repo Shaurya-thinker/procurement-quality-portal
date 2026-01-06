@@ -28,6 +28,7 @@ from app.store.routers.material_dispatch import router as material_dispatch_rout
 from app.contractors import models as contractor_models
 from app.announcements.router import router as announcements_router
 from app.contractors.router import router as contractor_router
+from app.user.routers.user import router as user_router
 
 
 
@@ -79,6 +80,7 @@ app.include_router(store_router)
 app.include_router(material_dispatch_router)
 app.include_router(announcements_router, prefix="/api/v1/announcements")
 app.include_router(attendance_router, prefix="/api/v1/attendance", tags=["Attendance"])
+app.include_router(user_router)
 app.include_router(contractor_router)
 
 # Root endpoint
@@ -89,6 +91,10 @@ def root():
         "version": "1.0.0",
         "status": "running",
         "modules": {
+            "users": {
+                "status": "active",
+                "endpoints": "GET /api/v1/users, POST /api/v1/users"
+            },
             "procurement": {
                 "status": "active",
                 "endpoints": "GET /api/v1/procurement"
@@ -104,6 +110,10 @@ def root():
             "attendance": {
                 "status": "active",
                 "endpoints": "GET /api/v1/attendance/today/{user_id}"
+            },
+            "announcements": {
+                "status": "active",
+                "endpoints": "GET /api/v1/announcements/events"
             }
         }
     }
