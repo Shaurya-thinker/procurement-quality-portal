@@ -1,5 +1,3 @@
-print("[STARTUP] Attendance router file loaded")
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..services.attendance_service import AttendanceService
@@ -15,8 +13,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-print(f"[STARTUP] Attendance APIRouter created (no prefix in router definition)")
-
 
 @router.post("/check-in", response_model=AttendanceResponse)
 def check_in(

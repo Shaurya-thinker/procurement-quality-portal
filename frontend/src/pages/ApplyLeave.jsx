@@ -106,7 +106,6 @@ export default function ApplyLeave() {
             className={`toggle-button ${leaveType === 'medical' ? 'active' : ''}`}
             onClick={() => setLeaveType('medical')}
           >
-            <span className="toggle-icon">🏥</span>
             <span className="toggle-label">Medical Leave</span>
           </button>
           <button
@@ -114,7 +113,6 @@ export default function ApplyLeave() {
             className={`toggle-button ${leaveType === 'wfh' ? 'active' : ''}`}
             onClick={() => setLeaveType('wfh')}
           >
-            <span className="toggle-icon">🏠</span>
             <span className="toggle-label">Work From Home</span>
           </button>
         </div>

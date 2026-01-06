@@ -89,7 +89,7 @@ export default function StoreGatePasses() {
                     const full = await getGatePassDetails(gp.id);
                     setSelectedGatePass(full);
                     }}
-                    className="btn-secondary btn-small"
+                    className="btn-primary"
                 >
                 Receive
                 </button>
