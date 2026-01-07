@@ -5,6 +5,7 @@ import POStatusBadge from '../components/POStatusBadge';
 import VendorInfoCard from '../components/VendorInfoCard';
 import POLineItemRow from '../components/POLineItemRow';
 import { getVendorDetails } from '../../api/procurement.api';
+import POBrandHeader from '../components/POBrandHeader';
 
 
 const PODetails = () => {
@@ -386,6 +387,31 @@ const PODetails = () => {
     lineHeight: '1.6',
   };
 
+  const primaryBtn = {
+  padding: "12px 24px",
+  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+  color: "white",
+  border: "none",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "700",
+};
+
+const dangerBtn = {
+  ...primaryBtn,
+  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+};
+
+const secondaryBtn = {
+  padding: "12px 24px",
+  background: "white",
+  border: "1px solid #e2e8f0",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "600",
+};
+
+
   const modalButtonGroupStyle = {
     display: 'flex',
     gap: '12px',
@@ -415,8 +441,123 @@ const PODetails = () => {
 
   const total = subtotal;
 
+  const handlePrintPO = () => {
+    const printContents = document.getElementById('po-print-area');
+    if (!printContents) return;
+
+    const printWindow = window.open('', '', 'height=800,width=1000');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Purchase Order</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 12mm;
+            }
+
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+              color: #000;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+
+            th, td {
+              border-bottom: 1px solid #ddd;
+              padding: 8px;
+              font-size: 12px;
+            }
+
+            .po-section {
+              page-break-inside: avoid;
+            }
+
+            * {
+              box-shadow: none !important;
+            }
+          </style>
+        </head>
+        <body>
+          ${printContents.innerHTML}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 300);
+  };
+
+
   return (
     <div style={containerStyle}>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `
+            <style>
+              @media print {
+
+                @page {
+                  size: A4;
+                  margin: 12mm;
+                }
+
+                body {
+                  margin: 0;
+                  background: white;
+                }
+
+                /* Hide UI */
+                .no-print,
+                button,
+                nav {
+                  display: none !important;
+                }
+
+                /* Printable area */
+                #po-print-area {
+                  display: block;
+                  width: 100%;
+                }
+
+                /* Prevent breaking sections */
+                .po-section {
+                  break-inside: avoid;
+                  page-break-inside: avoid;
+                }
+
+                /* Tables */
+                table {
+                  width: 100% !important;
+                  border-collapse: collapse;
+                }
+
+                .table-container {
+                  overflow: visible !important;
+                }
+
+                /* Remove shadows & backgrounds */
+                * {
+                  box-shadow: none !important;
+                }
+              }
+            </style>
+          `,
+        }}
+      />
+
+
     {/* HEADER ROW WITH BACK ARROW */}
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
       <button
@@ -456,95 +597,97 @@ const PODetails = () => {
         <div style={errorAlertStyle}>{sendError || error}</div>
       )}
 
-      <div style={sectionStyle}>
-        <div style={sectionTitleStyle}>Header Information</div>
-        <div style={infoGridStyle}>
-          <div style={infoItemStyle}>
-            <div style={infoLabelStyle}>PO Number</div>
-            <div style={infoValueStyle}>{poData.po_number || '-'}</div>
-          </div>
-          <div style={infoItemStyle}>
-            <div style={infoLabelStyle}>Status</div>
-            <div style={{ marginTop: '4px' }}>
-              <POStatusBadge status={poData.status || 'DRAFT'} />
+      <div id="po-print-area">
+        <div style={sectionStyle} className="po-section">
+          <POBrandHeader />
+          <div style={sectionTitleStyle}>Header Information</div>
+          <div style={infoGridStyle}>
+            <div style={infoItemStyle}>
+              <div style={infoLabelStyle}>PO Number</div>
+              <div style={infoValueStyle}>{poData.po_number || '-'}</div>
             </div>
-          </div>
-          <div style={infoItemStyle}>
-            <div style={infoLabelStyle}>PO Date & Time</div>
-            <div style={infoValueStyle}>
-              {poData.po_sent_at
-                ? formatDateTime(poData.po_sent_at)
-                : '—'}
+            <div style={infoItemStyle}>
+              <div style={infoLabelStyle}>Status</div>
+              <div style={{ marginTop: '4px' }}>
+                <POStatusBadge status={poData.status || 'DRAFT'} />
+              </div>
             </div>
-          </div>
-          <div style={infoItemStyle}>
-            <div style={infoLabelStyle}>Created Date</div>
-            <div style={infoValueStyle}>
-              {formatDateTime(poData.created_at)}
+            <div style={infoItemStyle}>
+              <div style={infoLabelStyle}>PO Date & Time</div>
+              <div style={infoValueStyle}>
+                {poData.po_sent_at
+                  ? formatDateTime(poData.po_sent_at)
+                  : '—'}
+              </div>
+            </div>
+            <div style={infoItemStyle}>
+              <div style={infoLabelStyle}>Created Date</div>
+              <div style={infoValueStyle}>
+                {formatDateTime(poData.created_at)}
 
+              </div>
             </div>
           </div>
+
+          {poData.vendor && <VendorInfoCard vendor={poData.vendor} />}
         </div>
 
-        {poData.vendor && <VendorInfoCard vendor={poData.vendor} />}
-      </div>
-
-      <div style={sectionStyle}>
-        <div style={sectionTitleStyle}>Line Items</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Item Code</th>
-                <th style={thStyle}>Description</th>
-                <th style={thStyle}>Unit</th>
-                <th style={thStyle}>Quantity</th>
-                <th style={thStyle}>Rate</th>
-                <th style={thStyle}>Line Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {poData.line_items && poData.line_items.length > 0 ? (
-                poData.line_items.map((item, index) => {
-                  const lineTotal = Number(item.quantity || 0) * Number(item.rate || 0);
-                  return (
-                    <tr key={index}>
-                      <td style={tdStyle}>{item.item_id || '-'}</td>
-                      <td style={tdStyle}>{item.item_description || '-'}</td>
-                      <td style={tdStyle}>{item.unit || '-'}</td>
-                      <td style={tdStyle}>{item.quantity || '0'}</td>
-                      <td style={tdStyle}>₹ {Number(item.rate || 0).toFixed(2)}</td>
-                      <td style={tdStyle}>₹ {lineTotal.toFixed(2)}</td>
-                    </tr>
-                  );
-                })
-              ) : (
+        <div style={sectionStyle} className="po-section">
+          <div style={sectionTitleStyle}>Line Items</div>
+          <div className="table-container">
+            <table style={tableStyle}>
+              <thead>
                 <tr>
-                  <td colSpan="6" style={{ ...tdStyle, textAlign: 'center' }}>
-                    No line items
-                  </td>
+                  <th style={thStyle}>Item Code</th>
+                  <th style={thStyle}>Description</th>
+                  <th style={thStyle}>Unit</th>
+                  <th style={thStyle}>Quantity</th>
+                  <th style={thStyle}>Rate</th>
+                  <th style={thStyle}>Line Total</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div style={summaryRowStyle}>
-          <div style={summaryItemStyle}>
-            <div style={summaryLabelStyle}>Subtotal</div>
-            <div style={summaryValueStyle}>₹ {subtotal.toFixed(2)}</div>
+              </thead>
+              <tbody>
+                {poData.line_items && poData.line_items.length > 0 ? (
+                  poData.line_items.map((item, index) => {
+                    const lineTotal = Number(item.quantity || 0) * Number(item.rate || 0);
+                    return (
+                      <tr key={index}>
+                        <td style={tdStyle}>{item.item_id || '-'}</td>
+                        <td style={tdStyle}>{item.item_description || '-'}</td>
+                        <td style={tdStyle}>{item.unit || '-'}</td>
+                        <td style={tdStyle}>{item.quantity || '0'}</td>
+                        <td style={tdStyle}>₹ {Number(item.rate || 0).toFixed(2)}</td>
+                        <td style={tdStyle}>₹ {lineTotal.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="6" style={{ ...tdStyle, textAlign: 'center' }}>
+                      No line items
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-          <div style={summaryItemStyle}>
-            <div style={summaryLabelStyle}>Tax</div>
-            <div style={summaryValueStyle}>₹ 0.00</div>
-          </div>
-          <div style={summaryItemStyle}>
-            <div style={summaryLabelStyle}>Grand Total</div>
-            <div style={{ ...summaryValueStyle, fontSize: '18px' }}>
-              ₹ {total.toFixed(2)}
+          <div style={summaryRowStyle}>
+            <div style={summaryItemStyle}>
+              <div style={summaryLabelStyle}>Subtotal</div>
+              <div style={summaryValueStyle}>₹ {subtotal.toFixed(2)}</div>
+            </div>
+            <div style={summaryItemStyle}>
+              <div style={summaryLabelStyle}>Tax</div>
+              <div style={summaryValueStyle}>₹ 0.00</div>
+            </div>
+            <div style={summaryItemStyle}>
+              <div style={summaryLabelStyle}>Grand Total</div>
+              <div style={{ ...summaryValueStyle, fontSize: '18px' }}>
+                ₹ {total.toFixed(2)}
+              </div>
             </div>
           </div>
-        </div>
+        </div>  
       </div>
 
       {tracking && (
@@ -579,34 +722,29 @@ const PODetails = () => {
         </div>
       )}
 
-      <div style={buttonGroupStyle}>
+      <div style={buttonGroupStyle} className="no-print">
         {poData.status === 'DRAFT' && (
             <>
-              <button onClick={handleEditPO} style={primaryButtonStyle}>
+              <button onClick={handleEditPO} style={secondaryBtn}>
                 Edit
               </button>
-              <button onClick={() => setShowSendConfirm(true)} style={dangerButtonStyle}>
+              <button onClick={() => setShowSendConfirm(true)} style={primaryBtn}>
                 Send PO
-              </button>
-              <button onClick={handleCancelPO} style={secondaryButtonStyle}>
-                Cancel PO
               </button>
             </>
           )}
 
-          {poData.status === 'SENT' && (
-            <button onClick={handleCancelPO} style={secondaryButtonStyle}>
-              Cancel PO
+          {poData.status && (
+            <button onClick={handlePrintPO} style={secondaryBtn}>
+              Print PO
             </button>
           )}
 
-
-        <button
-          onClick={() => navigate('/procurement')}
-          style={secondaryButtonStyle}
-        >
-          Back to List
-        </button>
+          {(poData.status === 'DRAFT' || poData.status === 'SENT') && (
+            <button onClick={handleCancelPO} style={dangerBtn}>
+              Cancel PO
+            </button>
+          )}
       </div>
 
       {showSendConfirm && (
@@ -622,14 +760,14 @@ const PODetails = () => {
             <div style={modalButtonGroupStyle}>
               <button
                 onClick={() => setShowSendConfirm(false)}
-                style={secondaryButtonStyle}
+                style={secondaryBtn}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSendPO}
                 disabled={sendingPO}
-                style={sendingPO ? disabledButtonStyle : dangerButtonStyle}
+                style={primaryBtn}
               >
                 {sendingPO ? 'Sending...' : 'Confirm Send'}
               </button>
