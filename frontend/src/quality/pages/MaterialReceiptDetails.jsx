@@ -117,6 +117,18 @@ export default function MaterialReceiptDetails() {
                 page-break-inside: avoid;
               }
 
+              .print-footer {
+                position: fixed;
+                bottom: 10mm;
+                left: 0;
+                width: 100%;
+                text-align: center;
+                font-size: 11px;
+                color: #6b7280;
+                border-top: 1px solid #e5e7eb;
+                padding-top: 6px;
+              }
+
               * {
                 box-shadow: none !important;
               }
@@ -193,6 +205,10 @@ export default function MaterialReceiptDetails() {
         <div style={{ ...cardStyle, marginTop: 24 }} className="po-section">
           <div style={sectionTitleStyle}>Line Items</div>
           <MRLineItemTable items={lineItems} mode="print" />
+        </div>
+
+        <div className="print-footer">
+          This is a system generated Material Receipt. No signature required.
         </div>
       </div>
 

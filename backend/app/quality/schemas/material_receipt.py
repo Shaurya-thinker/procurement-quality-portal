@@ -31,7 +31,6 @@ class MaterialReceiptCreate(BaseModel):
     mr_reference_no: Optional[str] = None
 
     receipt_date: Optional[date] = None
-
     vehicle_no: Optional[str] = None
     challan_no: Optional[str] = None
 
@@ -39,7 +38,6 @@ class MaterialReceiptCreate(BaseModel):
     bin_id: Optional[int] = None
 
     remarks: Optional[str] = None
-
     lines: List[MaterialReceiptLineCreate]
 
 
@@ -63,6 +61,9 @@ class MaterialReceiptRead(BaseModel):
 
     store_id: Optional[int]
     bin_id: Optional[int]
+
+    store_name: Optional[str] = None
+    bin_no: Optional[str] = None
 
 
     remarks: Optional[str]

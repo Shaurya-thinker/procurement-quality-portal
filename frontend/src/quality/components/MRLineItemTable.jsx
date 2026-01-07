@@ -114,75 +114,94 @@ export default function MRLineItemTable({
         <tbody>
           {items.map((item, index) => (
             <tr key={item.po_line_id ?? index}>
-              {/* Item Code */}
+              {/* ITEM CODE */}
               <td style={tdStyle}>
-                <input
-                  type="text"
-                  value={item.item_code || ""}
-                  disabled
-                  style={inputStyle}
-                />
+                {isCreate ? (
+                  <input
+                    type="text"
+                    value={item.item_code || ""}
+                    disabled
+                    style={inputStyle}
+                  />
+                ) : (
+                  item.item_code || "-"
+                )}
               </td>
 
-              {/* Description */}
+              {/* DESCRIPTION */}
               <td style={tdStyle}>
-                <input
-                  type="text"
-                  value={item.description || ""}
-                  disabled
-                  style={inputStyle}
-                />
+                {isCreate ? (
+                  <input
+                    type="text"
+                    value={item.description || ""}
+                    disabled
+                    style={inputStyle}
+                  />
+                ) : (
+                  item.description || "-"
+                )}
               </td>
 
-              {/* Unit */}
+              {/* UNIT */}
               <td style={tdStyle}>
-                <input
-                  type="text"
-                  value={item.unit || ""}
-                  disabled
-                  style={inputStyle}
-                />
+                {isCreate ? (
+                  <input
+                    type="text"
+                    value={item.unit || ""}
+                    disabled
+                    style={inputStyle}
+                  />
+                ) : (
+                  item.unit || "-"
+                )}
               </td>
 
-              {/* Ordered Quantity */}
+              {/* ORDERED QTY */}
               <td style={tdStyle}>
-                <input
-                  type="number"
-                  value={item.ordered_quantity ?? ""}
-                  disabled
-                  style={inputStyle}
-                />
+                {isCreate ? (
+                  <input
+                    type="number"
+                    value={item.ordered_quantity ?? ""}
+                    disabled
+                    style={inputStyle}
+                  />
+                ) : (
+                  item.ordered_quantity ?? "-"
+                )}
               </td>
 
-
+              {/* REMAINING QTY */}
               <td style={tdStyle}>
-                <input 
-                  type="number" 
-                  style={inputStyle}
-                  max={item.remaining_quantity}
-                  value={item.remaining_quantity} 
-                  disabled />
+                {isCreate ? (
+                  <input
+                    type="number"
+                    value={item.remaining_quantity ?? ""}
+                    disabled
+                    style={inputStyle}
+                  />
+                ) : (
+                  item.remaining_quantity ?? "-"
+                )}
               </td>
 
-              {/* Received Quantity */}
+              {/* RECEIVED QTY */}
               <td style={tdStyle}>
-                <input
-                  type="number"
-                  value={item.received_quantity ?? ""}
-                   max={item.remaining_quantity}
-                  disabled={!isCreate}
-                  onChange={(e) =>
-                    handleReceivedQtyChange(
-                      index,
-                      Number(e.target.value)
-                    )
-                  }
-                  style={{
-                    ...inputStyle,
-                    backgroundColor: isCreate ? "white" : "#f8fafc",
-                    cursor: isCreate ? "text" : "not-allowed",
-                  }}
-                />
+                {isCreate ? (
+                  <input
+                    type="number"
+                    value={item.received_quantity ?? ""}
+                    max={item.remaining_quantity}
+                    onChange={(e) =>
+                      handleReceivedQtyChange(index, Number(e.target.value))
+                    }
+                    style={{
+                      ...inputStyle,
+                      backgroundColor: "white",
+                    }}
+                  />
+                ) : (
+                  item.received_quantity ?? "-"
+                )}
               </td>
             </tr>
           ))}

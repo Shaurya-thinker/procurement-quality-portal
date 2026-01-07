@@ -10,6 +10,9 @@ from app.quality.models.material_receipt import (
 from app.procurement.models.purchase_order import PurchaseOrder
 from app.procurement.models.purchase_order_line import PurchaseOrderLine
 from app.procurement.schemas.purchase_order import POStatus
+from app.store.models.store import Store, Bin
+from app.quality.schemas.material_receipt import MaterialReceiptRead
+
 
 
 class MaterialReceiptService:
@@ -179,16 +182,66 @@ class MaterialReceiptService:
 
     @staticmethod
     def list_material_receipts(db: Session):
-        return (
+        receipts = (
             db.query(MaterialReceipt)
             .order_by(MaterialReceipt.received_at.desc())
             .all()
         )
 
+        result = []
+
+        for mr in receipts:
+            store = (
+                db.query(Store).filter(Store.id == mr.store_id).first()
+                if mr.store_id else None
+            )
+            bin_obj = (
+                db.query(Bin).filter(Bin.id == mr.bin_id).first()
+                if mr.bin_id else None
+            )
+
+            result.append(
+                MaterialReceiptRead(
+                    **mr.__dict__,
+                    store_name=store.name if store else None,
+                    bin_no=bin_obj.bin_no if bin_obj else None,
+                )
+            )
+
+        return result
+
+
     @staticmethod
-    def get_material_receipt(db: Session, mr_id: int):
-        return (
+    def get_material_receipt(db: Session, mr_id: int) -> MaterialReceiptRead:
+        mr = (
             db.query(MaterialReceipt)
             .filter(MaterialReceipt.id == mr_id)
             .first()
         )
+
+        if not mr:
+            return None
+
+        store = None
+        bin_obj = None
+
+        if mr.store_id:
+            store = (
+                db.query(Store)
+                .filter(Store.id == mr.store_id)
+                .first()
+            )
+
+        if mr.bin_id:
+            bin_obj = (
+                db.query(Bin)
+                .filter(Bin.id == mr.bin_id)
+                .first()
+            )
+
+        return MaterialReceiptRead(
+            **mr.__dict__,
+            store_name=store.name if store else None,
+            bin_no=bin_obj.bin_no if bin_obj else None,
+        )
+
