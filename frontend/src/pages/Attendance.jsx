@@ -76,6 +76,11 @@ export default function Attendance() {
       await checkIn(userId);
       setSuccess('Checked in successfully');
       refresh();
+
+      setTimeout(() => {
+        setSuccess('');
+      }, 3000);
+
     } catch (err) {
       handleError(err, 'Failed to check in');
     } finally {
@@ -92,6 +97,10 @@ export default function Attendance() {
       await checkOut(userId);
       setSuccess('Checked out successfully');
       refresh();
+
+      setTimeout(() => {
+        setSuccess('');
+      }, 3000);
     } catch (err) {
       handleError(err, 'Failed to check out');
     } finally {
@@ -118,7 +127,7 @@ export default function Attendance() {
 
   const formatTime = (v) =>
     v
-      ? new Date(v).toLocaleTimeString('en-US', {
+      ? new Date(v + 'Z').toLocaleTimeString('en-US', {
           hour: '2-digit',
           minute: '2-digit',
           hour12: true,
@@ -131,7 +140,7 @@ export default function Attendance() {
   };
 
   const formatDate = (d) =>
-    new Date(d).toLocaleDateString('en-US', {
+    new Date(d + 'Z').toLocaleDateString('en-US', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -157,7 +166,13 @@ export default function Attendance() {
 
   const getRecordByDate = (date) => {
     if (!date) return null;
-    const key = date.toISOString().split('T')[0];
+
+    const key = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    )
+      .toISOString()
+      .split('T')[0];
+
     return history.find((h) => h.attendance_date === key);
   };
 
@@ -183,7 +198,7 @@ export default function Attendance() {
     if (!range) return [];
 
     return history.filter((h) => {
-      const d = new Date(h.attendance_date);
+      const d = new Date(h.attendance_date + 'Z');
       return d >= range.start && d <= range.end;
     });
   };
@@ -192,7 +207,7 @@ export default function Attendance() {
     if (!range.from && !range.to) return history;
 
     return history.filter((r) => {
-      const recordDate = new Date(r.attendance_date);
+      const recordDate = new Date(r.attendance_date + 'Z');
 
       if (range.from) {
         const fromDate = new Date(range.from);

@@ -479,6 +479,18 @@ const secondaryBtn = {
               page-break-inside: avoid;
             }
 
+            .print-footer {
+            position: fixed;
+            bottom: 10mm;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 6px;
+          }
+
             * {
               box-shadow: none !important;
             }
@@ -506,6 +518,9 @@ const secondaryBtn = {
         dangerouslySetInnerHTML={{
           __html: `
             <style>
+            .print-footer {
+              display: none;
+            }
               @media print {
 
                 @page {
@@ -531,6 +546,7 @@ const secondaryBtn = {
                   width: 100%;
                 }
 
+
                 /* Prevent breaking sections */
                 .po-section {
                   break-inside: avoid;
@@ -550,6 +566,18 @@ const secondaryBtn = {
                 /* Remove shadows & backgrounds */
                 * {
                   box-shadow: none !important;
+                }
+
+                .print-footer {
+                  position: fixed;
+                  bottom: 10mm;
+                  left: 0;
+                  width: 100%;
+                  text-align: center;
+                  font-size: 11px;
+                  color: #6b7280;
+                  border-top: 1px solid #e5e7eb;
+                  padding-top: 6px;
                 }
               }
             </style>
@@ -688,6 +716,9 @@ const secondaryBtn = {
             </div>
           </div>
         </div>  
+        <div className="print-footer">
+          This is a system generated Purchase Order. No signature is required.
+        </div>
       </div>
 
       {tracking && (

@@ -17,8 +17,9 @@ class AttendanceService:
         Raises ValueError if already checked in.
         """
         logger.info(f"[CHECK-IN] User {user_id} attempting check-in")
+        AttendanceService.auto_close_previous_attendance(db, user_id)
         
-        today = date.today().isoformat()
+        today = datetime.utcnow().date().isoformat()
         
         # Check if already checked in today
         existing = db.query(Attendance).filter(
@@ -35,7 +36,7 @@ class AttendanceService:
         attendance = Attendance(
             user_id=user_id,
             attendance_date=today,
-            check_in_time=datetime.now(),
+            check_in_time=datetime.utcnow(),
             status=AttendanceStatus.IN_PROGRESS,
             total_worked_minutes=0
         )
@@ -56,8 +57,10 @@ class AttendanceService:
         Raises ValueError if not checked in.
         """
         logger.info(f"[CHECK-OUT] User {user_id} attempting check-out")
+
+        AttendanceService.auto_close_previous_attendance(db, user_id)
         
-        today = date.today().isoformat()
+        today = datetime.utcnow().date().isoformat()
         
         # Find today's attendance record
         attendance = db.query(Attendance).filter(
@@ -75,12 +78,13 @@ class AttendanceService:
             raise ValueError("Already checked out today")
         
         # Update attendance with check-out time
-        check_out_time = datetime.now()
+        check_out_time = datetime.utcnow()
         time_diff = check_out_time - attendance.check_in_time
         import math
         total_minutes = max(1, math.ceil(time_diff.total_seconds() / 60))
         
         logger.info(f"[CHECK-OUT] Calculating worked time: {total_minutes} minutes")
+
         
         attendance.check_out_time = check_out_time
         attendance.total_worked_minutes = total_minutes
@@ -96,8 +100,10 @@ class AttendanceService:
     def get_today_attendance(db: Session, user_id: int) -> dict:
         """Get today's attendance summary for user."""
         logger.info(f"[TODAY] Fetching today's attendance for user {user_id}")
+        AttendanceService.auto_close_previous_attendance(db, user_id)
+
         
-        today = date.today().isoformat()
+        today = datetime.utcnow().date().isoformat()
         
         attendance = db.query(Attendance).filter(
             Attendance.user_id == user_id,
@@ -147,3 +153,35 @@ class AttendanceService:
             "records": records,
             "total": len(records)
         }
+
+    @staticmethod
+    def auto_close_previous_attendance(db: Session, user_id: int):
+        """
+        Auto-checkout any IN_PROGRESS attendance from previous days.
+        Called before any attendance operation.
+        """
+        today = datetime.utcnow().date()
+
+        open_records = db.query(Attendance).filter(
+            Attendance.user_id == user_id,
+            Attendance.status == AttendanceStatus.IN_PROGRESS,
+            Attendance.attendance_date < today.isoformat(),
+            Attendance.is_active == True
+        ).all()
+
+        for record in open_records:
+            # Auto checkout at 23:59:59 of that day
+            checkout_time = datetime.combine(
+                date.fromisoformat(record.attendance_date),
+                datetime.max.time()
+            )
+
+            time_diff = checkout_time - record.check_in_time
+            total_minutes = max(1, int(time_diff.total_seconds() / 60))
+
+            record.check_out_time = checkout_time
+            record.total_worked_minutes = total_minutes
+            record.status = AttendanceStatus.COMPLETED
+
+        if open_records:
+            db.commit()
