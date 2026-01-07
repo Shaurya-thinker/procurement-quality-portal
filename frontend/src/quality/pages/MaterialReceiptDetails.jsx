@@ -5,6 +5,7 @@ import MRHeader from "../components/MRHeader";
 import MRLineItemTable from "../components/MRLineItemTable";
 import POStatusBadge from "../../procurement/components/POStatusBadge";
 import { getPODetails } from "../../api/procurement.api";
+import MRPrintHeader from "../components/MRPrintHeader";
 
 export default function MaterialReceiptDetails() {
   const { mrId } = useParams();
@@ -14,7 +15,6 @@ export default function MaterialReceiptDetails() {
   const [mr, setMr] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lineItems, setLineItems] = useState([]);
-
 
   useEffect(() => {
     if (!mrId) return;
@@ -62,8 +62,6 @@ export default function MaterialReceiptDetails() {
   loadLineItems();
 }, [mr]);
 
-
-
   if (loading) {
     return (
       <div style={containerStyle}>
@@ -80,8 +78,64 @@ export default function MaterialReceiptDetails() {
     );
   }
 
-
   const isReadOnly = mr.status !== "CREATED";
+    const handlePrintMR = () => {
+      const printContents = document.getElementById("mr-print-area");
+      if (!printContents) return;
+
+      const printWindow = window.open("", "", "height=800,width=1000");
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Material Receipt</title>
+            <style>
+              @page {
+                size: A4;
+                margin: 12mm;
+              }
+
+              body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                color: #000;
+              }
+
+              table {
+                width: 100%;
+                border-collapse: collapse;
+              }
+
+              th, td {
+                border-bottom: 1px solid #ddd;
+                padding: 8px;
+                font-size: 12px;
+              }
+
+              .po-section {
+                page-break-inside: avoid;
+              }
+
+              * {
+                box-shadow: none !important;
+              }
+            </style>
+          </head>
+          <body>
+            ${printContents.innerHTML}
+          </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 300);
+    };
 
   return (
     <div style={containerStyle}>
@@ -121,39 +175,46 @@ export default function MaterialReceiptDetails() {
     <POStatusBadge status={mr.status} />
     <button
       onClick={() => navigate("/quality")}
-      className="btn-secondary btn-small"
+      style={secondaryBtn}
     >
       Back to List
     </button>
+
   </div>
 </div>
 
       {/* ================= RECEIPT DETAILS ================= */}
-      <div style={cardStyle}>
-        <MRHeader
-          mrData={mr}
-          onChange={setMr}
-          isReadOnly={isReadOnly}
-        />
-      </div>
+      <div id="mr-print-area">
+        <div style={cardStyle} className="po-section">
+          <MRPrintHeader mr={mr} />
+        </div>
 
       {/* ================= LINE ITEMS ================= */}
-      <div style={{ ...cardStyle, marginTop: 24 }}>
-        <div style={sectionTitleStyle}>Line Items</div>
-        <MRLineItemTable items={lineItems} mode="view" />
+        <div style={{ ...cardStyle, marginTop: 24 }} className="po-section">
+          <div style={sectionTitleStyle}>Line Items</div>
+          <MRLineItemTable items={lineItems} mode="print" />
+        </div>
       </div>
 
       {/* ================= ACTIONS ================= */}
       <div style={actionBarStyle}>
+        <button
+          style={secondaryBtn}
+          onClick={handlePrintMR}
+        >
+          Print MR
+        </button>
+
         {mr.status === "CREATED" && (
           <button
-            className="btn-primary"
+            style={primaryBtn}
             onClick={() =>
               navigate(`/quality/inspection/${mr.id}`)
             }
           >
             Proceed to Inspection
           </button>
+
         )}
 
         {mr.status !== "CREATED" && (
@@ -220,4 +281,28 @@ const actionBarStyle = {
 const infoTextStyle = {
   fontSize: "14px",
   color: "#64748b",
+};
+
+const primaryBtn = {
+  padding: "12px 24px",
+  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+  color: "white",
+  border: "none",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "700",
+};
+
+const secondaryBtn = {
+  padding: "12px 24px",
+  background: "white",
+  border: "1px solid #e2e8f0",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "600",
+};
+
+const dangerBtn = {
+  ...primaryBtn,
+  background: "linear-gradient(135deg, #ef4444, #dc2626)",
 };
