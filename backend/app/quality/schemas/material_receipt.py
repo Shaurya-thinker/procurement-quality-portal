@@ -65,7 +65,6 @@ class MaterialReceiptRead(BaseModel):
     store_name: Optional[str] = None
     bin_no: Optional[str] = None
 
-
     remarks: Optional[str]
     received_at: datetime
     status: str

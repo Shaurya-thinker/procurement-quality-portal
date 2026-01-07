@@ -158,19 +158,19 @@ export default function MaterialReceiptDetails() {
     <button
       onClick={() => navigate(-1)}
       style={{
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        border: "1px solid #e2e8f0",
-        background: "white",
-        color: "#1e293b",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-        flexShrink: 0,
-      }}
+          width: 40,
+          height: 40,
+          borderRadius: 10,
+          border: '1px solid #116de7ff',
+          background: 'white',
+          color: '#1e293b',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+          flexShrink: 0,
+        }}
       aria-label="Go back"
     >
       ←
@@ -178,21 +178,11 @@ export default function MaterialReceiptDetails() {
 
     <div>
       <h1 style={titleStyle}>Material Receipt</h1>
-      <div style={subTitleStyle}>{mr.mr_number}</div>
     </div>
   </div>
 
   {/* RIGHT: STATUS + ACTION */}
-  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-    <POStatusBadge status={mr.status} />
-    <button
-      onClick={() => navigate("/quality")}
-      style={secondaryBtn}
-    >
-      Back to List
-    </button>
-
-  </div>
+  
 </div>
 
       {/* ================= RECEIPT DETAILS ================= */}
@@ -206,39 +196,52 @@ export default function MaterialReceiptDetails() {
           <div style={sectionTitleStyle}>Line Items</div>
           <MRLineItemTable items={lineItems} mode="print" />
         </div>
-
-        <div className="print-footer">
-          This is a system generated Material Receipt. No signature required.
-        </div>
       </div>
 
       {/* ================= ACTIONS ================= */}
       <div style={actionBarStyle}>
-        <button
-          style={secondaryBtn}
-          onClick={handlePrintMR}
-        >
-          Print MR
-        </button>
-
-        {mr.status === "CREATED" && (
+        {/* LEFT SIDE */}
+        <div>
           <button
-            style={primaryBtn}
-            onClick={() =>
-              navigate(`/quality/inspection/${mr.id}`)
-            }
+            style={secondaryBtn}
+            onClick={handlePrintMR}
           >
-            Proceed to Inspection
+            Print MR
           </button>
+        </div>
 
-        )}
+        {/* RIGHT SIDE */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          {mr.status === "CREATED" && (
+            <button
+              style={primaryBtn}
+              onClick={() =>
+                navigate(`/quality/inspection/${mr.id}`)
+              }
+            >
+              Proceed to Inspection
+            </button>
+          )}
 
-        {mr.status !== "CREATED" && (
-          <span style={infoTextStyle}>
-            This receipt is read-only after inspection.
-          </span>
-        )}
+          {mr.status !== "CREATED" && (
+            <span style={infoTextStyle}>
+              This receipt is read-only after inspection.
+            </span>
+          )}
+        </div>
       </div>
+
+      <div className="print-footer"
+        style={{
+          marginTop: 32,
+          paddingTop: 8,
+          borderTop: "1px solid #e5e7eb",
+          fontSize: 15,
+          textAlign: "center",
+          color: "#6b7280",
+        }}>
+          This is a system generated Material Receipt. No signature required.
+        </div>
     </div>
   );
 }
@@ -289,7 +292,7 @@ const sectionTitleStyle = {
 const actionBarStyle = {
   marginTop: "32px",
   display: "flex",
-  justifyContent: "flex-end",
+  justifyContent: "space-between",
   alignItems: "center",
   gap: "16px",
 };
@@ -312,7 +315,7 @@ const primaryBtn = {
 const secondaryBtn = {
   padding: "12px 24px",
   background: "white",
-  border: "1px solid #e2e8f0",
+  border: "1px solid #1075faff",
   borderRadius: "10px",
   cursor: "pointer",
   fontWeight: "600",

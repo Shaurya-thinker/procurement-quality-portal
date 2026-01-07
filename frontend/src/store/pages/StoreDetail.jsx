@@ -109,14 +109,6 @@ export default function StoreDetail() {
     color: "#1e293b",
   };
 
-  const backBtnStyle = {
-    padding: "8px 12px",
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0",
-    background: "white",
-    cursor: "pointer",
-    fontSize: "16px",
-  };
 
   const sectionTitleStyle = {
     fontSize: "18px",
@@ -228,11 +220,30 @@ export default function StoreDetail() {
     <div style={containerStyle}>
       {/* HEADER */}
       <div style={headerStyle}>
-        <button style={backBtnStyle} onClick={() => navigate(-1)}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            border: "1px solid #116de7ff",
+            background: "white",
+            color: "#1e293b",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+            flexShrink: 0,
+          }}
+          aria-label="Go back"
+        >
           ←
         </button>
+
         <h1 style={titleStyle}>{store.name}</h1>
       </div>
+
 
       {(error || localError) && (
         <div style={alertStyle("#FEE2E2", "#B91C1C")}>
