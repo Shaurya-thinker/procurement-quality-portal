@@ -224,6 +224,7 @@ const ContractorsList = () => {
             <thead>
               <tr>
                 <th style={thStyle}>Contractor Name</th>
+                <th style={thStyle}>Contact Person</th>
                 <th style={thStyle}>Phone</th>
                 <th style={thStyle}>Email</th>
                 <th style={thStyle}>Address</th>
@@ -242,6 +243,7 @@ const ContractorsList = () => {
                     style={getRowStyle(hoveredRow === c.id)}
                   >
                     <td style={tdStyle}>{c.name}</td>
+                    <td style={tdStyle}>{c.contact_person || "-"}</td>
                     <td style={tdStyle}>{c.phone}</td>
                     <td style={tdStyle}>{c.email}</td>
                     <td style={tdStyle}>{c.address}</td>

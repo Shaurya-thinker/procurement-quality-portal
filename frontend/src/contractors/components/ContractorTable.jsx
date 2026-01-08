@@ -28,7 +28,7 @@ export default function ContractorTable({ contractors }) {
             <td>{c.phone}</td>
             <td>{c.email}</td>
             <td>
-              <span className={`status ${c.status?.toLowerCase()}`}>
+              <span className={`status-pill status-${c.status.toLowerCase()}`}>
                 {c.status}
               </span>
             </td>

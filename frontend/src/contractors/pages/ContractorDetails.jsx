@@ -105,8 +105,11 @@ export default function ContractorDetails() {
 
         <div style={detailsGrid}>
           <DetailItem label="Phone" value={contractor.phone} />
+          <DetailItem label="Alternate Phone" value={contractor.alternate_phone} />
+          <DetailItem label="Contact Person" value={contractor.contact_person} />
           <DetailItem label="Email" value={contractor.email} />
           <DetailItem label="Address" value={contractor.address} full />
+          <DetailItem label="Remarks" value={contractor.remarks} full />
         </div>
 
         <div style={actionBar}>
