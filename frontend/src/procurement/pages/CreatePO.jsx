@@ -393,7 +393,7 @@ const CreatePO = () => {
       width: 40,
       height: 40,
       borderRadius: 10,
-      border: '1px solid #e2e8f0',
+      border: '1px solid #116de7ff',
       background: 'white',
       color: '#1e293b',
       display: 'flex',

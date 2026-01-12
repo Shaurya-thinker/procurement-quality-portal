@@ -117,6 +117,18 @@ export default function MaterialReceiptDetails() {
                 page-break-inside: avoid;
               }
 
+              .print-footer {
+                position: fixed;
+                bottom: 10mm;
+                left: 0;
+                width: 100%;
+                text-align: center;
+                font-size: 11px;
+                color: #6b7280;
+                border-top: 1px solid #e5e7eb;
+                padding-top: 6px;
+              }
+
               * {
                 box-shadow: none !important;
               }
@@ -146,19 +158,19 @@ export default function MaterialReceiptDetails() {
     <button
       onClick={() => navigate(-1)}
       style={{
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        border: "1px solid #e2e8f0",
-        background: "white",
-        color: "#1e293b",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-        flexShrink: 0,
-      }}
+          width: 40,
+          height: 40,
+          borderRadius: 10,
+          border: '1px solid #116de7ff',
+          background: 'white',
+          color: '#1e293b',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+          flexShrink: 0,
+        }}
       aria-label="Go back"
     >
       ←
@@ -166,11 +178,11 @@ export default function MaterialReceiptDetails() {
 
     <div>
       <h1 style={titleStyle}>Material Receipt</h1>
-      <div style={subTitleStyle}>{mr.mr_number}</div>
     </div>
   </div>
 
   {/* RIGHT: STATUS + ACTION */}
+<<<<<<< HEAD
   <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
     <POStatusBadge status={mr.status} />
     {/* <button
@@ -181,6 +193,9 @@ export default function MaterialReceiptDetails() {
     </button> */}
 
   </div>
+=======
+  
+>>>>>>> 140db4a66a8d4393279bc70596452d24465e2116
 </div>
 
       {/* ================= RECEIPT DETAILS ================= */}
@@ -198,31 +213,48 @@ export default function MaterialReceiptDetails() {
 
       {/* ================= ACTIONS ================= */}
       <div style={actionBarStyle}>
-        <button
-          style={secondaryBtn}
-          onClick={handlePrintMR}
-        >
-          Print MR
-        </button>
-
-        {mr.status === "CREATED" && (
+        {/* LEFT SIDE */}
+        <div>
           <button
-            style={primaryBtn}
-            onClick={() =>
-              navigate(`/quality/inspection/${mr.id}`)
-            }
+            style={secondaryBtn}
+            onClick={handlePrintMR}
           >
-            Proceed to Inspection
+            Print MR
           </button>
+        </div>
 
-        )}
+        {/* RIGHT SIDE */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          {mr.status === "CREATED" && (
+            <button
+              style={primaryBtn}
+              onClick={() =>
+                navigate(`/quality/inspection/${mr.id}`)
+              }
+            >
+              Proceed to Inspection
+            </button>
+          )}
 
-        {mr.status !== "CREATED" && (
-          <span style={infoTextStyle}>
-            This receipt is read-only after inspection.
-          </span>
-        )}
+          {mr.status !== "CREATED" && (
+            <span style={infoTextStyle}>
+              This receipt is read-only after inspection.
+            </span>
+          )}
+        </div>
       </div>
+
+      <div className="print-footer"
+        style={{
+          marginTop: 32,
+          paddingTop: 8,
+          borderTop: "1px solid #e5e7eb",
+          fontSize: 15,
+          textAlign: "center",
+          color: "#6b7280",
+        }}>
+          This is a system generated Material Receipt. No signature required.
+        </div>
     </div>
   );
 }
@@ -273,7 +305,7 @@ const sectionTitleStyle = {
 const actionBarStyle = {
   marginTop: "32px",
   display: "flex",
-  justifyContent: "flex-end",
+  justifyContent: "space-between",
   alignItems: "center",
   gap: "16px",
 };
@@ -296,7 +328,7 @@ const primaryBtn = {
 const secondaryBtn = {
   padding: "12px 24px",
   background: "white",
-  border: "1px solid #e2e8f0",
+  border: "1px solid #1075faff",
   borderRadius: "10px",
   cursor: "pointer",
   fontWeight: "600",

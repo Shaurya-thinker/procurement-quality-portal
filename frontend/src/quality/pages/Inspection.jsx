@@ -173,17 +173,18 @@ const isInspectionCompleteAndValid = () => {
     <button
       onClick={() => navigate(`/quality/material-receipt/${mrData.id}`)}
       style={{
-        width: "36px",
-        height: "36px",
-        borderRadius: "50%",
-        backgroundColor: "#2563eb",
-        color: "#ffffff",
-        border: "none",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        marginBottom: "16px",
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        border: '1px solid #116de7ff',
+        background: 'white',
+        color: '#1e293b',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+        flexShrink: 0,
       }}
       aria-label="Go back"
     >
