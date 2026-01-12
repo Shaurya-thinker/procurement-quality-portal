@@ -1,4 +1,4 @@
-import api from './axios';
+import api from './api';
 
 const USER_API = '/api/v1/users';
 
