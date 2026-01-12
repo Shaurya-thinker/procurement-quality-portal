@@ -52,14 +52,15 @@ Base.metadata.create_all(bind=engine)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",  # Vite dev server
-        "https://*.vercel.app",   # Vercel deployments
-        "https://your-frontend-domain.vercel.app",  # Your specific domain
+        "http://localhost:5173",
+        "https://procurement-quality-portal-bagc8fp6b.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 # Global request logger middleware
 @app.middleware("http")
