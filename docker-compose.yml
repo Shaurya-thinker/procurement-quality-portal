@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  procurement-portal:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./backend/app.db:/app/app.db
+    environment:
+      - AUTO_CREATE_DB=true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
