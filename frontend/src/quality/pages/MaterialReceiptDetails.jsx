@@ -26,20 +26,20 @@ export default function MaterialReceiptDetails() {
   }, [mrId]);
 
   useEffect(() => {
-  if (!mr || !mr.po_id) return;
+    if (!mr || !mr.po_id) return;
 
-  const loadLineItems = async () => {
-    try {
-      const poRes = await getPODetails(mr.po_id);
-      const po = poRes.data;
+    const loadLineItems = async () => {
+      try {
+        const poRes = await getPODetails(mr.po_id);
+        const po = poRes.data;
 
-      const mergedItems = po.line_items.map(poLine => {
-        const mrLine = mr.lines.find(
+        const mergedItems = po.line_items.map(poLine => {
+          const mrLine = mr.lines.find(
             l => l.po_line_id === poLine.id
-        );
-        const receivedQty = mrLine ? Number(mrLine.received_quantity) : 0;
+          );
+          const receivedQty = mrLine ? Number(mrLine.received_quantity) : 0;
 
-        return {
+          return {
             po_line_id: poLine.id,
             item_code: poLine.item_code,
             description: poLine.item_description,
@@ -47,20 +47,20 @@ export default function MaterialReceiptDetails() {
             ordered_quantity: poLine.quantity,
             received_quantity: receivedQty,
             remaining_quantity: Math.max(
-                poLine.quantity - receivedQty,
-                0
+              poLine.quantity - receivedQty,
+              0
             ),
-        };
+          };
         });
 
-      setLineItems(mergedItems);
-    } catch (err) {
-      console.error("Failed to load MR line items", err);
-    }
-  };
+        setLineItems(mergedItems);
+      } catch (err) {
+        console.error("Failed to load MR line items", err);
+      }
+    };
 
-  loadLineItems();
-}, [mr]);
+    loadLineItems();
+  }, [mr]);
 
   if (loading) {
     return (
@@ -79,13 +79,13 @@ export default function MaterialReceiptDetails() {
   }
 
   const isReadOnly = mr.status !== "CREATED";
-    const handlePrintMR = () => {
-      const printContents = document.getElementById("mr-print-area");
-      if (!printContents) return;
+  const handlePrintMR = () => {
+    const printContents = document.getElementById("mr-print-area");
+    if (!printContents) return;
 
-      const printWindow = window.open("", "", "height=800,width=1000");
+    const printWindow = window.open("", "", "height=800,width=1000");
 
-      printWindow.document.write(`
+    printWindow.document.write(`
         <html>
           <head>
             <title>Material Receipt</title>
@@ -140,50 +140,50 @@ export default function MaterialReceiptDetails() {
         </html>
       `);
 
-      printWindow.document.close();
-      printWindow.focus();
+    printWindow.document.close();
+    printWindow.focus();
 
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 300);
-    };
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 300);
+  };
 
   return (
     <div style={containerStyle}>
       {/* ================= HEADER ================= */}
       <div style={headerStyle}>
-  {/* LEFT: BACK ARROW + TITLE */}
-  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-    <button
-      onClick={() => navigate(-1)}
-      style={{
-          width: 40,
-          height: 40,
-          borderRadius: 10,
-          border: '1px solid #116de7ff',
-          background: 'white',
-          color: '#1e293b',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-          flexShrink: 0,
-        }}
-      aria-label="Go back"
-    >
-      ←
-    </button>
+        {/* LEFT: BACK ARROW + TITLE */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              border: '1px solid #116de7ff',
+              background: 'white',
+              color: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              flexShrink: 0,
+            }}
+            aria-label="Go back"
+          >
+            ←
+          </button>
 
-    <div>
-      <h1 style={titleStyle}>Material Receipt</h1>
-    </div>
-  </div>
+          <div>
+            <h1 style={titleStyle}>Material Receipt</h1>
+          </div>
+        </div>
 
-  {/* RIGHT: STATUS + ACTION */}
-  
-</div>
+        {/* RIGHT: STATUS + ACTION */}
+
+      </div>
 
       {/* ================= RECEIPT DETAILS ================= */}
       <div id="mr-print-area">
@@ -191,7 +191,7 @@ export default function MaterialReceiptDetails() {
           <MRPrintHeader mr={mr} />
         </div>
 
-      {/* ================= LINE ITEMS ================= */}
+        {/* ================= LINE ITEMS ================= */}
         <div style={{ ...cardStyle, marginTop: 24 }} className="po-section">
           <div style={sectionTitleStyle}>Line Items</div>
           <MRLineItemTable items={lineItems} mode="print" />
@@ -240,8 +240,8 @@ export default function MaterialReceiptDetails() {
           textAlign: "center",
           color: "#6b7280",
         }}>
-          This is a system generated Material Receipt. No signature required.
-        </div>
+        This is a system generated Material Receipt. No signature required.
+      </div>
     </div>
   );
 }
