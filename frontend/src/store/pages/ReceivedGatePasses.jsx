@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "../../api/axios";
+import axios from "../../api/api";
 
 export default function ReceivedGatePasses() {
   const { storeId } = useParams();
