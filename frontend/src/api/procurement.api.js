@@ -1,4 +1,4 @@
-import api from "./axios";
+import api from "./api";
 
 export const createPO = (data) =>
   api.post("/api/v1/procurement", data);
