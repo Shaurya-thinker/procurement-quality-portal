@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "/api",   // 👈 IMPORTANT: relative URL
-  timeout: 5000,
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  timeout: 10000,
 });
 
 api.interceptors.request.use((config) => {
