@@ -77,7 +77,8 @@ async def log_requests(request: Request, call_next):
     return response
 
 # Include routers
-app.include_router(procurement_router)
+app.include_router(procurement_router, prefix="/api/v1")
+
 app.include_router(material_receipt_router, prefix="/api/v1/quality")
 app.include_router(inspection_router, prefix="/api/v1/quality")
 app.include_router(gate_pass_router, prefix="/api/v1/quality")
