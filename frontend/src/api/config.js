@@ -1,6 +1,8 @@
 // API Configuration for different modules
 export const API_CONFIG = {
-  baseURL: "http://localhost:8000",
+  baseURL: process.env.NODE_ENV === 'production' 
+    ? process.env.VITE_API_URL || "https://your-backend-url.railway.app"
+    : "http://localhost:8000",
   
   // Module-specific authentication requirements
   modules: {
@@ -38,7 +40,6 @@ export const API_CONFIG = {
     return headers;
   }
 };
-
 // Helper function to get user role from localStorage or context
 export const getUserRole = () => {
   // This should be implemented based on your auth system

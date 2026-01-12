@@ -51,7 +51,11 @@ Base.metadata.create_all(bind=engine)
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev server
+        "https://*.vercel.app",   # Vercel deployments
+        "https://your-frontend-domain.vercel.app",  # Your specific domain
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
