@@ -44,6 +44,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
+from fastapi.responses import Response
+
+@app.options("/{full_path:path}")
+async def preflight_handler(full_path: str):
+    return Response(status_code=200)
+
+
 from app.core.db import Base, engine
 Base.metadata.create_all(bind=engine)
 
