@@ -173,12 +173,12 @@ export default function MaterialReceiptDetails() {
   {/* RIGHT: STATUS + ACTION */}
   <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
     <POStatusBadge status={mr.status} />
-    <button
+    {/* <button
       onClick={() => navigate("/quality")}
       style={secondaryBtn}
     >
       Back to List
-    </button>
+    </button> */}
 
   </div>
 </div>
