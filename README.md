@@ -101,6 +101,7 @@ This design ensures:
 ### Prerequisites
 - Python 3.8+ (for backend)
 - Node.js 16+ (for frontend)
+- Docker & Docker Compose (for containerized deployment)
 - Git
 
 ### Backend Setup
@@ -269,10 +270,10 @@ This design ensures:
 
 ### Backend
 - **Framework**: FastAPI 0.104.1
-- **Database**: SQLite with SQLAlchemy 2.0.31
-- **Migrations**: Alembic
+- **Database**: SQLite with SQLAlchemy 2.0.31 (PostgreSQL ready)
+- **Migrations**: Alembic 1.13.1
 - **Validation**: Pydantic 2.8.2
-- **Server**: Uvicorn
+- **Server**: Uvicorn (dev) / Gunicorn (production)
 - **Testing**: Pytest with async support
 
 ### Frontend
@@ -401,6 +402,60 @@ alembic downgrade -1
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+## Deployment
+
+### Docker Deployment (Recommended)
+
+```bash
+# Build and run with Docker Compose
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+### Cloud Deployment
+
+**Railway (Easiest):**
+```bash
+npm install -g @railway/cli
+railway login
+railway init
+railway up
+```
+
+**Other Platforms:**
+- **Render**: Connect GitHub repo, auto-detects Dockerfile
+- **DigitalOcean App Platform**: Connect repo, set HTTP port to 8000
+- **AWS ECS/Fargate**: Push to ECR, deploy with ECS
+- **Heroku**: `heroku container:push web && heroku container:release web`
+
+### Manual Server Deployment
+
+```bash
+# Run the deployment script
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Environment Variables
+
+Set these for production:
+- `AUTO_CREATE_DB=true` (first deployment only)
+- `DATABASE_URL` (for PostgreSQL)
+- `DEBUG=false`
+
+### Database Options
+
+- **SQLite** (default): Good for development and small deployments
+- **PostgreSQL**: Recommended for production
+- **MySQL**: Alternative production database
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 
 ## License
 
