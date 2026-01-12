@@ -51,13 +51,11 @@ Base.metadata.create_all(bind=engine)
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 
 
@@ -80,12 +78,16 @@ app.include_router(procurement_router, prefix="/api/v1")
 app.include_router(material_receipt_router, prefix="/api/v1/quality")
 app.include_router(inspection_router, prefix="/api/v1/quality")
 app.include_router(gate_pass_router, prefix="/api/v1/quality")
-app.include_router(store_router)
-app.include_router(material_dispatch_router)
-app.include_router(announcements_router, prefix="/api/v1/announcements")
+
+app.include_router(store_router, prefix="/api/v1/store")
+app.include_router(material_dispatch_router, prefix="/api/v1/store")
+
+app.include_router(contractor_router, prefix="/api/v1/contractors")
+app.include_router(user_router, prefix="/api/v1/users")
+
 app.include_router(attendance_router, prefix="/api/v1/attendance", tags=["Attendance"])
-app.include_router(user_router)
-app.include_router(contractor_router)
+app.include_router(announcements_router, prefix="/api/v1/announcements")
+
 
 # Root endpoint
 @app.get("/")
