@@ -182,7 +182,20 @@ export default function MaterialReceiptDetails() {
   </div>
 
   {/* RIGHT: STATUS + ACTION */}
+<<<<<<< HEAD
+  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+    <POStatusBadge status={mr.status} />
+    {/* <button
+      onClick={() => navigate("/quality")}
+      style={secondaryBtn}
+    >
+      Back to List
+    </button> */}
+
+  </div>
+=======
   
+>>>>>>> 140db4a66a8d4393279bc70596452d24465e2116
 </div>
 
       {/* ================= RECEIPT DETAILS ================= */}
