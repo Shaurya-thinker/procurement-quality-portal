@@ -4,20 +4,21 @@ import { useStore } from '../hooks/useStore';
 import { useLocation } from 'react-router-dom';
 import { getPOs } from '../../api/procurement.api';
 import { getPOPendings } from '../../api/store.api';
+import api from "../../api/api"; // adjust path if needed
 
 
 export default function MaterialDispatchForm({ initialData = null, mode = 'CREATE' }) {
   const isReadOnly =
-  mode === "VIEW" ||
-  initialData?.dispatch_status === "CANCELLED" ||
-  initialData?.dispatch_status === "DISPATCHED";
+    mode === "VIEW" ||
+    initialData?.dispatch_status === "CANCELLED" ||
+    initialData?.dispatch_status === "DISPATCHED";
   const navigate = useNavigate();
   const { getInventory } = useStore();
   const [inventory, setInventory] = useState([]);
   const [poList, setPoList] = useState([]);
   const [poItems, setPoItems] = useState([]);
   const [formData, setFormData] = useState({
-  
+
     // Dispatch Header
     dispatch_date: new Date().toISOString().split('T')[0],
     reference_type: 'PO',
@@ -25,7 +26,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     warehouse_id: '',
     created_by: '',
     remarks: '',
-    
+
     // Receiver & Transport
     receiver_name: '',
     receiver_contact: '',
@@ -34,7 +35,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     driver_name: '',
     driver_contact: '',
     eway_bill_number: '',
-    
+
     // Line Items
     line_items: [{
       item_id: '',
@@ -124,15 +125,10 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     try {
       setLoading(true);
 
-      const res = await fetch(
-        `http://localhost:8000/api/v1/store/material-dispatch/${initialData.id}/issue`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+      const res = await api.post(
+        `/api/v1/store/material-dispatch/${initialData.id}/issue`
       );
+
 
       if (!res.ok) {
         const err = await res.json();
@@ -145,12 +141,12 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     } finally {
       setLoading(false);
     }
-};
+  };
 
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Required field validation
     if (!formData.reference_id) newErrors.reference_id = 'Reference ID is required';
     if (!formData.warehouse_id) newErrors.warehouse_id = 'Warehouse ID is required';
@@ -161,7 +157,7 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     if (!formData.vehicle_number) newErrors.vehicle_number = 'Vehicle Number is required';
     if (!formData.driver_name) newErrors.driver_name = 'Driver Name is required';
     if (!formData.driver_contact) newErrors.driver_contact = 'Driver Contact is required';
-    
+
     // Line items validation (coerce numeric strings to numbers)
     formData.line_items.forEach((item, index) => {
       const itemId = item.item_id === '' ? null : Number(item.item_id);
@@ -175,17 +171,17 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
       }
       if (!item.uom) newErrors[`line_items.${index}.uom`] = 'UOM is required';
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     if (isReadOnly) {
-  alert('This dispatch is finalized and cannot be modified.');
-  return;
-}
-    
+      alert('This dispatch is finalized and cannot be modified.');
+      return;
+    }
+
     // Build a payload with proper types for validation and sending
     const payload = {
       ...formData,
@@ -207,35 +203,44 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       console.log('[DEBUG] Sending payload to backend:', payload);
+
       const url =
-        mode === 'EDIT'
-          ? `http://localhost:8000/api/v1/store/material-dispatch/${initialData.id}`
-          : 'http://localhost:8000/api/v1/store/material-dispatch/';
-      const method = mode === 'EDIT' ? 'PUT' : 'POST';
+        mode === "EDIT"
+          ? `/api/v1/store/material-dispatch/${initialData.id}`
+          : `/api/v1/store/material-dispatch`;
 
-      const response = await fetch(url, {
-        method,
+      try {
+        const response = await api({
+          method: mode === "EDIT" ? "put" : "post",
+          url,
+          data: payload,
+        });
 
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(payload)
-      });
-      
-        if (response.ok) {
-          const result = await response.json();
-          alert(`Material Dispatch saved successfully`);
+        alert("Material Dispatch saved successfully");
 
-          // 👉 Go directly to dispatch detail
-          navigate(`/store/dispatch/${result.id}`);
-        }
-        else {
+        navigate(`/store/dispatch/${response.data.id}`);
+      } catch (error) {
+        alert(
+          error.response?.data?.detail ||
+          error.message ||
+          "Failed to save dispatch"
+        );
+      }
+
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Material Dispatch saved successfully`);
+
+        // 👉 Go directly to dispatch detail
+        navigate(`/store/dispatch/${result.id}`);
+      }
+      else {
         const error = await response.json().catch(() => ({}));
         // If backend returned pydantic validation errors (422), map them to inline errors
         if (error.detail && Array.isArray(error.detail)) {
@@ -290,33 +295,33 @@ export default function MaterialDispatchForm({ initialData = null, mode = 'CREAT
   };
 
   useEffect(() => {
-  if (!initialData) return;
+    if (!initialData) return;
 
-  setFormData({
-    ...initialData,
-    dispatch_date: initialData.dispatch_date.split("T")[0],
-    line_items: initialData.line_items.map(li => ({
-      ...li,
-      inventory_item_id: li.inventory_item_id ?? "",
-      available_qty: 0,            // will be filled by inventory lookup
-      quantity_dispatched: Number(li.quantity_dispatched)
-    }))
-  });
-}, [initialData]);
+    setFormData({
+      ...initialData,
+      dispatch_date: initialData.dispatch_date.split("T")[0],
+      line_items: initialData.line_items.map(li => ({
+        ...li,
+        inventory_item_id: li.inventory_item_id ?? "",
+        available_qty: 0,            // will be filled by inventory lookup
+        quantity_dispatched: Number(li.quantity_dispatched)
+      }))
+    });
+  }, [initialData]);
 
-useEffect(() => {
-  if (!inventory.length || !formData.line_items.length) return;
+  useEffect(() => {
+    if (!inventory.length || !formData.line_items.length) return;
 
-  setFormData(prev => ({
-    ...prev,
-    line_items: prev.line_items.map(li => {
-      const inv = inventory.find(i => i.id === li.inventory_item_id);
-      return inv
-        ? { ...li, available_qty: inv.quantity }
-        : li;
-    })
-  }));
-}, [inventory]);
+    setFormData(prev => ({
+      ...prev,
+      line_items: prev.line_items.map(li => {
+        const inv = inventory.find(i => i.id === li.inventory_item_id);
+        return inv
+          ? { ...li, available_qty: inv.quantity }
+          : li;
+      })
+    }));
+  }, [inventory]);
 
 
   const updateLineItem = (index, field, value) => {
@@ -340,41 +345,41 @@ useEffect(() => {
   };
 
   const inventoryOptions =
-  formData.reference_type === "PO"
-    ? inventory.filter(inv =>
+    formData.reference_type === "PO"
+      ? inventory.filter(inv =>
         poItems.some(p => p.item_id === inv.item_id)
       )
-    : inventory;
+      : inventory;
 
 
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
 
-  {selectedInventory && (
-    <div
-      style={{
-        marginTop: 8,
-        marginBottom: 16,
-        padding: "8px 12px",
-        background: "#eff6ff",
-        borderLeft: "4px solid #2563eb",
-        color: "#1e40af",
-        fontSize: 13,
-      }}
-    >
-      Dispatching from Inventory ID #{selectedInventory.id} —{" "}
-      {selectedInventory.item_code} ({selectedInventory.quantity} available)
-    </div>
-  )}
+        {selectedInventory && (
+          <div
+            style={{
+              marginTop: 8,
+              marginBottom: 16,
+              padding: "8px 12px",
+              background: "#eff6ff",
+              borderLeft: "4px solid #2563eb",
+              color: "#1e40af",
+              fontSize: 13,
+            }}
+          >
+            Dispatching from Inventory ID #{selectedInventory.id} —{" "}
+            {selectedInventory.item_code} ({selectedInventory.quantity} available)
+          </div>
+        )}
 
-</div>
-      
+      </div>
+
       <form>
         {/* Dispatch Header */}
         <div style={{ background: 'white', padding: '24px', borderRadius: '12px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>Dispatch Header</h2>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Dispatch Date *</label>
@@ -387,7 +392,7 @@ useEffect(() => {
                 required
               />
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Reference Type *</label>
               <select
@@ -402,7 +407,7 @@ useEffect(() => {
                 <option value="TRANSFER">Transfer</option>
               </select>
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Reference ID *</label>
               {formData.reference_type === "PO" ? (
@@ -434,7 +439,7 @@ useEffect(() => {
               )}
               {errors.reference_id && <div style={errorStyle}>{errors.reference_id}</div>}
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Warehouse ID *</label>
               <input
@@ -450,7 +455,7 @@ useEffect(() => {
               </small>
               {errors.warehouse_id && <div style={errorStyle}>{errors.warehouse_id}</div>}
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Created By *</label>
               <input
@@ -463,7 +468,7 @@ useEffect(() => {
               />
               {errors.created_by && <div style={errorStyle}>{errors.created_by}</div>}
             </div>
-            
+
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Remarks</label>
               <textarea
@@ -471,7 +476,7 @@ useEffect(() => {
                 value={formData.remarks}
                 onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                 style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
-                rows={3} 
+                rows={3}
               />
             </div>
           </div>
@@ -480,7 +485,7 @@ useEffect(() => {
         {/* Receiver & Transport */}
         <div style={{ background: 'white', padding: '24px', borderRadius: '12px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>Receiver & Transport</h2>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Receiver Name *</label>
@@ -494,7 +499,7 @@ useEffect(() => {
               />
               {errors.receiver_name && <div style={errorStyle}>{errors.receiver_name}</div>}
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Receiver Contact *</label>
               <input
@@ -507,7 +512,7 @@ useEffect(() => {
               />
               {errors.receiver_contact && <div style={errorStyle}>{errors.receiver_contact}</div>}
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Vehicle Number *</label>
               <input
@@ -520,7 +525,7 @@ useEffect(() => {
               />
               {errors.vehicle_number && <div style={errorStyle}>{errors.vehicle_number}</div>}
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Driver Name *</label>
               <input
@@ -533,7 +538,7 @@ useEffect(() => {
               />
               {errors.driver_name && <div style={errorStyle}>{errors.driver_name}</div>}
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Driver Contact *</label>
               <input
@@ -546,10 +551,10 @@ useEffect(() => {
               />
               {errors.driver_contact && <div style={errorStyle}>{errors.driver_contact}</div>}
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>E-way Bill Number</label>
-              <input 
+              <input
                 disabled={isReadOnly}
                 type="text"
                 value={formData.eway_bill_number}
@@ -557,7 +562,7 @@ useEffect(() => {
                 style={inputStyle}
               />
             </div>
-            
+
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>Delivery Address *</label>
               <textarea
@@ -592,250 +597,250 @@ useEffect(() => {
               + Add Item
             </button>
           </div>
-          
+
           {formData.line_items.map((item, index) => {
             return (
-            <div key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '500', margin: 0 }}>Item {index + 1}</h3>
-                {formData.line_items.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeLineItem(index)}
-                    disabled={isReadOnly}
-                    style={{
-                      opacity: isReadOnly ? 0.6 : 1,
-                      cursor: isReadOnly ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Inventory Item *</label>
-                  <select
-                    disabled={isReadOnly || !!selectedInventory}
-                    value={item.inventory_item_id || ''}
-                    onChange={(e) => {
-                      const inv = inventory.find(i => i.id === Number(e.target.value));
-                      if (!inv) return;
-
-                      updateLineItem(index, 'inventory_item_id', inv.id); 
-                      updateLineItem(index, 'item_id', inv.item_id);
-                      updateLineItem(index, 'item_code', inv.item_code);
-                      updateLineItem(index, 'item_name', inv.item_name);
-                      updateLineItem(index, 'uom', inv.unit);
-                      updateLineItem(index, 'available_qty', inv.quantity);
-                    }}
-                    style={inputStyle}
-                    required
-                  >
-                    <option value="">Select inventory item</option>
-                    {inventoryOptions.map(inv => (
-                      <option key={inv.id} value={inv.id}>
-                        {inv.item_code} — {inv.item_name}
-                        {" | Store "}{inv.store_id}
-                        {" | Bin "}{inv.bin_no}
-                        {" | Stock: "}{inv.quantity}
-                      </option>
-                    ))}
-                  </select>
-
-                  {errors[`line_items.${index}.item_id`] && <div style={errorStyle}>{errors[`line_items.${index}.item_id`]}</div>}
+              <div key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '500', margin: 0 }}>Item {index + 1}</h3>
+                  {formData.line_items.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLineItem(index)}
+                      disabled={isReadOnly}
+                      style={{
+                        opacity: isReadOnly ? 0.6 : 1,
+                        cursor: isReadOnly ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
-                
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Code *</label>
-                  <input
-                    disabled
-                    type="text"
-                    value={item.item_code || ""}
-                    readOnly
-                    style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
-                  />
-                  {errors[`line_items.${index}.item_code`] && <div style={errorStyle}>{errors[`line_items.${index}.item_code`]}</div>}
-                </div>
-                
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Name *</label>
-                  <input
-                     disabled
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Inventory Item *</label>
+                    <select
+                      disabled={isReadOnly || !!selectedInventory}
+                      value={item.inventory_item_id || ''}
+                      onChange={(e) => {
+                        const inv = inventory.find(i => i.id === Number(e.target.value));
+                        if (!inv) return;
+
+                        updateLineItem(index, 'inventory_item_id', inv.id);
+                        updateLineItem(index, 'item_id', inv.item_id);
+                        updateLineItem(index, 'item_code', inv.item_code);
+                        updateLineItem(index, 'item_name', inv.item_name);
+                        updateLineItem(index, 'uom', inv.unit);
+                        updateLineItem(index, 'available_qty', inv.quantity);
+                      }}
+                      style={inputStyle}
+                      required
+                    >
+                      <option value="">Select inventory item</option>
+                      {inventoryOptions.map(inv => (
+                        <option key={inv.id} value={inv.id}>
+                          {inv.item_code} — {inv.item_name}
+                          {" | Store "}{inv.store_id}
+                          {" | Bin "}{inv.bin_no}
+                          {" | Stock: "}{inv.quantity}
+                        </option>
+                      ))}
+                    </select>
+
+                    {errors[`line_items.${index}.item_id`] && <div style={errorStyle}>{errors[`line_items.${index}.item_id`]}</div>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Code *</label>
+                    <input
+                      disabled
+                      type="text"
+                      value={item.item_code || ""}
+                      readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
+                    />
+                    {errors[`line_items.${index}.item_code`] && <div style={errorStyle}>{errors[`line_items.${index}.item_code`]}</div>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Item Name *</label>
+                    <input
+                      disabled
                       type="text"
                       value={item.item_name || ""}
                       readOnly
-                    style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
-                  />
-                  {errors[`line_items.${index}.item_name`] && <div style={errorStyle}>{errors[`line_items.${index}.item_name`]}</div>}
-                </div>
-                
-                <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: 500 }}>
-                    Quantity *
-                  </label>
+                      style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
+                    />
+                    {errors[`line_items.${index}.item_name`] && <div style={errorStyle}>{errors[`line_items.${index}.item_name`]}</div>}
+                  </div>
 
-                  <input
-                    disabled={isReadOnly}
-                    type="number"
-                    step="0.001"
-                    value={item.quantity_dispatched}
-                    onChange={(e) => {
-                      const qty = Number(e.target.value);
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: 500 }}>
+                      Quantity *
+                    </label>
 
-                      const poItem = poItems.find(
-                        (p) => p.item_id === item.item_id
-                      );
+                    <input
+                      disabled={isReadOnly}
+                      type="number"
+                      step="0.001"
+                      value={item.quantity_dispatched}
+                      onChange={(e) => {
+                        const qty = Number(e.target.value);
 
-                      const maxAllowed =
-                        formData.reference_type === "PO"
-                          ? Math.min(
+                        const poItem = poItems.find(
+                          (p) => p.item_id === item.item_id
+                        );
+
+                        const maxAllowed =
+                          formData.reference_type === "PO"
+                            ? Math.min(
                               item.available_qty,
                               poItem?.pending_qty ?? 0
                             )
-                          : item.available_qty;
+                            : item.available_qty;
 
-                      if (qty > maxAllowed) {
-                        alert(`Max allowed quantity: ${maxAllowed}`);
-                        updateLineItem(index, "quantity_dispatched", maxAllowed);
-                        return;
-                      }
+                        if (qty > maxAllowed) {
+                          alert(`Max allowed quantity: ${maxAllowed}`);
+                          updateLineItem(index, "quantity_dispatched", maxAllowed);
+                          return;
+                        }
 
-                      updateLineItem(index, "quantity_dispatched", qty);
-                    }}
-                    style={inputStyle}
-                    required
-                  />
-
-                  {/* 👇 Helper text */}
-                  {formData.reference_type === "PO" ? (
-                    <div
-                      style={{
-                        marginTop: 6,
-                        fontSize: 12,
-                        color: "#92400e",
-                        display: "flex",
-                        gap: 12,
+                        updateLineItem(index, "quantity_dispatched", qty);
                       }}
-                    >
-                      <span>
-                        <strong>PO Pending:</strong>{" "}
-                        {poItems.find(p => p.item_id === item.item_id)?.pending_qty ?? 0}
-                      </span>
-                      <span style={{ color: "#6b7280" }}>
-                        Inventory Available: {item.available_qty}
-                      </span>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        marginTop: 6,
-                        fontSize: 12,
-                        color: "#6b7280",
-                      }}
-                    >
-                      Available: {item.available_qty}
-                    </div>
-                  )}
-                  {errors[`line_items.${index}.quantity_dispatched`] && (
-                    <div style={errorStyle}>
-                      {errors[`line_items.${index}.quantity_dispatched`]}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>UOM *</label>
-                  <input
-                    disabled
-                    type="text"
-                    value={item.uom || ""}
-                    readOnly
-                    style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
-                  />
-                  {errors[`line_items.${index}.uom`] && <div style={errorStyle}>{errors[`line_items.${index}.uom`]}</div>}
-                </div>
-                
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Batch Number</label>
-                  <input
-                    disabled={isReadOnly}
-                    type="text"
-                    value={item.batch_number}
-                    onChange={(e) => updateLineItem(index, 'batch_number', e.target.value)}
-                    style={inputStyle}
-                  />
-                </div>
-                
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Remarks</label>
-                  <input
-                    disabled={isReadOnly}
-                    type="text"
-                    value={item.remarks}
-                    onChange={(e) => updateLineItem(index, 'remarks', e.target.value)}
-                    style={inputStyle}
-                  />
+                      style={inputStyle}
+                      required
+                    />
+
+                    {/* 👇 Helper text */}
+                    {formData.reference_type === "PO" ? (
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 12,
+                          color: "#92400e",
+                          display: "flex",
+                          gap: 12,
+                        }}
+                      >
+                        <span>
+                          <strong>PO Pending:</strong>{" "}
+                          {poItems.find(p => p.item_id === item.item_id)?.pending_qty ?? 0}
+                        </span>
+                        <span style={{ color: "#6b7280" }}>
+                          Inventory Available: {item.available_qty}
+                        </span>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 12,
+                          color: "#6b7280",
+                        }}
+                      >
+                        Available: {item.available_qty}
+                      </div>
+                    )}
+                    {errors[`line_items.${index}.quantity_dispatched`] && (
+                      <div style={errorStyle}>
+                        {errors[`line_items.${index}.quantity_dispatched`]}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>UOM *</label>
+                    <input
+                      disabled
+                      type="text"
+                      value={item.uom || ""}
+                      readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f3f4f6' }}
+                    />
+                    {errors[`line_items.${index}.uom`] && <div style={errorStyle}>{errors[`line_items.${index}.uom`]}</div>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Batch Number</label>
+                    <input
+                      disabled={isReadOnly}
+                      type="text"
+                      value={item.batch_number}
+                      onChange={(e) => updateLineItem(index, 'batch_number', e.target.value)}
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Remarks</label>
+                    <input
+                      disabled={isReadOnly}
+                      type="text"
+                      value={item.remarks}
+                      onChange={(e) => updateLineItem(index, 'remarks', e.target.value)}
+                      style={inputStyle}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })} 
+            );
+          })}
         </div>
 
         {/* Submit Buttons */}
-          {!isReadOnly && (
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                onClick={() => navigate('/store/dispatch')}
-                style={{
-                  padding: '12px 24px',
-                  background: '#6b7280',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px'
-                }}
-              >
-                Cancel
-              </button>
+        {!isReadOnly && (
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => navigate('/store/dispatch')}
+              style={{
+                padding: '12px 24px',
+                background: '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px'
+              }}
+            >
+              Cancel
+            </button>
 
-              <button
-                type="button"
-                onClick={submitDraft}
-                disabled={loading}
-                style={{
-                  padding: '12px 24px',
-                  background: '#6b7280',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px'
-                }}
-              >
-                Save as Draft
-              </button>
+            <button
+              type="button"
+              onClick={submitDraft}
+              disabled={loading}
+              style={{
+                padding: '12px 24px',
+                background: '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px'
+              }}
+            >
+              Save as Draft
+            </button>
 
-              <button
-                type="button"
-                onClick={submitIssue}
-                disabled={
-                  loading ||
-                  !initialData?.id ||
-                  !formData.reference_id ||
-                  !formData.line_items.length
-                }
-                style={{
-                  padding: '12px 24px',
-                  background: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px'
-                }}
-              >
-                Issue Dispatch
-              </button>
-            </div>
-          )}
+            <button
+              type="button"
+              onClick={submitIssue}
+              disabled={
+                loading ||
+                !initialData?.id ||
+                !formData.reference_id ||
+                !formData.line_items.length
+              }
+              style={{
+                padding: '12px 24px',
+                background: '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px'
+              }}
+            >
+              Issue Dispatch
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

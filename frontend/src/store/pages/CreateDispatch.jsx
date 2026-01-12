@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useStore } from "../hooks/useStore";
 import MaterialDispatchForm from "./MaterialDispatchForm";
 import { getDispatchById } from "../../api/store.api";
+import api from "../../api/api"; // adjust path
 
 
 export default function CreateDispatch() {
@@ -13,13 +14,9 @@ export default function CreateDispatch() {
   useEffect(() => {
   if (!dispatchId) return;
 
-  fetch(`http://localhost:8000/api/v1/store/material-dispatch/${dispatchId}`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`
-    }
-  })
-    .then(res => res.json())
-    .then(data => setInitialData(data));
+
+  api.get(`/api/v1/store/material-dispatch/${dispatchId}`)
+    .then(res => setInitialData(res.data));
 }, [dispatchId]);
 
   const [initialData, setInitialData] = useState(null);
