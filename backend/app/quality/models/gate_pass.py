@@ -1,0 +1,49 @@
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from app.core.db import Base
+from sqlalchemy import Index
+
+
+
+class GatePass(Base):
+    __tablename__ = "gate_passes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    gate_pass_number = Column(String(50), unique=True, nullable=False)
+
+    po_id = Column(Integer, nullable=False)
+    mr_id = Column(Integer, nullable=False)
+    inspection_id = Column(Integer, nullable=False)
+
+    vendor_name = Column(String(255), nullable=True)
+    component_details = Column(String(255), nullable=True)
+
+    issued_by = Column(String(100), nullable=False)
+    issued_at = Column(DateTime, default=datetime.utcnow)
+    
+    store_status = Column(String(20), default="PENDING")
+
+    items = relationship(
+        "GatePassItem",
+        back_populates="gate_pass",
+        cascade="all, delete-orphan"
+    )
+
+Index("idx_gate_pass_store_status", GatePass.store_status)
+Index("idx_gate_pass_inspection", GatePass.inspection_id)
+
+
+class GatePassItem(Base):
+    __tablename__ = "gate_pass_items"
+
+    id = Column(Integer, primary_key=True)
+    gate_pass_id = Column(Integer, ForeignKey("gate_passes.id"), nullable=False)
+
+    item_id = Column(Integer, nullable=False)
+    accepted_quantity = Column(Integer, nullable=False)
+
+    gate_pass = relationship(
+        "GatePass",
+        back_populates="items"
+    )

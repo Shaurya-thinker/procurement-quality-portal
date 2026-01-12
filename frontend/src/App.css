@@ -1,0 +1,67 @@
+/* Global Enterprise Design System */
+* {
+  font-family: system-ui, 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #F4F6F9;
+  color: #1E293B;
+}
+
+/* App specific styles */
+.app-container {
+  min-height: 100vh;
+}
+
+/* Global Button Styles */
+button {
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+button:focus {
+  outline: none;
+}
+
+/* Global Input Styles */
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* Global Table Styles */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* Remove default scrollbar styling for better integration */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F6F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}

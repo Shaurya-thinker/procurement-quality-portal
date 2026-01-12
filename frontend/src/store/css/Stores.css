@@ -1,0 +1,132 @@
+.stores-container {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stores-title {
+  font-size: 28px;
+  font-weight: 400;
+  margin-bottom: 32px;
+  color: #1f2937;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+}
+
+.stores-filter {
+  margin-bottom: 32px;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Alerts (layout only, buttons handled globally) */
+.error-alert {
+  background-color: #fee2e2;
+  color: #7f1d1d;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #fecaca;
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.loading-state {
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  padding: 48px 24px;
+  text-align: center;
+  color: #6b7280;
+}
+
+/* Empty state */
+.empty-state {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 60px 24px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.empty-description {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Table layout */
+.stores-table-wrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.stores-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.stores-table th,
+.stores-table td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.stores-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+}
+
+.stores-table tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stores-container {
+    padding: 16px;
+  }
+
+  .stores-title {
+    font-size: 24px;
+  }
+
+  .search-input {
+    max-width: 100%;
+  }
+}
