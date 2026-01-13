@@ -18,3 +18,5 @@ Thumbs.db
 
 # Local config
 .config/
+.vercel
+.env*.local
