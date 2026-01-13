@@ -58,14 +58,11 @@ app.add_middleware(
         "https://procurement-quality-portal.vercel.app",
         "https://procurement-quality-portal-h5vh8rxl9.vercel.app",
     ],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.options("/{path:path}")
-async def options_handler(path: str):
-    return Response(status_code=204)
 
 # Global request logger middleware
 @app.middleware("http")
