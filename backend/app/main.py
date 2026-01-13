@@ -64,6 +64,20 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def cors_preflight_handler(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return Response(
+            status_code=204,
+            headers={
+                "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Authorization, Content-Type",
+            },
+        )
+    return await call_next(request)
+
+
 # Global request logger middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
