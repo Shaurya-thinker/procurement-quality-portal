@@ -19,7 +19,7 @@ from app.procurement.schemas.purchase_order import PurchaseOrderDetailRead
 from app.procurement.models import Item
 from app.procurement.schemas.item import ItemRead, ItemCreate
 
-router = APIRouter(prefix="/api/v1/procurement", tags=["Procurement"])
+router = APIRouter(prefix="/procurement", tags=["Procurement"])
 
 
 @router.post(

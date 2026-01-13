@@ -4,7 +4,7 @@ from app.core.db import get_db
 from app.user.schemas.user import UserCreate, UserUpdate, UserResponse
 from app.user.services.user_service import UserService
 
-router = APIRouter(prefix="/api/v1/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("", response_model=UserResponse)

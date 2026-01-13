@@ -7,7 +7,7 @@ from app.store.schemas.material_dispatch import MaterialDispatchCreate, Material
 from app.store.services.material_dispatch_service import MaterialDispatchService
 from app.store.schemas.material_dispatch import MaterialDispatchCancel
 
-router = APIRouter(prefix="/api/v1/store/material-dispatch", tags=["Material Dispatch"])
+router = APIRouter(prefix="/store/material-dispatch", tags=["Material Dispatch"])
 
 @router.post("/", response_model=MaterialDispatchRead)
 def create_material_dispatch(

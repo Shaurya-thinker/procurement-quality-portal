@@ -16,7 +16,7 @@ from app.store.models.store import Store, Bin
 from ...core.db import get_db
 from app.procurement.models.item import Item
 
-router = APIRouter(prefix="/api/v1/store", tags=["Store"])
+router = APIRouter(prefix="/store", tags=["Store"])
 
 @router.post("/receive-gate-pass/{gate_pass_id}")
 def receive_gate_pass(

@@ -7,7 +7,7 @@ from app.contractors.schemas import ContractorCreate, ContractorOut, ContractorU
 
 
 router = APIRouter(
-    prefix="/api/v1/contractors",
+    prefix="/contractors",
     tags=["Contractors"],
 )
 
