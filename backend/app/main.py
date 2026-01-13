@@ -53,6 +53,7 @@ Base.metadata.create_all(bind=engine)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://procurement-quality-portal-4m8elj04n.vercel.app",
         "https://procurement-quality-portal-o1f3gpy16.vercel.app",
         "https://procurement-quality-portal.vercel.app",
         "https://procurement-quality-portal-h5vh8rxl9.vercel.app",
