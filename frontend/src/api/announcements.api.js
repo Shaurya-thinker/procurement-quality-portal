@@ -5,17 +5,17 @@ import api from './api';
 ======================= */
 
 export const fetchEvents = async () => {
-  const res = await api.get('/api/v1/announcements/events');
+  const res = await api.get('/api/v1/announcements/events/');
   return res.data;
 };
 
 export const fetchTrainings = async () => {
-  const res = await api.get('/api/v1/announcements/trainings');
+  const res = await api.get('/api/v1/announcements/trainings/');
   return res.data;
 };
 
 export const fetchMeetings = async () => {
-  const res = await api.get('/api/v1/announcements/meetings');
+  const res = await api.get('/api/v1/announcements/meetings/');
   return res.data;
 };
 

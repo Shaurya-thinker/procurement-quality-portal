@@ -3,10 +3,10 @@ import api from "./api";
 /* Material Receipt */
 
 export const createMaterialReceipt = (data) =>
-  api.post("/api/v1/quality/material-receipt", data);
+  api.post("/api/v1/quality/material-receipt/", data);
 
 export const getMaterialReceipts = () =>
-  api.get("/api/v1/quality/material-receipt");
+  api.get("/api/v1/quality/material-receipt/");
 
 export const getMaterialReceiptDetails = (id) =>
   api.get(`/api/v1/quality/material-receipt/${id}`);
@@ -14,7 +14,7 @@ export const getMaterialReceiptDetails = (id) =>
 /* Quality Inspection */
 
 export const inspectMaterial = (data) =>
-  api.post("/api/v1/quality/inspection", data);
+  api.post("/api/v1/quality/inspection/", data);
 
 export const getInspectionReport = (inspectionId) =>
   api.get(`/api/v1/quality/inspection/${inspectionId}`);
@@ -22,17 +22,17 @@ export const getInspectionReport = (inspectionId) =>
 /* Quality Checklist */
 
 export const createQualityChecklist = (data) =>
-  api.post("/api/v1/quality/checklist", data);
+  api.post("/api/v1/quality/checklist/", data);
 
 /* Quality Sheet */
 
 export const createQualitySheet = (data) =>
-  api.post("/api/v1/quality/quality-sheet", data);
+  api.post("/api/v1/quality/quality-sheet/", data);
 
 /* Gate Pass */
 
 export const generateGatePass = (data) =>
-  api.post("/api/v1/quality/gate-pass", data);
+  api.post("/api/v1/quality/gate-pass/", data);
 
 export const getGatePassById = (id) =>
   api.get(`/api/v1/quality/gate-pass/${id}`);

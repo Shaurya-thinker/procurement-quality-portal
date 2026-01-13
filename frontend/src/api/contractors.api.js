@@ -2,7 +2,7 @@ import api from "./api";
 
 // Get all contractors
 export const fetchContractors = async () => {
-  const res = await api.get("/api/v1/contractors");
+  const res = await api.get("/api/v1/contractors/");
   return res.data;
 };
 
@@ -14,7 +14,7 @@ export const fetchContractorById = async (id) => {
 
 // Create contractor
 export const createContractor = async (payload) => {
-  const res = await api.post("/api/v1/contractors", payload);
+  const res = await api.post("/api/v1/contractors/", payload);
   return res.data;
 };
 
