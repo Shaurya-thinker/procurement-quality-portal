@@ -53,29 +53,14 @@ Base.metadata.create_all(bind=engine)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
         "https://procurement-quality-portal.vercel.app",
         "https://procurement-quality-portal-h5vh8rxl9.vercel.app",
+        "https://procurement-quality-portal-jxd2b0bq8.vercel.app",
     ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.middleware("http")
-async def cors_preflight_handler(request: Request, call_next):
-    if request.method == "OPTIONS":
-        return Response(
-            status_code=204,
-            headers={
-                "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Authorization, Content-Type",
-            },
-        )
-    return await call_next(request)
 
 
 # Global request logger middleware
