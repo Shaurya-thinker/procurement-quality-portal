@@ -5,7 +5,7 @@ import os
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import time
@@ -52,13 +52,20 @@ Base.metadata.create_all(bind=engine)
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://procurement-quality-portal.vercel.app",
+        "https://procurement-quality-portal-h5vh8rxl9.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
+@app.options("/{path:path}")
+async def options_handler(path: str):
+    return Response(status_code=204)
 
 # Global request logger middleware
 @app.middleware("http")
