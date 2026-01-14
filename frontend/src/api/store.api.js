@@ -50,7 +50,7 @@ export const getInventoryItem = (id) =>
 /* Dispatch */
 
 export const getDispatches = (params = {}) =>
-  api.get("/api/v1/store/material-dispatch", { params });
+  api.get("/api/v1/store/material-dispatch/", { params });
 
 export const getInventoryItemDetails = (id) =>
   api.get(`/api/v1/store/inventory/${id}`);
@@ -64,7 +64,7 @@ export const getInventoryByStore = (storeId) =>
 
 // Create dispatch (always creates DRAFT)
 export const createDispatch = (data) =>
-  api.post("/api/v1/store/material-dispatch", data);
+  api.post("/api/v1/store/material-dispatch/", data);
 
 // Update draft dispatch
 export const updateDispatch = (dispatchId, data) =>
